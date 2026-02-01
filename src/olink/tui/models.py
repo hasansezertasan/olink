@@ -38,7 +38,6 @@ class FilterState:
     """Current TUI filter/view state."""
 
     mode: str = "available"  # "all" or "available"
-    selected_index: int = 0
 
 
 def build_all_targets() -> list[TargetItem]:
