@@ -162,6 +162,10 @@ olink -d ~/projects/other-project origin
 olink --list-available
 ```
 
+## Limitations
+
+- olink must be run from the project root directory. Running from a subdirectory (e.g. `src/`) is not supported.
+
 ## Requirements
 
 - Python 3.14+
