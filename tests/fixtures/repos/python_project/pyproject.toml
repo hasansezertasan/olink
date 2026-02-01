@@ -1,0 +1,7 @@
+[project]
+name = "test-project"
+version = "1.0.0"
+
+[project.urls]
+Homepage = "https://example.com"
+Documentation = "https://docs.example.com"
