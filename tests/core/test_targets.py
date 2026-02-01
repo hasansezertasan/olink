@@ -20,6 +20,7 @@ from olink.core.targets import (
     CratesTarget,
     DepsDevTarget,
     DiscussionsTarget,
+    EcosystemsTarget,
     GemsTarget,
     IssuesTarget,
     LibrariesIOTarget,
@@ -385,6 +386,39 @@ class TestMultiEcosystemTargets:
         with pytest.raises(ProjectMetadataError) as exc_info:
             target.get_url(temp_dir)
         assert "No supported ecosystem found" in str(exc_info.value)
+
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    def test_multi_ecosystem_auto_detect_pypi(self, target_cls: type[MultiEcosystemTarget], temp_pyproject: str) -> None:
+        target = target_cls()
+        url = target.get_url(temp_pyproject)
+        assert "test-project" in url
+
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    def test_multi_ecosystem_auto_detect_npm(self, target_cls: type[MultiEcosystemTarget], temp_package_json: str) -> None:
+        target = target_cls()
+        url = target.get_url(temp_package_json)
+        assert "test-project" in url
+
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    def test_multi_ecosystem_auto_detect_cargo(self, target_cls: type[MultiEcosystemTarget], temp_cargo_toml: str) -> None:
+        target = target_cls()
+        url = target.get_url(temp_cargo_toml)
+        assert "test-crate" in url
+
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    def test_multi_ecosystem_auto_detect_go(self, target_cls: type[MultiEcosystemTarget], temp_go_mod: str) -> None:
+        target = target_cls()
+        url = target.get_url(temp_go_mod)
+        assert "test-go-module" in url
+
+    @pytest.mark.parametrize(
+        "raw_target",
+        ["libraries-io:foo", "deps:foo", "ecosystems:foo"],
+    )
+    def test_multi_ecosystem_invalid_suffix_raises(self, raw_target: str) -> None:
+        with pytest.raises(UnknownTargetError) as exc_info:
+            get_target(raw_target)
+        assert "doesn't support ecosystem 'foo'" in str(exc_info.value)
 
 
 class TestServiceTargets:

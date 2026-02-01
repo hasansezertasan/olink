@@ -1,10 +1,15 @@
-"""Tests for git.py - Git operations and URL parsing."""
+"""Tests for git.py - Git operations, URL parsing, and project metadata."""
+
+import json
+from pathlib import Path
 
 import pytest
 
-from olink.core.exceptions import NotGitRepoError, UnknownPlatformError
+from olink.core.exceptions import NotGitRepoError, ProjectMetadataError, UnknownPlatformError
 from olink.core.project import (
     ParsedRemote,
+    detect_ecosystems,
+    get_package_name,
     get_remote_url,
     parse_remote_url,
 )
@@ -132,3 +137,84 @@ class TestParsedRemote:
             repo="testrepo",
         )
         assert remote.base_url == "https://github.com/testowner/testrepo"
+
+
+class TestDetectEcosystems:
+    """Tests for detect_ecosystems function."""
+
+    def test_detect_python(self, temp_pyproject: str) -> None:
+        ecosystems = detect_ecosystems(temp_pyproject)
+        assert "pypi" in ecosystems
+
+    def test_detect_npm(self, temp_package_json: str) -> None:
+        ecosystems = detect_ecosystems(temp_package_json)
+        assert "npm" in ecosystems
+
+    def test_detect_cargo(self, temp_cargo_toml: str) -> None:
+        ecosystems = detect_ecosystems(temp_cargo_toml)
+        assert "cargo" in ecosystems
+
+    def test_detect_go(self, temp_go_mod: str) -> None:
+        ecosystems = detect_ecosystems(temp_go_mod)
+        assert "go" in ecosystems
+
+    def test_detect_multi_ecosystem(self, temp_multi_ecosystem: str) -> None:
+        ecosystems = detect_ecosystems(temp_multi_ecosystem)
+        assert "pypi" in ecosystems
+        assert "npm" in ecosystems
+
+    def test_detect_empty_dir(self, temp_dir: str) -> None:
+        ecosystems = detect_ecosystems(temp_dir)
+        assert ecosystems == []
+
+    def test_detect_skips_invalid_metadata_with_warning(self, temp_dir: str, caplog: pytest.LogCaptureFixture) -> None:
+        # pyproject.toml without [project].name
+        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
+        import logging
+
+        with caplog.at_level(logging.WARNING):
+            ecosystems = detect_ecosystems(temp_dir)
+        assert "pypi" not in ecosystems
+        assert any("skipped" in r.message.lower() for r in caplog.records)
+
+
+class TestGetPackageName:
+    """Tests for get_package_name function."""
+
+    def test_python_package_name(self, temp_pyproject: str) -> None:
+        assert get_package_name(temp_pyproject, "pypi") == "test-project"
+
+    def test_npm_package_name(self, temp_package_json: str) -> None:
+        assert get_package_name(temp_package_json, "npm") == "test-project"
+
+    def test_cargo_package_name(self, temp_cargo_toml: str) -> None:
+        assert get_package_name(temp_cargo_toml, "cargo") == "test-crate"
+
+    def test_go_package_name(self, temp_go_mod: str) -> None:
+        assert get_package_name(temp_go_mod, "go") == "github.com/testuser/test-go-module"
+
+    def test_unknown_ecosystem_raises(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError, match="Unknown ecosystem"):
+            get_package_name(temp_dir, "unknown")
+
+    def test_missing_pyproject_raises(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError):
+            get_package_name(temp_dir, "pypi")
+
+    def test_missing_package_json_raises(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError):
+            get_package_name(temp_dir, "npm")
+
+    def test_missing_cargo_toml_raises(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError):
+            get_package_name(temp_dir, "cargo")
+
+    def test_malformed_pyproject_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
+        with pytest.raises(ProjectMetadataError):
+            get_package_name(temp_dir, "pypi")
+
+    def test_malformed_package_json_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "package.json").write_text(json.dumps({"version": "1.0"}))
+        with pytest.raises(ProjectMetadataError):
+            get_package_name(temp_dir, "npm")

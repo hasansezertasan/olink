@@ -83,6 +83,26 @@ class TestCLIErrors:
         assert result.exit_code == 1
         assert "not inside a git repository" in result.output
 
+    def test_nonexistent_directory(self) -> None:
+        result = runner.invoke(app, ["-d", "/nonexistent/path", "origin"])
+        assert result.exit_code == 1
+        assert "Directory does not exist" in result.output
+
+    def test_directory_is_file(self, temp_dir: str) -> None:
+        import os
+
+        filepath = os.path.join(temp_dir, "afile.txt")
+        with open(filepath, "w") as f:
+            f.write("hello")
+        result = runner.invoke(app, ["-d", filepath, "origin"])
+        assert result.exit_code == 1
+        assert "Not a directory" in result.output
+
+    def test_list_no_targets_available(self, temp_dir: str) -> None:
+        result = runner.invoke(app, ["--list", "-d", temp_dir])
+        assert result.exit_code == 0
+        assert "No targets available for this project." in result.stdout
+
 
 class TestCLIOpenBrowser:
     """Tests for CLI browser opening (mocked)."""
@@ -98,3 +118,18 @@ class TestCLIOpenBrowser:
     def test_opens_correct_url(self, mock_launch: MagicMock, temp_git_repo: str) -> None:
         runner.invoke(app, ["-d", temp_git_repo, "origin"])
         mock_launch.assert_called_with("https://github.com/testuser/testrepo")
+
+
+class TestCLITUILaunch:
+    """Tests for TUI launch path."""
+
+    @patch("olink.tui.launch_tui")
+    def test_no_target_launches_tui(self, mock_tui: MagicMock, temp_dir: str) -> None:
+        result = runner.invoke(app, ["-d", temp_dir])
+        assert result.exit_code == 0
+        mock_tui.assert_called_once()
+
+    @patch("olink.tui.launch_tui", side_effect=KeyboardInterrupt)
+    def test_tui_keyboard_interrupt_handled(self, mock_tui: MagicMock, temp_dir: str) -> None:
+        result = runner.invoke(app, ["-d", temp_dir])
+        assert result.exit_code == 0
