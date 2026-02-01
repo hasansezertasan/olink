@@ -1,0 +1,6 @@
+[remote "origin"]
+	url = git@github.com:testuser/testrepo.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "upstream"]
+	url = git@github.com:original-author/testrepo.git
+	fetch = +refs/heads/*:refs/remotes/upstream/*
