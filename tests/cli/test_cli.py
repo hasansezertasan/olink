@@ -31,7 +31,7 @@ class TestCLIHelp:
         assert "pypi" in result.stdout
         assert "pepy" in result.stdout
         assert "bundlephobia" not in result.stdout
-        assert "of 36 targets available" in result.stdout
+        assert "targets available)" in result.stdout
 
     def test_list_with_git_repo(self, temp_git_repo: str) -> None:
         result = runner.invoke(app, ["--list", "-d", temp_git_repo])

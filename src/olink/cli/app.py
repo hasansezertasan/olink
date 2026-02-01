@@ -37,7 +37,7 @@ def main_callback(
     ctx: typer.Context,
     target: str | None = typer.Argument(
         None,
-        help="Target to open (origin, upstream, issues, pulls, actions, pypi, npm, gems, crates, homepage, docs)",
+        help="Target to open (origin, upstream, issues, pulls, actions, pypi, npm, gems, crates)",
     ),
     directory: str | None = typer.Option(
         None,
@@ -119,7 +119,7 @@ def main_callback(
             typer.echo("Available targets for this project:\n")
             for name, description in available:
                 typer.echo(f"  {name:16} - {description}")
-            typer.echo(f"\n({len(available)} of {len(REGISTRY)} targets available)")
+            typer.echo(f"\n({len(available)} targets available)")
         else:
             typer.echo("No targets available for this project.")
         raise typer.Exit(0)

@@ -61,8 +61,9 @@ class OlinkTUI(App):
         self._refresh_status()
 
     def _refresh_status(self) -> None:
-        total = len(self._source())
-        self.query_one(StatusBar).status_update(self.state.mode, total, total)
+        count = len(self._source())
+        total = len(self.all_targets)
+        self.query_one(StatusBar).status_update(self.state.mode, count, total)
 
     def action_toggle_mode(self) -> None:
         self.state.mode = "all" if self.state.mode == "available" else "available"

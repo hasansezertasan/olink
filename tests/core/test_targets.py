@@ -56,7 +56,7 @@ class TestRegistry:
         assert isinstance(target, PyPITarget)
 
     def test_get_target_unknown_raises(self) -> None:
-        with pytest.raises(Exception, match="Unknown target"):
+        with pytest.raises(UnknownTargetError, match="Unknown target"):
             get_target("nonexistent")
 
     def test_list_targets_returns_all(self) -> None:
