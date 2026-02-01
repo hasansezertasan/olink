@@ -266,8 +266,7 @@ class CoverallsTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         parsed = _get_parsed_remote(cwd, "origin")
-        platform = "github" if parsed.platform == "github" else parsed.platform
-        return f"https://coveralls.io/{platform}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
+        return f"https://coveralls.io/{parsed.platform}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
 
 
 # =============================================================================

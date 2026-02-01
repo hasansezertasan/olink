@@ -1,6 +1,14 @@
 """Target catalog - explicit registration of all targets."""
 
-from olink.core.exceptions import UnknownTargetError
+import logging
+
+from olink.core.exceptions import (
+    NoRemoteError,
+    NotGitRepoError,
+    ProjectMetadataError,
+    UnknownTargetError,
+    UnsupportedFeatureError,
+)
 from olink.core.targets import (
     # Git targets
     OriginTarget,
@@ -135,6 +143,62 @@ def get_target(name: str) -> Target:
     return target_cls()
 
 
+logger = logging.getLogger(__name__)
+
+# Exceptions that mean "this target doesn't apply here" — expected and safe to skip.
+UNAVAILABLE_ERRORS = (
+    NoRemoteError,
+    NotGitRepoError,
+    ProjectMetadataError,
+    UnsupportedFeatureError,
+)
+
+
 def list_targets() -> list[tuple[str, str]]:
     """List all available targets with their descriptions."""
-    return [(name, entry.description) for name, entry in sorted(REGISTRY.items())]
+    return [(name, target_cls.description) for name, target_cls in sorted(REGISTRY.items())]
+
+
+def list_available_targets(
+    cwd: str,
+) -> list[tuple[str, str, type[Target], str | None]]:
+    """List targets available for the current project.
+
+    Returns (name, description, target_cls, ecosystem) tuples.
+    """
+    from olink.core.project import detect_ecosystems
+
+    results: list[tuple[str, str, type[Target], str | None]] = []
+    detected_ecosystems = detect_ecosystems(cwd)
+
+    for name, target_cls in sorted(REGISTRY.items()):
+        if issubclass(target_cls, MultiEcosystemTarget):
+            supported = [
+                e for e in detected_ecosystems if e in target_cls.ecosystem_url_map
+            ]
+            if not supported:
+                continue
+            if len(supported) == 1:
+                try:
+                    target_cls(ecosystem=supported[0]).get_url(cwd)
+                    desc = f"{target_cls.description} ({supported[0]})"
+                    results.append((name, desc, target_cls, supported[0]))
+                except UNAVAILABLE_ERRORS as e:
+                    logger.debug("Skipping %s: %s", name, e)
+            else:
+                for eco in sorted(supported):
+                    try:
+                        target_cls(ecosystem=eco).get_url(cwd)
+                        results.append(
+                            (f"{name}:{eco}", target_cls.description, target_cls, eco)
+                        )
+                    except UNAVAILABLE_ERRORS as e:
+                        logger.debug("Skipping %s:%s: %s", name, eco, e)
+        else:
+            try:
+                target_cls().get_url(cwd)
+                results.append((name, target_cls.description, target_cls, None))
+            except UNAVAILABLE_ERRORS as e:
+                logger.debug("Skipping %s: %s", name, e)
+
+    return results

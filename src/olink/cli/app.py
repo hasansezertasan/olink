@@ -5,24 +5,10 @@ from pathlib import Path
 
 import typer
 
-from olink.core.catalog import REGISTRY, get_target, list_targets
-from olink.core.exceptions import (
-    NoRemoteError,
-    NotGitRepoError,
-    OlinkError,
-    ProjectMetadataError,
-    UnsupportedFeatureError,
-)
+from olink.core.catalog import get_target, list_available_targets, list_targets
+from olink.core.exceptions import OlinkError
 
 logger = logging.getLogger(__name__)
-
-# Exceptions that mean "this target doesn't apply here" — expected and safe to skip.
-_UNAVAILABLE_ERRORS = (
-    NoRemoteError,
-    NotGitRepoError,
-    ProjectMetadataError,
-    UnsupportedFeatureError,
-)
 
 app = typer.Typer(
     name="olink",
@@ -77,47 +63,11 @@ def main_callback(
 
     # Handle --list flag (available targets for current project)
     if list_available_flag:
-        from olink.core.project import detect_ecosystems
-        from olink.core.targets import MultiEcosystemTarget
-
-        available: list[tuple[str, str]] = []
-        detected_ecosystems = detect_ecosystems(cwd)
-
-        for name, target_cls in sorted(REGISTRY.items()):
-            if issubclass(target_cls, MultiEcosystemTarget):
-                supported = [
-                    e for e in detected_ecosystems if e in target_cls.ecosystem_url_map
-                ]
-
-                if len(supported) == 0:
-                    continue
-                elif len(supported) == 1:
-                    try:
-                        target_cls(ecosystem=supported[0]).get_url(cwd)
-                        ecosystem_note = f" ({supported[0]})"
-                        available.append(
-                            (name, target_cls.description + ecosystem_note)
-                        )
-                    except _UNAVAILABLE_ERRORS as e:
-                        logger.debug("Skipping %s: %s", name, e)
-                else:
-                    for ecosystem in sorted(supported):
-                        try:
-                            target_cls(ecosystem=ecosystem).get_url(cwd)
-                            variant_name = f"{name}:{ecosystem}"
-                            available.append((variant_name, target_cls.description))
-                        except _UNAVAILABLE_ERRORS as e:
-                            logger.debug("Skipping %s:%s: %s", name, ecosystem, e)
-            else:
-                try:
-                    target_cls().get_url(cwd)
-                    available.append((name, target_cls.description))
-                except _UNAVAILABLE_ERRORS as e:
-                    logger.debug("Skipping %s: %s", name, e)
+        available = list_available_targets(cwd)
 
         if available:
             typer.echo("Available targets for this project:\n")
-            for name, description in available:
+            for name, description, _, _ in available:
                 typer.echo(f"  {name:16} - {description}")
             typer.echo(f"\n({len(available)} targets available)")
         else:

@@ -8,6 +8,7 @@ from olink.core.exceptions import OlinkError
 from olink.tui.actions import copy_to_clipboard, open_in_browser
 from olink.tui.models import (
     FilterState,
+    TargetItem,
     build_all_targets,
     build_available_targets,
 )
@@ -49,7 +50,7 @@ class OlinkTUI(App):
     def on_mount(self) -> None:
         self._refresh_list()
 
-    def _source(self) -> list:
+    def _source(self) -> list[TargetItem]:
         return (
             self.available_targets
             if self.state.mode == "available"
