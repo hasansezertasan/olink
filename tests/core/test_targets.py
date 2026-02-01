@@ -14,7 +14,9 @@ from olink.core.catalog import REGISTRY, get_target, list_targets
 from olink.core.targets import (
     ActionsTarget,
     BranchesTarget,
+    CodecovTarget,
     CommitsTarget,
+    CoverallsTarget,
     CratesTarget,
     DepsDevTarget,
     DiscussionsTarget,
@@ -383,3 +385,41 @@ class TestMultiEcosystemTargets:
         with pytest.raises(ProjectMetadataError) as exc_info:
             target.get_url(temp_dir)
         assert "No supported ecosystem found" in str(exc_info.value)
+
+
+class TestServiceTargets:
+    """Tests for Codecov and Coveralls service targets."""
+
+    def test_codecov_target_github(self, temp_git_repo: str) -> None:
+        target = CodecovTarget()
+        url = target.get_url(temp_git_repo)
+        assert url == "https://codecov.io/gh/testuser/testrepo"
+
+    def test_codecov_target_gitlab(self, temp_git_repo_gitlab: str) -> None:
+        target = CodecovTarget()
+        url = target.get_url(temp_git_repo_gitlab)
+        assert url == "https://codecov.io/gl/testuser/testrepo"
+
+    def test_codecov_target_bitbucket(self, temp_git_repo_bitbucket: str) -> None:
+        target = CodecovTarget()
+        url = target.get_url(temp_git_repo_bitbucket)
+        assert url == "https://codecov.io/bb/testuser/testrepo"
+
+    def test_coveralls_target_github(self, temp_git_repo: str) -> None:
+        target = CoverallsTarget()
+        url = target.get_url(temp_git_repo)
+        assert url == "https://coveralls.io/github/testuser/testrepo"
+
+    def test_coveralls_target_gitlab(self, temp_git_repo_gitlab: str) -> None:
+        target = CoverallsTarget()
+        url = target.get_url(temp_git_repo_gitlab)
+        assert url.startswith("https://coveralls.io/")
+        assert "testuser" in url
+        assert "testrepo" in url
+
+    def test_coveralls_target_bitbucket(self, temp_git_repo_bitbucket: str) -> None:
+        target = CoverallsTarget()
+        url = target.get_url(temp_git_repo_bitbucket)
+        assert url.startswith("https://coveralls.io/")
+        assert "testuser" in url
+        assert "testrepo" in url
