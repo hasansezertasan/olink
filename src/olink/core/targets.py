@@ -318,6 +318,17 @@ class PyPIStatsTarget(Target):
         return f"https://pypistats.org/packages/{_encode_name(get_package_name(cwd, 'pypi'))}"
 
 
+class PiWheelsTarget(Target):
+    """Provide quick access to piwheels when validating Raspberry Pi builds."""
+
+    name = "piwheels"
+    description = "Open the piwheels project page"
+
+    def get_url(self, cwd: str) -> str:
+        """Mirror Python target behavior so one project config powers multiple registries."""
+        return f"https://www.piwheels.org/project/{_encode_name(get_package_name(cwd, 'pypi'))}/"
+
+
 class PipTrendsTarget(Target):
     name = "piptrends"
     description = "Open the Pip Trends page"

@@ -30,6 +30,7 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert "pypi" in result.stdout
         assert "pepy" in result.stdout
+        assert "piwheels" in result.stdout
         assert "bundlephobia" not in result.stdout
         assert "targets available)" in result.stdout
 
@@ -47,6 +48,13 @@ class TestCLIDryRun:
         result = runner.invoke(app, ["-n", "-d", temp_pyproject, "pypi"])
         assert result.exit_code == 0
         assert "pypi.org/project/test-project" in result.stdout
+
+
+    def test_dry_run_piwheels(self, temp_pyproject: str) -> None:
+        """Verify dry-run output includes piwheels so users can trust non-opening previews."""
+        result = runner.invoke(app, ["-n", "-d", temp_pyproject, "piwheels"])
+        assert result.exit_code == 0
+        assert "piwheels.org/project/test-project" in result.stdout
 
     def test_dry_run_npm(self, temp_package_json: str) -> None:
         result = runner.invoke(app, ["-n", "-d", temp_package_json, "npm"])

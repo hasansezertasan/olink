@@ -31,6 +31,7 @@ from olink.core.targets import (
     ReleasesTarget,
     SecurityTarget,
     WikiTarget,
+    PiWheelsTarget,
     PyPITarget,
     SnykTarget,
     UpstreamTarget,
@@ -44,7 +45,7 @@ class TestRegistry:
         expected_targets = {
             "origin", "upstream", "issues", "pulls", "actions", "wiki",
             "releases", "branches", "commits", "security", "discussions",
-            "pypi", "inspector", "pypi-json", "pepy", "pypistats",
+            "pypi", "inspector", "pypi-json", "pepy", "piwheels", "pypistats",
             "piptrends", "clickpy", "snyk", "safety-db",
             "libraries-io", "deps", "ecosystems",
             "npm", "bundlephobia", "packagephobia", "npm-stat",
@@ -64,7 +65,7 @@ class TestRegistry:
 
     def test_list_targets_returns_all(self) -> None:
         targets = list_targets()
-        assert len(targets) == 36
+        assert len(targets) == 37
         names = [name for name, _ in targets]
         assert "origin" in names
         assert "pypi" in names
@@ -253,6 +254,19 @@ class TestRegistryTargets:
 
     def test_pypi_target_no_config(self, temp_dir: str) -> None:
         target = PyPITarget()
+        with pytest.raises(ProjectMetadataError, match="No pyproject.toml found"):
+            target.get_url(temp_dir)
+
+
+    def test_piwheels_target(self, temp_pyproject: str) -> None:
+        """Ensure Python projects can jump to piwheels with the same metadata source."""
+        target = PiWheelsTarget()
+        url = target.get_url(temp_pyproject)
+        assert url == "https://www.piwheels.org/project/test-project/"
+
+    def test_piwheels_target_no_config(self, temp_dir: str) -> None:
+        """Preserve predictable metadata errors when Python project files are missing."""
+        target = PiWheelsTarget()
         with pytest.raises(ProjectMetadataError, match="No pyproject.toml found"):
             target.get_url(temp_dir)
 

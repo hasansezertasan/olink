@@ -4,6 +4,24 @@ Chronological record of decisions, attempts (including failures), and outcomes.
 
 ---
 
+## 2026-02-12: Added piwheels Target Support
+
+### Context
+
+Python projects in this tool already supported PyPI and related analytics targets, but lacked a direct shortcut to piwheels for Raspberry Pi package builds.
+
+### The Change
+
+- Added a dedicated `piwheels` target that reuses PyPI package-name detection from `pyproject.toml`.
+- Registered the target in the central catalog so it appears in discovery and CLI lookup flows.
+- Expanded tests and README documentation to make the new target discoverable and verified.
+
+### Outcome
+
+`olink piwheels` now opens `https://www.piwheels.org/project/<package>/` for Python projects while preserving existing metadata error behavior.
+
+---
+
 ## 2026-02-01: Decision to Keep Custom Exceptions
 
 ### Context
