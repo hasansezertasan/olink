@@ -318,6 +318,17 @@ class PyPIStatsTarget(Target):
         return f"https://pypistats.org/packages/{_encode_name(get_package_name(cwd, 'pypi'))}"
 
 
+class PiWheelsTarget(Target):
+    """Expose piwheels so Python projects can validate Raspberry Pi package availability."""
+
+    name = "piwheels"
+    description = "Open the piwheels project page"
+
+    def get_url(self, cwd: str) -> str:
+        """Reuse PyPI metadata lookup so package naming stays consistent across Python targets."""
+        return f"https://www.piwheels.org/project/{_encode_name(get_package_name(cwd, 'pypi'))}/"
+
+
 class PipTrendsTarget(Target):
     name = "piptrends"
     description = "Open the Pip Trends page"
