@@ -65,7 +65,7 @@ class TestRegistry:
 
     def test_list_targets_returns_all(self) -> None:
         targets = list_targets()
-        assert len(targets) == 37
+        assert len(targets) == len(REGISTRY)
         names = [name for name, _ in targets]
         assert "origin" in names
         assert "pypi" in names
@@ -257,15 +257,13 @@ class TestRegistryTargets:
         with pytest.raises(ProjectMetadataError, match="No pyproject.toml found"):
             target.get_url(temp_dir)
 
-
     def test_piwheels_target(self, temp_pyproject: str) -> None:
-        """Ensure Python projects can jump to piwheels with the same metadata source."""
+        """Confirm piwheels URL generation matches the detected Python package name."""
         target = PiWheelsTarget()
         url = target.get_url(temp_pyproject)
         assert url == "https://www.piwheels.org/project/test-project/"
-
     def test_piwheels_target_no_config(self, temp_dir: str) -> None:
-        """Preserve predictable metadata errors when Python project files are missing."""
+        """Protect user feedback quality when Python metadata cannot be discovered."""
         target = PiWheelsTarget()
         with pytest.raises(ProjectMetadataError, match="No pyproject.toml found"):
             target.get_url(temp_dir)

@@ -4,6 +4,23 @@ Chronological record of decisions, attempts (including failures), and outcomes.
 
 ---
 
+## 2026-02-12: Follow-up on piwheels Review Feedback
+
+### Context
+
+Review feedback flagged a brittle target-count assertion and suggested tighter docstrings for new piwheels-related additions.
+
+### The Change
+
+- Updated `test_list_targets_returns_all` to assert against `len(REGISTRY)` instead of a hard-coded number.
+- Shortened piwheels class and test docstrings to keep intent clear and scannable.
+
+### Outcome
+
+Future target additions no longer require changing a magic count in tests, and piwheels documentation reads more consistently with the rest of the codebase.
+
+---
+
 ## 2026-02-12: Added piwheels Target Support
 
 ### Context

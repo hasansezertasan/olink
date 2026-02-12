@@ -319,13 +319,13 @@ class PyPIStatsTarget(Target):
 
 
 class PiWheelsTarget(Target):
-    """Provide quick access to piwheels when validating Raspberry Pi builds."""
+    """Expose piwheels so Python projects can validate Raspberry Pi package availability."""
 
     name = "piwheels"
     description = "Open the piwheels project page"
 
     def get_url(self, cwd: str) -> str:
-        """Mirror Python target behavior so one project config powers multiple registries."""
+        """Reuse PyPI metadata lookup so package naming stays consistent across Python targets."""
         return f"https://www.piwheels.org/project/{_encode_name(get_package_name(cwd, 'pypi'))}/"
 
 

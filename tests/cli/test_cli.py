@@ -49,9 +49,8 @@ class TestCLIDryRun:
         assert result.exit_code == 0
         assert "pypi.org/project/test-project" in result.stdout
 
-
     def test_dry_run_piwheels(self, temp_pyproject: str) -> None:
-        """Verify dry-run output includes piwheels so users can trust non-opening previews."""
+        """Ensure dry-run mode reveals the exact piwheels URL before opening a browser."""
         result = runner.invoke(app, ["-n", "-d", temp_pyproject, "piwheels"])
         assert result.exit_code == 0
         assert "piwheels.org/project/test-project" in result.stdout
