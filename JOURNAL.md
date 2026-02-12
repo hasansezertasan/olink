@@ -4,6 +4,24 @@ Chronological record of decisions, attempts (including failures), and outcomes.
 
 ---
 
+## 2026-02-12: Follow-up on piwheels Test Coverage and Formatting
+
+### Context
+
+Review feedback requested explicit CLI error-path coverage for `piwheels` without `pyproject.toml`, plus a small readability cleanup in target tests.
+
+### The Change
+
+- Added a CLI dry-run error test for `piwheels` that asserts the expected missing `pyproject.toml` message.
+- Inserted a blank line between piwheels target tests for consistent spacing and readability.
+- Verified `REGISTRY` remains explicitly imported where `len(REGISTRY)` is asserted.
+
+### Outcome
+
+The piwheels feature now has both success and failure behavior covered through the CLI surface, and the related tests are formatted consistently.
+
+---
+
 ## 2026-02-12: Follow-up on piwheels Review Feedback
 
 ### Context

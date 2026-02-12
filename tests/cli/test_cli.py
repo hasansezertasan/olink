@@ -71,6 +71,13 @@ class TestCLIDryRun:
         assert "github.com/testuser/testrepo/issues" in result.stdout
 
 
+    def test_piwheels_without_pyproject(self, temp_dir: str) -> None:
+        """Verify CLI errors stay actionable when piwheels is run outside Python projects."""
+        result = runner.invoke(app, ["-n", "-d", temp_dir, "piwheels"])
+        assert result.exit_code == 1
+        assert "No pyproject.toml found" in result.output
+
+
 class TestCLIErrors:
     """Tests for CLI error handling."""
 

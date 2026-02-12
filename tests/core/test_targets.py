@@ -262,6 +262,7 @@ class TestRegistryTargets:
         target = PiWheelsTarget()
         url = target.get_url(temp_pyproject)
         assert url == "https://www.piwheels.org/project/test-project/"
+
     def test_piwheels_target_no_config(self, temp_dir: str) -> None:
         """Protect user feedback quality when Python metadata cannot be discovered."""
         target = PiWheelsTarget()
