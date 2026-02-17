@@ -1,7 +1,8 @@
 """Custom Textual widgets for the TUI."""
 
 from rich.text import Text
-from textual.widgets import ListItem, ListView, Static
+from textual.binding import Binding
+from textual.widgets import Input, ListItem, ListView, Static
 
 from olink.tui.models import TargetItem
 
@@ -23,6 +24,11 @@ class TargetRow(ListItem):
 class TargetListWidget(ListView):
     """Scrollable list of targets."""
 
+    BINDINGS = [
+        Binding("j", "cursor_down", "Down", show=False),
+        Binding("k", "cursor_up", "Up", show=False),
+    ]
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -38,6 +44,20 @@ class TargetListWidget(ListView):
         self.clear()
         for item in items:
             self.append(TargetRow(item))
+
+
+class SearchInput(Input):
+    """Search bar that appears when / is pressed."""
+
+    DEFAULT_CSS = """
+    SearchInput {
+        dock: bottom;
+        height: 1;
+        display: none;
+    }
+    """
+
+    placeholder = "Search…"
 
 
 class StatusBar(Static):
