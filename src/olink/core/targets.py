@@ -404,6 +404,24 @@ class EcosystemsTarget(MultiEcosystemTarget):
         return f"https://packages.ecosyste.ms/registries/{ecosystem_path}/packages/{_encode_name(package_name)}"
 
 
+
+class SocketTarget(MultiEcosystemTarget):
+    """Expose Socket.dev package risk pages across major ecosystems from one target."""
+
+    name = "socket"
+    description = "Open Socket.dev package health"
+    ecosystem_url_map = {
+        "pypi": "pypi",
+        "npm": "npm",
+        "cargo": "cargo",
+        "go": "go",
+    }
+
+    def _build_url(self, ecosystem_path: str, package_name: str) -> str:
+        """Encode package names safely because Socket URLs include the raw package identifier."""
+        return f"https://socket.dev/{ecosystem_path}/package/{_encode_name(package_name)}"
+
+
 # =============================================================================
 # npm Targets
 # =============================================================================
@@ -443,6 +461,40 @@ class NPMStatTarget(Target):
         return "https://npm-stat.com/charts.html?" + urlencode(
             {"package": get_package_name(cwd, "npm")}
         )
+
+
+
+class JsDelivrTarget(Target):
+    """Shortcut CDN package inspection for frontend dependency debugging workflows."""
+
+    name = "jsdelivr"
+    description = "Open jsDelivr package page"
+
+    def get_url(self, cwd: str) -> str:
+        """Reuse npm package metadata so scoped names remain valid without extra mapping rules."""
+        return f"https://www.jsdelivr.com/package/npm/{_encode_name(get_package_name(cwd, 'npm'))}"
+
+
+class UnpkgTarget(Target):
+    """Give maintainers a direct view of published npm artifacts as served by UNPKG."""
+
+    name = "unpkg"
+    description = "Open the UNPKG package page"
+
+    def get_url(self, cwd: str) -> str:
+        """Use the package name from package.json so URL previews match published package IDs."""
+        return f"https://unpkg.com/{_encode_name(get_package_name(cwd, 'npm'))}"
+
+
+class SkypackTarget(Target):
+    """Support quick compatibility checks against Skypack's ESM package view."""
+
+    name = "skypack"
+    description = "Open the Skypack package page"
+
+    def get_url(self, cwd: str) -> str:
+        """Derive URLs from npm metadata to keep behavior aligned with other JavaScript targets."""
+        return f"https://www.skypack.dev/view/{_encode_name(get_package_name(cwd, 'npm'))}"
 
 
 # =============================================================================
@@ -495,6 +547,17 @@ class GoPkgTarget(Target):
         return f"https://pkg.go.dev/{_encode_name(get_package_name(cwd, 'go'))}"
 
 
+class GoDocsTarget(Target):
+    """Provide an intuitive alias for Go users who look for docs-oriented target names."""
+
+    name = "go-docs"
+    description = "Open pkg.go.dev documentation"
+
+    def get_url(self, cwd: str) -> str:
+        """Reuse go.mod module lookup so docs links match the canonical module identifier."""
+        return f"https://pkg.go.dev/{_encode_name(get_package_name(cwd, 'go'))}"
+
+
 # =============================================================================
 # Ruby Targets
 # =============================================================================
@@ -508,6 +571,18 @@ class GemsTarget(Target):
         return (
             f"https://rubygems.org/gems/{_encode_name(get_package_name(cwd, 'gems'))}"
         )
+
+
+
+class RubyGemsStatsTarget(Target):
+    """Expose RubyGems usage stats to help maintainers gauge adoption quickly."""
+
+    name = "rubygems-stats"
+    description = "Open RubyGems download stats"
+
+    def get_url(self, cwd: str) -> str:
+        """Build on gemspec name extraction so package identity stays consistent across Ruby targets."""
+        return f"https://rubygems.org/gems/{_encode_name(get_package_name(cwd, 'gems'))}/stats"
 
 
 # =============================================================================
@@ -560,3 +635,50 @@ class NuGetTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         return f"https://www.nuget.org/packages/{_encode_name(get_package_name(cwd, 'nuget'))}"
+
+
+
+class OpenVSXTarget(Target):
+    """Enable extension authors to jump from local metadata straight to Open VSX listings."""
+
+    name = "open-vsx"
+    description = "Open the Open VSX extension page"
+
+    def get_url(self, cwd: str) -> str:
+        """Use publisher + name from package.json because Open VSX identifies extensions by both."""
+        return f"https://open-vsx.org/extension/{_encode_name(get_package_name(cwd, 'open-vsx'))}"
+
+
+class MavenTarget(Target):
+    """Expose Maven Central pages for JVM artifacts based on standard project coordinates."""
+
+    name = "maven"
+    description = "Open the Maven Central artifact page"
+
+    def get_url(self, cwd: str) -> str:
+        """Convert groupId/artifactId coordinates into Maven Central's artifact URL format."""
+        group_artifact = get_package_name(cwd, "maven")
+        group_id, artifact_id = group_artifact.split(":", 1)
+        return f"https://central.sonatype.com/artifact/{_encode_name(group_id)}/{_encode_name(artifact_id)}"
+
+
+class HackageTarget(Target):
+    """Help Haskell maintainers inspect package metadata directly on Hackage."""
+
+    name = "hackage"
+    description = "Open the Hackage package page"
+
+    def get_url(self, cwd: str) -> str:
+        """Reuse cabal package naming to avoid introducing Haskell-specific URL translation logic."""
+        return f"https://hackage.haskell.org/package/{_encode_name(get_package_name(cwd, 'hackage'))}"
+
+
+class CpanTarget(Target):
+    """Surface MetaCPAN lookup for Perl dependencies from lightweight cpanfile metadata."""
+
+    name = "cpan"
+    description = "Open the MetaCPAN module page"
+
+    def get_url(self, cwd: str) -> str:
+        """Map the module name directly to MetaCPAN for immediate documentation and release access."""
+        return f"https://metacpan.org/pod/{_encode_name(get_package_name(cwd, 'cpan'))}"

@@ -75,6 +75,7 @@ These services support multiple ecosystems (Python, npm, Rust, Go).
 | `libraries-io` | Open Libraries.io                  | pypi, npm, cargo, go |
 | `deps`         | Open deps.dev (Google Open Source) | pypi, npm, cargo, go |
 | `ecosystems`   | Open ecosyste.ms                   | pypi, npm, cargo, go |
+| `socket`       | Open Socket.dev package health     | pypi, npm, cargo, go |
 
 **Suffix Notation:** For projects with multiple ecosystems, use `target:ecosystem`:
 
@@ -94,6 +95,9 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 | `bundlephobia`  | Open Bundlephobia (bundle size) | `package.json` |
 | `packagephobia` | Open Packagephobia (install)    | `package.json` |
 | `npm-stat`      | Open npm-stat download charts   | `package.json` |
+| `jsdelivr`      | Open jsDelivr package page      | `package.json` |
+| `unpkg`         | Open UNPKG package page         | `package.json` |
+| `skypack`       | Open Skypack package page       | `package.json` |
 
 ### Rust Targets
 
@@ -108,6 +112,7 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 | Target   | Description                 | Config File |
 | -------- | --------------------------- | ----------- |
 | `pkg-go` | Open pkg.go.dev module page | `go.mod`    |
+| `go-docs` | Open pkg.go.dev documentation | `go.mod`  |
 
 ### Other Ecosystem Targets
 
@@ -115,9 +120,14 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 | ----------- | -------------------- | ---------------- |
 | `packagist` | Open Packagist (PHP) | `composer.json`  |
 | `pub`       | Open pub.dev (Dart)  | `pubspec.yaml`   |
-| `gems`      | Open RubyGems        | (directory name) |
-| `hex`       | Open hex.pm (Elixir) | (directory name) |
-| `nuget`     | Open NuGet (.NET)    | (directory name) |
+| `gems`      | Open RubyGems                    | `*.gemspec`    |
+| `rubygems-stats` | Open RubyGems download stats | `*.gemspec`    |
+| `open-vsx`  | Open Open VSX extension page     | `package.json` |
+| `maven`     | Open Maven Central artifact page | `pom.xml`      |
+| `hackage`   | Open Hackage package page        | `*.cabal`      |
+| `cpan`      | Open MetaCPAN module page        | `cpanfile`     |
+| `hex`       | Open hex.pm (Elixir)             | `mix.exs`      |
+| `nuget`     | Open NuGet (.NET)                | `*.csproj`     |
 
 ### Service Targets
 
@@ -147,6 +157,7 @@ olink snyk
 # In a monorepo with Python + npm, use explicit ecosystem
 olink snyk:pypi      # Check Python package on Snyk
 olink deps:npm       # View npm deps on deps.dev
+olink socket:npm     # Check npm package health on Socket.dev
 
 # View dependency graph on deps.dev
 olink deps

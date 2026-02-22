@@ -18,6 +18,7 @@ import json
 import logging
 import re
 import tomllib
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -320,6 +321,89 @@ def _get_nuget_name(cwd: str) -> str:
     return match.group(1)
 
 
+def _get_open_vsx_name(cwd: str) -> str:
+    """Align extension target URLs with extension metadata already kept in package.json."""
+    package_json_path = Path(cwd) / "package.json"
+    if not package_json_path.exists():
+        raise ProjectMetadataError("No package.json found")
+
+    try:
+        with open(package_json_path, encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ProjectMetadataError(f"Invalid package.json: {e}") from e
+
+    publisher = data.get("publisher")
+    name = data.get("name")
+    if not publisher or not isinstance(publisher, str):
+        raise ProjectMetadataError("No 'publisher' in package.json for open-vsx")
+    if not name or not isinstance(name, str):
+        raise ProjectMetadataError("No 'name' in package.json")
+
+    return f"{publisher}.{name}"
+
+
+def _get_maven_name(cwd: str) -> str:
+    """Use Maven coordinates so artifact links stay stable across tooling and mirrors."""
+    pom_path = Path(cwd) / "pom.xml"
+    if not pom_path.exists():
+        raise ProjectMetadataError("No pom.xml found")
+
+    try:
+        root = ET.fromstring(pom_path.read_text(encoding="utf-8"))
+    except ET.ParseError as e:
+        raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
+
+    namespace = ""
+    if root.tag.startswith("{"):
+        namespace = root.tag.split("}", 1)[0] + "}"
+
+    group_id = root.findtext(f"{namespace}groupId")
+    if not group_id:
+        parent = root.find(f"{namespace}parent")
+        if parent is not None:
+            group_id = parent.findtext(f"{namespace}groupId")
+
+    artifact_id = root.findtext(f"{namespace}artifactId")
+    if not group_id or not artifact_id:
+        raise ProjectMetadataError("No 'groupId'/'artifactId' in pom.xml")
+
+    return f"{group_id}:{artifact_id}"
+
+
+def _get_hackage_name(cwd: str) -> str:
+    """Read Cabal metadata directly to avoid external tool dependencies during lookup."""
+    cabal_files = list(Path(cwd).glob("*.cabal"))
+    if not cabal_files:
+        raise ProjectMetadataError("No .cabal file found")
+
+    content = cabal_files[0].read_text(encoding="utf-8")
+    match = re.search(r"^name\s*:\s*(\S+)", content, re.MULTILINE | re.IGNORECASE)
+    if not match:
+        raise ProjectMetadataError("No 'name' in .cabal file")
+    return match.group(1)
+
+
+def _get_cpan_name(cwd: str) -> str:
+    """Favor distribution metadata so generated MetaCPAN URLs point at the project being developed."""
+    dist_ini_path = Path(cwd) / "dist.ini"
+    if dist_ini_path.exists():
+        dist_ini = dist_ini_path.read_text(encoding="utf-8")
+        dist_match = re.search(r"^name\s*=\s*(\S+)", dist_ini, re.MULTILINE)
+        if dist_match:
+            return dist_match.group(1)
+
+    cpanfile_path = Path(cwd) / "cpanfile"
+    if not cpanfile_path.exists():
+        raise ProjectMetadataError("No cpanfile or dist.ini found")
+
+    content = cpanfile_path.read_text(encoding="utf-8")
+    match = re.search(r"requires\s+['\"]([^'\"]+)['\"]", content)
+    if not match:
+        raise ProjectMetadataError("No module name in cpanfile")
+    return match.group(1)
+
+
 ECOSYSTEMS: dict[str, EcosystemConfig] = {
     "pypi": EcosystemConfig("pypi", "Python", "pyproject.toml", _get_pypi_name),
     "npm": EcosystemConfig("npm", "npm", "package.json", _get_npm_name),
@@ -332,6 +416,12 @@ ECOSYSTEMS: dict[str, EcosystemConfig] = {
     "pub": EcosystemConfig("pub", "Dart", "pubspec.yaml", _get_pub_name),
     "hex": EcosystemConfig("hex", "Elixir", "mix.exs", _get_hex_name),
     "nuget": EcosystemConfig("nuget", ".NET", "*.csproj", _get_nuget_name),
+    "open-vsx": EcosystemConfig(
+        "open-vsx", "Open VSX", "package.json", _get_open_vsx_name
+    ),
+    "maven": EcosystemConfig("maven", "Maven", "pom.xml", _get_maven_name),
+    "hackage": EcosystemConfig("hackage", "Haskell", "*.cabal", _get_hackage_name),
+    "cpan": EcosystemConfig("cpan", "Perl", "cpanfile", _get_cpan_name),
 }
 
 
