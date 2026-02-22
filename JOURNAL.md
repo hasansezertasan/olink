@@ -4,6 +4,58 @@ Chronological record of decisions, attempts (including failures), and outcomes.
 
 ---
 
+## 2026-02-22: Implemented Full Target Expansion Set
+
+### Context
+
+Follow-up requested implementing the full brainstormed target set rather than keeping it as notes.
+
+### The Change
+
+- Added 10 targets across existing and new ecosystems:
+  - `rubygems-stats`, `go-docs`, `jsdelivr`, `unpkg`, `skypack`, `socket`, `open-vsx`, `maven`, `hackage`, `cpan`.
+- Extended ecosystem extraction to support Open VSX (`package.json` publisher+name), Maven (`pom.xml`), Hackage (`*.cabal`), and CPAN (`cpanfile`).
+- Added fixtures and tests covering URL generation and target registry membership for all new targets.
+- Updated README tables/examples so new targets are discoverable from docs.
+
+### Outcome
+
+The previously proposed target shortlist is now implemented with test coverage and surfaced in user-facing documentation.
+
+---
+
+## 2026-02-22: Target Expansion Brainstorm (Web Search Blocked)
+
+### Context
+
+A request came in for a quick scan of additional `olink` targets to add next.
+
+### The Attempt
+
+- Tried to run a lightweight web search via `curl` against DuckDuckGo.
+- The environment returned `CONNECT tunnel failed, response 403`, so live search results were unavailable from this container.
+
+### Proposed Targets
+
+Based on ecosystem fit with the current target model (registry pages, docs pages, and package analytics), these are strong candidates:
+
+1. **RubyGems stats**: `rubygems-stats` → `https://rubygems.org/gems/<name>/stats`
+2. **pkg.go.dev docs**: `go-docs` → `https://pkg.go.dev/<module>`
+3. **jsDelivr package view**: `jsdelivr` → `https://www.jsdelivr.com/package/npm/<name>`
+4. **UNPKG package view**: `unpkg` → `https://unpkg.com/<name>`
+5. **Skypack package view**: `skypack` → `https://www.skypack.dev/view/<name>`
+6. **Socket.dev package health**: `socket` (multi-ecosystem) with ecosystem-specific paths
+7. **Open VSX extension page**: `open-vsx` for VS Code extension projects
+8. **Maven Central artifact page**: `maven` for Java/Kotlin projects (`groupId:artifactId`)
+9. **Hackage package page**: `hackage` for Haskell projects
+10. **CPAN package page**: `cpan` for Perl projects
+
+### Outcome
+
+Recorded a concrete shortlist that can be implemented without changing the architecture, while noting that network-enabled validation of market demand should be done outside this restricted environment.
+
+---
+
 ## 2026-02-12: Follow-up on piwheels Test Coverage and Formatting
 
 ### Context

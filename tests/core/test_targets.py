@@ -20,6 +20,7 @@ from olink.core.targets import (
     CratesTarget,
     DocsRsTarget,
     GoPkgTarget,
+    GoDocsTarget,
     DepsDevTarget,
     DiscussionsTarget,
     EcosystemsTarget,
@@ -28,6 +29,9 @@ from olink.core.targets import (
     LibrariesIOTarget,
     MultiEcosystemTarget,
     NPMTarget,
+    JsDelivrTarget,
+    UnpkgTarget,
+    SkypackTarget,
     OriginTarget,
     PullsTarget,
     ReleasesTarget,
@@ -35,7 +39,13 @@ from olink.core.targets import (
     WikiTarget,
     PiWheelsTarget,
     PyPITarget,
+    RubyGemsStatsTarget,
     SnykTarget,
+    SocketTarget,
+    OpenVSXTarget,
+    MavenTarget,
+    HackageTarget,
+    CpanTarget,
     UpstreamTarget,
 )
 
@@ -49,10 +59,10 @@ class TestRegistry:
             "releases", "branches", "commits", "security", "discussions",
             "pypi", "inspector", "pypi-json", "pepy", "piwheels", "pypistats",
             "piptrends", "clickpy", "snyk", "safety-db",
-            "libraries-io", "deps", "ecosystems",
-            "npm", "bundlephobia", "packagephobia", "npm-stat",
-            "crates", "librs", "docsrs", "pkg-go",
-            "gems", "packagist", "pub", "hex", "nuget",
+            "libraries-io", "deps", "ecosystems", "socket",
+            "npm", "bundlephobia", "packagephobia", "npm-stat", "jsdelivr", "unpkg", "skypack",
+            "crates", "librs", "docsrs", "pkg-go", "go-docs",
+            "gems", "rubygems-stats", "packagist", "pub", "hex", "nuget", "open-vsx", "maven", "hackage", "cpan",
             "codecov", "coveralls",
         }
         assert set(REGISTRY.keys()) == expected_targets
@@ -326,6 +336,51 @@ class TestRegistryTargets:
         with pytest.raises(ProjectMetadataError, match="No go.mod found"):
             target.get_url(temp_dir)
 
+    def test_go_docs_target(self, temp_go_mod: str) -> None:
+        target = GoDocsTarget()
+        url = target.get_url(temp_go_mod)
+        assert url == "https://pkg.go.dev/github.com/testuser/test-go-module"
+
+    def test_rubygems_stats_target(self, temp_gemspec: str) -> None:
+        target = RubyGemsStatsTarget()
+        url = target.get_url(temp_gemspec)
+        assert url == "https://rubygems.org/gems/mygem/stats"
+
+    def test_jsdelivr_target(self, temp_package_json: str) -> None:
+        target = JsDelivrTarget()
+        url = target.get_url(temp_package_json)
+        assert url == "https://www.jsdelivr.com/package/npm/test-project"
+
+    def test_unpkg_target(self, temp_package_json: str) -> None:
+        target = UnpkgTarget()
+        url = target.get_url(temp_package_json)
+        assert url == "https://unpkg.com/test-project"
+
+    def test_skypack_target(self, temp_package_json: str) -> None:
+        target = SkypackTarget()
+        url = target.get_url(temp_package_json)
+        assert url == "https://www.skypack.dev/view/test-project"
+
+    def test_open_vsx_target(self, temp_open_vsx_package_json: str) -> None:
+        target = OpenVSXTarget()
+        url = target.get_url(temp_open_vsx_package_json)
+        assert url == "https://open-vsx.org/extension/testpublisher.test-extension"
+
+    def test_maven_target(self, temp_maven_pom: str) -> None:
+        target = MavenTarget()
+        url = target.get_url(temp_maven_pom)
+        assert url == "https://central.sonatype.com/artifact/com.example/test-app"
+
+    def test_hackage_target(self, temp_hackage_cabal: str) -> None:
+        target = HackageTarget()
+        url = target.get_url(temp_hackage_cabal)
+        assert url == "https://hackage.haskell.org/package/test-package"
+
+    def test_cpan_target(self, temp_cpanfile: str) -> None:
+        target = CpanTarget()
+        url = target.get_url(temp_cpanfile)
+        assert url == "https://metacpan.org/pod/Test%3A%3AModule"
+
 
 class TestMultiEcosystemTargets:
     """Tests for multi-ecosystem target suffix notation."""
@@ -361,6 +416,11 @@ class TestMultiEcosystemTargets:
         target = SnykTarget()
         url = target.get_url(temp_go_mod)
         assert url == "https://snyk.io/advisor/golang/github.com/testuser/test-go-module"
+
+    def test_socket_npm_ecosystem(self, temp_package_json: str) -> None:
+        target = SocketTarget()
+        url = target.get_url(temp_package_json)
+        assert url == "https://socket.dev/npm/package/test-project"
 
     def test_snyk_multi_ecosystem_error(self, temp_multi_ecosystem: str) -> None:
         target = SnykTarget()
@@ -422,25 +482,25 @@ class TestMultiEcosystemTargets:
             target.get_url(temp_dir)
         assert "No supported ecosystem found" in str(exc_info.value)
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
     def test_multi_ecosystem_auto_detect_pypi(self, target_cls: type[MultiEcosystemTarget], temp_pyproject: str) -> None:
         target = target_cls()
         url = target.get_url(temp_pyproject)
         assert "test-project" in url
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
     def test_multi_ecosystem_auto_detect_npm(self, target_cls: type[MultiEcosystemTarget], temp_package_json: str) -> None:
         target = target_cls()
         url = target.get_url(temp_package_json)
         assert "test-project" in url
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
     def test_multi_ecosystem_auto_detect_cargo(self, target_cls: type[MultiEcosystemTarget], temp_cargo_toml: str) -> None:
         target = target_cls()
         url = target.get_url(temp_cargo_toml)
         assert "test-crate" in url
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget])
+    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
     def test_multi_ecosystem_auto_detect_go(self, target_cls: type[MultiEcosystemTarget], temp_go_mod: str) -> None:
         target = target_cls()
         url = target.get_url(temp_go_mod)
@@ -448,7 +508,7 @@ class TestMultiEcosystemTargets:
 
     @pytest.mark.parametrize(
         "raw_target",
-        ["libraries-io:foo", "deps:foo", "ecosystems:foo"],
+        ["libraries-io:foo", "deps:foo", "ecosystems:foo", "socket:foo"],
     )
     def test_multi_ecosystem_invalid_suffix_raises(self, raw_target: str) -> None:
         with pytest.raises(UnknownTargetError) as exc_info:
