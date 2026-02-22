@@ -295,3 +295,16 @@ While refactoring, discovered `get_remote_names()` was never used outside tests.
 **File I/O is faster than subprocess.** When you only need to read configuration data that's stored in a well-defined format, reading the file directly is simpler and faster than spawning a subprocess. The trade-off is you need to handle edge cases yourself — but for a focused tool like `olink`, the 95% case (regular repos with standard config) is sufficient.
 
 **Document your limitations.** Rather than pretend the file-based approach is equivalent to `git`, document what it doesn't support (`insteadOf`, `include`). Users who rely on those features will know why it doesn't work.
+
+## 2026-02-22 — New target expansion for Rust + Go discovery
+
+### Decision
+Add dedicated `docsrs` and `pkg-go` targets so users can open the most common language-specific documentation hubs directly.
+
+### Why
+The existing target set already supports Rust and Go package discovery via registry and multi-ecosystem services, but docs-focused entry points were missing. Adding these two targets keeps the CLI useful for the “I need API docs now” workflow without adding complexity.
+
+### Outcome
+- Added `docsrs` target (`https://docs.rs/<crate>`).
+- Added `pkg-go` target (`https://pkg.go.dev/<module>`).
+- Updated registry, tests, and README target tables.

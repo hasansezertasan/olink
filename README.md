@@ -101,6 +101,13 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 | -------- | --------------------------------- | ------------ |
 | `crates` | Open crates.io page               | `Cargo.toml` |
 | `librs`  | Open lib.rs (alternative browser) | `Cargo.toml` |
+| `docsrs` | Open docs.rs API docs             | `Cargo.toml` |
+
+### Go Targets
+
+| Target   | Description                 | Config File |
+| -------- | --------------------------- | ----------- |
+| `pkg-go` | Open pkg.go.dev module page | `go.mod`    |
 
 ### Other Ecosystem Targets
 

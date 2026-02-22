@@ -48,6 +48,9 @@ from olink.core.targets import (
     # Rust
     CratesTarget,
     LibRsTarget,
+    DocsRsTarget,
+    # Go
+    GoPkgTarget,
     # Other ecosystems
     GemsTarget,
     PackagistTarget,
@@ -95,6 +98,9 @@ REGISTRY: dict[str, type[Target]] = {
     # Rust targets
     "crates": CratesTarget,
     "librs": LibRsTarget,
+    "docsrs": DocsRsTarget,
+    # Go targets
+    "pkg-go": GoPkgTarget,
     # Other ecosystem targets
     "gems": GemsTarget,
     "packagist": PackagistTarget,

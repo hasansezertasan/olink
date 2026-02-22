@@ -468,6 +468,33 @@ class LibRsTarget(Target):
         return f"https://lib.rs/crates/{_encode_name(get_package_name(cwd, 'cargo'))}"
 
 
+class DocsRsTarget(Target):
+    """Expose docs.rs so Rust users can jump directly to hosted API docs."""
+
+    name = "docsrs"
+    description = "Open docs.rs API documentation"
+
+    def get_url(self, cwd: str) -> str:
+        """Reuse Cargo metadata extraction to keep Rust naming logic consistent."""
+        return f"https://docs.rs/{_encode_name(get_package_name(cwd, 'cargo'))}"
+
+
+# =============================================================================
+# Go Targets
+# =============================================================================
+
+
+class GoPkgTarget(Target):
+    """Expose pkg.go.dev so Go maintainers can inspect published module docs."""
+
+    name = "pkg-go"
+    description = "Open pkg.go.dev module page"
+
+    def get_url(self, cwd: str) -> str:
+        """Link to the canonical Go package index used by most ecosystem tooling."""
+        return f"https://pkg.go.dev/{_encode_name(get_package_name(cwd, 'go'))}"
+
+
 # =============================================================================
 # Ruby Targets
 # =============================================================================
