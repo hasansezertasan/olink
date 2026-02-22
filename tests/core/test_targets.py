@@ -341,45 +341,90 @@ class TestRegistryTargets:
         url = target.get_url(temp_go_mod)
         assert url == "https://pkg.go.dev/github.com/testuser/test-go-module"
 
+    def test_go_docs_target_no_config(self, temp_dir: str) -> None:
+        target = GoDocsTarget()
+        with pytest.raises(ProjectMetadataError, match="No go.mod found"):
+            target.get_url(temp_dir)
+
     def test_rubygems_stats_target(self, temp_gemspec: str) -> None:
         target = RubyGemsStatsTarget()
         url = target.get_url(temp_gemspec)
         assert url == "https://rubygems.org/gems/mygem/stats"
+
+    def test_rubygems_stats_target_no_config(self, temp_dir: str) -> None:
+        target = RubyGemsStatsTarget()
+        with pytest.raises(ProjectMetadataError, match="No .gemspec file found"):
+            target.get_url(temp_dir)
 
     def test_jsdelivr_target(self, temp_package_json: str) -> None:
         target = JsDelivrTarget()
         url = target.get_url(temp_package_json)
         assert url == "https://www.jsdelivr.com/package/npm/test-project"
 
+    def test_jsdelivr_target_no_config(self, temp_dir: str) -> None:
+        target = JsDelivrTarget()
+        with pytest.raises(ProjectMetadataError, match="No package.json found"):
+            target.get_url(temp_dir)
+
     def test_unpkg_target(self, temp_package_json: str) -> None:
         target = UnpkgTarget()
         url = target.get_url(temp_package_json)
         assert url == "https://unpkg.com/test-project"
+
+    def test_unpkg_target_no_config(self, temp_dir: str) -> None:
+        target = UnpkgTarget()
+        with pytest.raises(ProjectMetadataError, match="No package.json found"):
+            target.get_url(temp_dir)
 
     def test_skypack_target(self, temp_package_json: str) -> None:
         target = SkypackTarget()
         url = target.get_url(temp_package_json)
         assert url == "https://www.skypack.dev/view/test-project"
 
+    def test_skypack_target_no_config(self, temp_dir: str) -> None:
+        target = SkypackTarget()
+        with pytest.raises(ProjectMetadataError, match="No package.json found"):
+            target.get_url(temp_dir)
+
     def test_open_vsx_target(self, temp_open_vsx_package_json: str) -> None:
         target = OpenVSXTarget()
         url = target.get_url(temp_open_vsx_package_json)
         assert url == "https://open-vsx.org/extension/testpublisher.test-extension"
+
+    def test_open_vsx_target_no_config(self, temp_dir: str) -> None:
+        target = OpenVSXTarget()
+        with pytest.raises(ProjectMetadataError, match="No package.json found"):
+            target.get_url(temp_dir)
 
     def test_maven_target(self, temp_maven_pom: str) -> None:
         target = MavenTarget()
         url = target.get_url(temp_maven_pom)
         assert url == "https://central.sonatype.com/artifact/com.example/test-app"
 
+    def test_maven_target_no_config(self, temp_dir: str) -> None:
+        target = MavenTarget()
+        with pytest.raises(ProjectMetadataError, match="No pom.xml found"):
+            target.get_url(temp_dir)
+
     def test_hackage_target(self, temp_hackage_cabal: str) -> None:
         target = HackageTarget()
         url = target.get_url(temp_hackage_cabal)
         assert url == "https://hackage.haskell.org/package/test-package"
 
+    def test_hackage_target_no_config(self, temp_dir: str) -> None:
+        target = HackageTarget()
+        with pytest.raises(ProjectMetadataError, match="No .cabal file found"):
+            target.get_url(temp_dir)
+
     def test_cpan_target(self, temp_cpanfile: str) -> None:
         target = CpanTarget()
         url = target.get_url(temp_cpanfile)
-        assert url == "https://metacpan.org/pod/Test%3A%3AModule"
+        assert url == "https://metacpan.org/pod/Test-Project"
+
+    def test_cpan_target_no_config(self, temp_dir: str) -> None:
+        target = CpanTarget()
+        with pytest.raises(ProjectMetadataError, match="No cpanfile or dist.ini found"):
+            target.get_url(temp_dir)
 
 
 class TestMultiEcosystemTargets:

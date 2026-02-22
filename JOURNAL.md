@@ -4,6 +4,24 @@ Chronological record of decisions, attempts (including failures), and outcomes.
 
 ---
 
+## 2026-02-22: Review Follow-up for Expanded Targets
+
+### Context
+
+Follow-up review requested additional hardening and edge-case coverage on the expanded target set.
+
+### The Change
+
+- Improved CPAN package detection to prefer `dist.ini` project metadata before falling back to `cpanfile` dependency parsing.
+- Added a `dist.ini` fixture for Perl projects so CPAN target tests assert distribution-level behavior.
+- Expanded negative-path tests for new targets (`go-docs`, `rubygems-stats`, `jsdelivr`, `unpkg`, `skypack`, `open-vsx`, `maven`, `hackage`, `cpan`) to lock in user-facing error messages when required metadata is missing.
+
+### Outcome
+
+New targets now have stronger error-path coverage and CPAN links are more likely to point to the actual distribution under development.
+
+---
+
 ## 2026-02-22: Implemented Full Target Expansion Set
 
 ### Context

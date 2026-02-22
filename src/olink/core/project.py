@@ -385,10 +385,17 @@ def _get_hackage_name(cwd: str) -> str:
 
 
 def _get_cpan_name(cwd: str) -> str:
-    """Prefer cpanfile metadata because it is common in modern Perl distribution layouts."""
+    """Favor distribution metadata so generated MetaCPAN URLs point at the project being developed."""
+    dist_ini_path = Path(cwd) / "dist.ini"
+    if dist_ini_path.exists():
+        dist_ini = dist_ini_path.read_text(encoding="utf-8")
+        dist_match = re.search(r"^name\s*=\s*(\S+)", dist_ini, re.MULTILINE)
+        if dist_match:
+            return dist_match.group(1)
+
     cpanfile_path = Path(cwd) / "cpanfile"
     if not cpanfile_path.exists():
-        raise ProjectMetadataError("No cpanfile found")
+        raise ProjectMetadataError("No cpanfile or dist.ini found")
 
     content = cpanfile_path.read_text(encoding="utf-8")
     match = re.search(r"requires\s+['\"]([^'\"]+)['\"]", content)
