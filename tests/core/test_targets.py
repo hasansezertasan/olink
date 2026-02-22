@@ -18,6 +18,8 @@ from olink.core.targets import (
     CommitsTarget,
     CoverallsTarget,
     CratesTarget,
+    DocsRsTarget,
+    GoPkgTarget,
     DepsDevTarget,
     DiscussionsTarget,
     EcosystemsTarget,
@@ -49,7 +51,7 @@ class TestRegistry:
             "piptrends", "clickpy", "snyk", "safety-db",
             "libraries-io", "deps", "ecosystems",
             "npm", "bundlephobia", "packagephobia", "npm-stat",
-            "crates", "librs",
+            "crates", "librs", "docsrs", "pkg-go",
             "gems", "packagist", "pub", "hex", "nuget",
             "codecov", "coveralls",
         }
@@ -302,6 +304,26 @@ class TestRegistryTargets:
     def test_crates_target_no_config(self, temp_dir: str) -> None:
         target = CratesTarget()
         with pytest.raises(ProjectMetadataError, match="No Cargo.toml found"):
+            target.get_url(temp_dir)
+
+    def test_docsrs_target(self, temp_cargo_toml: str) -> None:
+        target = DocsRsTarget()
+        url = target.get_url(temp_cargo_toml)
+        assert url == "https://docs.rs/test-crate"
+
+    def test_docsrs_target_no_config(self, temp_dir: str) -> None:
+        target = DocsRsTarget()
+        with pytest.raises(ProjectMetadataError, match="No Cargo.toml found"):
+            target.get_url(temp_dir)
+
+    def test_pkg_go_target(self, temp_go_mod: str) -> None:
+        target = GoPkgTarget()
+        url = target.get_url(temp_go_mod)
+        assert url == "https://pkg.go.dev/github.com/testuser/test-go-module"
+
+    def test_pkg_go_target_no_config(self, temp_dir: str) -> None:
+        target = GoPkgTarget()
+        with pytest.raises(ProjectMetadataError, match="No go.mod found"):
             target.get_url(temp_dir)
 
 
