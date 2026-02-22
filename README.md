@@ -59,6 +59,7 @@ Automatically detects GitHub, GitLab, and Bitbucket from your remote URL.
 | `inspector` | Open PyPI Inspector             | `pyproject.toml` |
 | `pypi-json` | Open PyPI JSON API              | `pyproject.toml` |
 | `pepy`      | Open PePy download stats        | `pyproject.toml` |
+| `piwheels`  | Open piwheels project page      | `pyproject.toml` |
 | `pypistats` | Open PyPI Stats                 | `pyproject.toml` |
 | `piptrends` | Open Pip Trends                 | `pyproject.toml` |
 | `clickpy`   | Open ClickPy stats (ClickHouse) | `pyproject.toml` |

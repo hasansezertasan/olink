@@ -30,6 +30,7 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert "pypi" in result.stdout
         assert "pepy" in result.stdout
+        assert "piwheels" in result.stdout
         assert "bundlephobia" not in result.stdout
         assert "targets available)" in result.stdout
 
@@ -48,6 +49,12 @@ class TestCLIDryRun:
         assert result.exit_code == 0
         assert "pypi.org/project/test-project" in result.stdout
 
+    def test_dry_run_piwheels(self, temp_pyproject: str) -> None:
+        """Ensure dry-run mode reveals the exact piwheels URL before opening a browser."""
+        result = runner.invoke(app, ["-n", "-d", temp_pyproject, "piwheels"])
+        assert result.exit_code == 0
+        assert "piwheels.org/project/test-project" in result.stdout
+
     def test_dry_run_npm(self, temp_package_json: str) -> None:
         result = runner.invoke(app, ["-n", "-d", temp_package_json, "npm"])
         assert result.exit_code == 0
@@ -62,6 +69,13 @@ class TestCLIDryRun:
         result = runner.invoke(app, ["-n", "-d", temp_git_repo, "issues"])
         assert result.exit_code == 0
         assert "github.com/testuser/testrepo/issues" in result.stdout
+
+
+    def test_piwheels_without_pyproject(self, temp_dir: str) -> None:
+        """Verify CLI errors stay actionable when piwheels is run outside Python projects."""
+        result = runner.invoke(app, ["-n", "-d", temp_dir, "piwheels"])
+        assert result.exit_code == 1
+        assert "No pyproject.toml found" in result.output
 
 
 class TestCLIErrors:

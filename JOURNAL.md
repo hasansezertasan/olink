@@ -4,6 +4,59 @@ Chronological record of decisions, attempts (including failures), and outcomes.
 
 ---
 
+## 2026-02-12: Follow-up on piwheels Test Coverage and Formatting
+
+### Context
+
+Review feedback requested explicit CLI error-path coverage for `piwheels` without `pyproject.toml`, plus a small readability cleanup in target tests.
+
+### The Change
+
+- Added a CLI dry-run error test for `piwheels` that asserts the expected missing `pyproject.toml` message.
+- Inserted a blank line between piwheels target tests for consistent spacing and readability.
+- Verified `REGISTRY` remains explicitly imported where `len(REGISTRY)` is asserted.
+
+### Outcome
+
+The piwheels feature now has both success and failure behavior covered through the CLI surface, and the related tests are formatted consistently.
+
+---
+
+## 2026-02-12: Follow-up on piwheels Review Feedback
+
+### Context
+
+Review feedback flagged a brittle target-count assertion and suggested tighter docstrings for new piwheels-related additions.
+
+### The Change
+
+- Updated `test_list_targets_returns_all` to assert against `len(REGISTRY)` instead of a hard-coded number.
+- Shortened piwheels class and test docstrings to keep intent clear and scannable.
+
+### Outcome
+
+Future target additions no longer require changing a magic count in tests, and piwheels documentation reads more consistently with the rest of the codebase.
+
+---
+
+## 2026-02-12: Added piwheels Target Support
+
+### Context
+
+Python projects in this tool already supported PyPI and related analytics targets, but lacked a direct shortcut to piwheels for Raspberry Pi package builds.
+
+### The Change
+
+- Added a dedicated `piwheels` target that reuses PyPI package-name detection from `pyproject.toml`.
+- Registered the target in the central catalog so it appears in discovery and CLI lookup flows.
+- Expanded tests and README documentation to make the new target discoverable and verified.
+
+### Outcome
+
+`olink piwheels` now opens `https://www.piwheels.org/project/<package>/` for Python projects while preserving existing metadata error behavior.
+
+---
+
 ## 2026-02-01: Decision to Keep Custom Exceptions
 
 ### Context
