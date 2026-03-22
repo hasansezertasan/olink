@@ -122,7 +122,7 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 | `pub`       | Open pub.dev (Dart)  | `pubspec.yaml`   |
 | `gems`      | Open RubyGems                    | `*.gemspec`    |
 | `rubygems-stats` | Open RubyGems download stats | `*.gemspec`    |
-| `open-vsx`  | Open Open VSX extension page     | `package.json` |
+| `open-vsx`  | Open the Open VSX extension page | `package.json` |
 | `maven`     | Open Maven Central artifact page | `pom.xml`      |
 | `hackage`   | Open Hackage package page        | `*.cabal`      |
 | `cpan`      | Open MetaCPAN module page        | `cpanfile`     |
