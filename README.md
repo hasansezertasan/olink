@@ -125,7 +125,7 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 | `open-vsx`  | Open the Open VSX extension page | `package.json` |
 | `maven`     | Open Maven Central artifact page | `pom.xml`      |
 | `hackage`   | Open Hackage package page        | `*.cabal`      |
-| `cpan`      | Open MetaCPAN module page        | `cpanfile`     |
+| `cpan`      | Open MetaCPAN module page        | `Makefile.PL`  |
 | `hex`       | Open hex.pm (Elixir)             | `mix.exs`      |
 | `nuget`     | Open NuGet (.NET)                | `*.csproj`     |
 

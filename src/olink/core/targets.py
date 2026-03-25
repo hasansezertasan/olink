@@ -12,6 +12,7 @@ from olink.core.exceptions import (
 )
 from olink.core.project import (
     ParsedRemote,
+    _get_open_vsx_name,
     detect_ecosystems,
     get_package_name,
     get_remote_url,
@@ -646,7 +647,12 @@ class OpenVSXTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         """Use publisher + name from package.json because Open VSX identifies extensions by both."""
-        publisher_name = get_package_name(cwd, "open-vsx")
+        publisher_name = _get_open_vsx_name(cwd)
+        if "." not in publisher_name:
+            raise ProjectMetadataError(
+                f"Invalid Open VSX identifier '{publisher_name}': "
+                "expected 'publisher.name' format in package.json"
+            )
         publisher, name = publisher_name.split(".", 1)
         return f"https://open-vsx.org/extension/{_encode_name(publisher)}/{_encode_name(name)}"
 
@@ -660,6 +666,11 @@ class MavenTarget(Target):
     def get_url(self, cwd: str) -> str:
         """Convert groupId/artifactId coordinates into Maven Central's artifact URL format."""
         group_artifact = get_package_name(cwd, "maven")
+        if ":" not in group_artifact:
+            raise ProjectMetadataError(
+                f"Invalid Maven coordinates '{group_artifact}': "
+                "expected 'groupId:artifactId' format from pom.xml"
+            )
         group_id, artifact_id = group_artifact.split(":", 1)
         return f"https://central.sonatype.com/artifact/{_encode_name(group_id)}/{_encode_name(artifact_id)}"
 

@@ -412,6 +412,11 @@ class TestRegistryTargets:
         with pytest.raises(ProjectMetadataError, match="No package.json found"):
             target.get_url(temp_dir)
 
+    def test_open_vsx_target_missing_publisher(self, temp_package_json: str) -> None:
+        target = OpenVSXTarget()
+        with pytest.raises(ProjectMetadataError, match="No 'publisher' in package.json"):
+            target.get_url(temp_package_json)
+
     def test_maven_target(self, temp_maven_pom: str) -> None:
         target = MavenTarget()
         url = target.get_url(temp_maven_pom)
@@ -421,6 +426,31 @@ class TestRegistryTargets:
         target = MavenTarget()
         with pytest.raises(ProjectMetadataError, match="No pom.xml found"):
             target.get_url(temp_dir)
+
+    def test_maven_target_invalid_xml(self, tmp_path: Path) -> None:
+        pom = tmp_path / "pom.xml"
+        pom.write_text("<project><groupId>com.example", encoding="utf-8")
+        target = MavenTarget()
+        with pytest.raises(ProjectMetadataError, match="Invalid pom.xml"):
+            target.get_url(str(tmp_path))
+
+    def test_maven_target_parent_group_id(self, tmp_path: Path) -> None:
+        pom = tmp_path / "pom.xml"
+        pom.write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <parent>\n"
+            "    <groupId>com.parent</groupId>\n"
+            "    <artifactId>parent-app</artifactId>\n"
+            "    <version>1.0.0</version>\n"
+            "  </parent>\n"
+            "  <artifactId>child-app</artifactId>\n"
+            "</project>\n",
+            encoding="utf-8",
+        )
+        target = MavenTarget()
+        url = target.get_url(str(tmp_path))
+        assert url == "https://central.sonatype.com/artifact/com.parent/child-app"
 
     def test_hackage_target(self, temp_hackage_cabal: str) -> None:
         target = HackageTarget()
@@ -451,6 +481,23 @@ class TestRegistryTargets:
         target = CpanTarget()
         with pytest.raises(ProjectMetadataError, match="Could not determine CPAN module name"):
             target.get_url(temp_dir)
+
+    def test_cpan_target_dist_ini_only(self, tmp_path: Path) -> None:
+        dist_ini = tmp_path / "dist.ini"
+        dist_ini.write_text("name = My-Module\nversion = 0.001\n", encoding="utf-8")
+        target = CpanTarget()
+        url = target.get_url(str(tmp_path))
+        assert url == "https://metacpan.org/pod/My%3A%3AModule"
+
+    def test_cpan_target_lib_layout(self, tmp_path: Path) -> None:
+        lib_dir = tmp_path / "lib" / "Foo"
+        lib_dir.mkdir(parents=True)
+        (tmp_path / "lib" / "Foo.pm").write_text("package Foo;\n1;\n", encoding="utf-8")
+        (lib_dir / "Bar.pm").write_text("package Foo::Bar;\n1;\n", encoding="utf-8")
+        target = CpanTarget()
+        url = target.get_url(str(tmp_path))
+        # Should prefer shallowest module (Foo) over deeper (Foo::Bar)
+        assert url == "https://metacpan.org/pod/Foo"
 
 
 class TestMultiEcosystemTargets:

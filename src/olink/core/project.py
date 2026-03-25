@@ -18,6 +18,7 @@ import json
 import logging
 import re
 import tomllib
+import defusedxml
 import defusedxml.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
@@ -353,6 +354,10 @@ def _get_maven_name(cwd: str) -> str:
         root = ET.fromstring(pom_path.read_text(encoding="utf-8"))
     except ET.ParseError as e:
         raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
+    except defusedxml.DefusedXmlException as e:
+        raise ProjectMetadataError(
+            f"pom.xml contains disallowed XML features: {e}"
+        ) from e
 
     namespace = ""
     if root.tag.startswith("{"):
@@ -399,6 +404,7 @@ def _get_cpan_name(cwd: str) -> str:
         match = re.search(r"NAME\s*=>\s*['\"]([^'\"]+)['\"]", content)
         if match:
             return match.group(1)
+        logger.debug("Makefile.PL found but NAME not parseable, trying dist.ini")
 
     # 2. dist.ini (Dist::Zilla): name = My-Dist
     dist_ini_path = root / "dist.ini"
@@ -408,17 +414,22 @@ def _get_cpan_name(cwd: str) -> str:
         if match:
             # Convert distribution-style name (My-Dist) to module-style (My::Dist)
             return match.group(1).strip().replace("-", "::")
+        logger.debug("dist.ini found but name not parseable, trying lib/ layout")
 
-    # 3. Directory layout: lib/Foo/Bar.pm -> Foo::Bar
+    # 3. Directory layout: lib/Foo/Bar.pm -> Foo::Bar (prefer shallowest module)
     lib_dir = root / "lib"
     if lib_dir.exists() and lib_dir.is_dir():
-        for pm in sorted(lib_dir.rglob("*.pm")):
+        pm_files = sorted(lib_dir.rglob("*.pm"), key=lambda p: len(p.parts))
+        for pm in pm_files:
             try:
                 rel = pm.relative_to(lib_dir)
             except ValueError:
                 continue
             module = rel.with_suffix("").as_posix().replace("/", "::")
             if module:
+                logger.debug(
+                    "CPAN module name inferred from lib/ layout as '%s'", module
+                )
                 return module
 
     raise ProjectMetadataError(
@@ -438,9 +449,6 @@ ECOSYSTEMS: dict[str, EcosystemConfig] = {
     "pub": EcosystemConfig("pub", "Dart", "pubspec.yaml", _get_pub_name),
     "hex": EcosystemConfig("hex", "Elixir", "mix.exs", _get_hex_name),
     "nuget": EcosystemConfig("nuget", ".NET", "*.csproj", _get_nuget_name),
-    "open-vsx": EcosystemConfig(
-        "open-vsx", "Open VSX", "package.json", _get_open_vsx_name
-    ),
     "maven": EcosystemConfig("maven", "Maven", "pom.xml", _get_maven_name),
     "hackage": EcosystemConfig("hackage", "Haskell", "*.cabal", _get_hackage_name),
     "cpan": EcosystemConfig("cpan", "Perl", "Makefile.PL", _get_cpan_name),
