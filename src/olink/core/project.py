@@ -18,7 +18,7 @@ import json
 import logging
 import re
 import tomllib
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -385,23 +385,45 @@ def _get_hackage_name(cwd: str) -> str:
 
 
 def _get_cpan_name(cwd: str) -> str:
-    """Favor distribution metadata so generated MetaCPAN URLs point at the project being developed."""
-    dist_ini_path = Path(cwd) / "dist.ini"
+    """Infer the primary CPAN module name from distribution metadata.
+
+    Checks Makefile.PL, dist.ini, and lib/ directory layout — avoids
+    cpanfile's `requires` entries which list dependencies, not the project itself.
+    """
+    root = Path(cwd)
+
+    # 1. Makefile.PL: NAME => 'My::Dist'
+    makefile_pl = root / "Makefile.PL"
+    if makefile_pl.exists():
+        content = makefile_pl.read_text(encoding="utf-8")
+        match = re.search(r"NAME\s*=>\s*['\"]([^'\"]+)['\"]", content)
+        if match:
+            return match.group(1)
+
+    # 2. dist.ini (Dist::Zilla): name = My-Dist
+    dist_ini_path = root / "dist.ini"
     if dist_ini_path.exists():
-        dist_ini = dist_ini_path.read_text(encoding="utf-8")
-        dist_match = re.search(r"^name\s*=\s*(\S+)", dist_ini, re.MULTILINE)
-        if dist_match:
-            return dist_match.group(1)
+        content = dist_ini_path.read_text(encoding="utf-8")
+        match = re.search(r"^name\s*=\s*(\S+)", content, re.MULTILINE)
+        if match:
+            # Convert distribution-style name (My-Dist) to module-style (My::Dist)
+            return match.group(1).strip().replace("-", "::")
 
-    cpanfile_path = Path(cwd) / "cpanfile"
-    if not cpanfile_path.exists():
-        raise ProjectMetadataError("No cpanfile or dist.ini found")
+    # 3. Directory layout: lib/Foo/Bar.pm -> Foo::Bar
+    lib_dir = root / "lib"
+    if lib_dir.exists() and lib_dir.is_dir():
+        for pm in sorted(lib_dir.rglob("*.pm")):
+            try:
+                rel = pm.relative_to(lib_dir)
+            except ValueError:
+                continue
+            module = rel.with_suffix("").as_posix().replace("/", "::")
+            if module:
+                return module
 
-    content = cpanfile_path.read_text(encoding="utf-8")
-    match = re.search(r"requires\s+['\"]([^'\"]+)['\"]", content)
-    if not match:
-        raise ProjectMetadataError("No module name in cpanfile")
-    return match.group(1)
+    raise ProjectMetadataError(
+        "Could not determine CPAN module name from project metadata"
+    )
 
 
 ECOSYSTEMS: dict[str, EcosystemConfig] = {
@@ -421,7 +443,7 @@ ECOSYSTEMS: dict[str, EcosystemConfig] = {
     ),
     "maven": EcosystemConfig("maven", "Maven", "pom.xml", _get_maven_name),
     "hackage": EcosystemConfig("hackage", "Haskell", "*.cabal", _get_hackage_name),
-    "cpan": EcosystemConfig("cpan", "Perl", "cpanfile", _get_cpan_name),
+    "cpan": EcosystemConfig("cpan", "Perl", "Makefile.PL", _get_cpan_name),
 }
 
 

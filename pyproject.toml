@@ -8,6 +8,7 @@ dependencies = [
     "pyperclip==1.11.0",
     "typer==0.21.1",
     "textual>=3.0.0",
+    "defusedxml>=0.7.1",
 ]
 
 [project.scripts]

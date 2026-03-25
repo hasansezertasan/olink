@@ -646,7 +646,9 @@ class OpenVSXTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         """Use publisher + name from package.json because Open VSX identifies extensions by both."""
-        return f"https://open-vsx.org/extension/{_encode_name(get_package_name(cwd, 'open-vsx'))}"
+        publisher_name = get_package_name(cwd, "open-vsx")
+        publisher, name = publisher_name.split(".", 1)
+        return f"https://open-vsx.org/extension/{_encode_name(publisher)}/{_encode_name(name)}"
 
 
 class MavenTarget(Target):

@@ -1,6 +1,7 @@
 """Tests for targets/ - Target URL generation."""
 
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -366,6 +367,11 @@ class TestRegistryTargets:
         with pytest.raises(ProjectMetadataError, match="No package.json found"):
             target.get_url(temp_dir)
 
+    def test_jsdelivr_target_scoped(self, temp_package_json_scoped: str) -> None:
+        target = JsDelivrTarget()
+        url = target.get_url(temp_package_json_scoped)
+        assert url == "https://www.jsdelivr.com/package/npm/@myorg/test-project"
+
     def test_unpkg_target(self, temp_package_json: str) -> None:
         target = UnpkgTarget()
         url = target.get_url(temp_package_json)
@@ -375,6 +381,11 @@ class TestRegistryTargets:
         target = UnpkgTarget()
         with pytest.raises(ProjectMetadataError, match="No package.json found"):
             target.get_url(temp_dir)
+
+    def test_unpkg_target_scoped(self, temp_package_json_scoped: str) -> None:
+        target = UnpkgTarget()
+        url = target.get_url(temp_package_json_scoped)
+        assert url == "https://unpkg.com/@myorg/test-project"
 
     def test_skypack_target(self, temp_package_json: str) -> None:
         target = SkypackTarget()
@@ -386,10 +397,15 @@ class TestRegistryTargets:
         with pytest.raises(ProjectMetadataError, match="No package.json found"):
             target.get_url(temp_dir)
 
+    def test_skypack_target_scoped(self, temp_package_json_scoped: str) -> None:
+        target = SkypackTarget()
+        url = target.get_url(temp_package_json_scoped)
+        assert url == "https://www.skypack.dev/view/@myorg/test-project"
+
     def test_open_vsx_target(self, temp_open_vsx_package_json: str) -> None:
         target = OpenVSXTarget()
         url = target.get_url(temp_open_vsx_package_json)
-        assert url == "https://open-vsx.org/extension/testpublisher.test-extension"
+        assert url == "https://open-vsx.org/extension/testpublisher/test-extension"
 
     def test_open_vsx_target_no_config(self, temp_dir: str) -> None:
         target = OpenVSXTarget()
@@ -416,14 +432,24 @@ class TestRegistryTargets:
         with pytest.raises(ProjectMetadataError, match="No .cabal file found"):
             target.get_url(temp_dir)
 
+    def test_hackage_target_missing_name(self, tmp_path: Path) -> None:
+        cabal = tmp_path / "test-package.cabal"
+        cabal.write_text(
+            "cabal-version: >=1.10\nversion: 0.1.0.0\nbuild-type: Simple\n",
+            encoding="utf-8",
+        )
+        target = HackageTarget()
+        with pytest.raises(ProjectMetadataError, match="No 'name' in .cabal file"):
+            target.get_url(str(tmp_path))
+
     def test_cpan_target(self, temp_cpanfile: str) -> None:
         target = CpanTarget()
         url = target.get_url(temp_cpanfile)
-        assert url == "https://metacpan.org/pod/Test-Project"
+        assert url == "https://metacpan.org/pod/Test%3A%3AProject"
 
     def test_cpan_target_no_config(self, temp_dir: str) -> None:
         target = CpanTarget()
-        with pytest.raises(ProjectMetadataError, match="No cpanfile or dist.ini found"):
+        with pytest.raises(ProjectMetadataError, match="Could not determine CPAN module name"):
             target.get_url(temp_dir)
 
 
@@ -466,6 +492,33 @@ class TestMultiEcosystemTargets:
         target = SocketTarget()
         url = target.get_url(temp_package_json)
         assert url == "https://socket.dev/npm/package/test-project"
+
+    def test_socket_pypi_ecosystem(self, temp_pyproject: str) -> None:
+        target = SocketTarget()
+        url = target.get_url(temp_pyproject)
+        assert url == "https://socket.dev/pypi/package/test-project"
+
+    def test_socket_cargo_ecosystem(self, temp_cargo_toml: str) -> None:
+        target = SocketTarget()
+        url = target.get_url(temp_cargo_toml)
+        assert url == "https://socket.dev/cargo/package/test-crate"
+
+    def test_socket_go_ecosystem(self, temp_go_mod: str) -> None:
+        target = SocketTarget()
+        url = target.get_url(temp_go_mod)
+        assert url == "https://socket.dev/go/package/github.com/testuser/test-go-module"
+
+    def test_socket_suffix_npm(self, temp_package_json: str) -> None:
+        target = get_target("socket:npm")
+        assert isinstance(target, SocketTarget)
+        url = target.get_url(temp_package_json)
+        assert url == "https://socket.dev/npm/package/test-project"
+
+    def test_socket_suffix_pypi(self, temp_pyproject: str) -> None:
+        target = get_target("socket:pypi")
+        assert isinstance(target, SocketTarget)
+        url = target.get_url(temp_pyproject)
+        assert url == "https://socket.dev/pypi/package/test-project"
 
     def test_snyk_multi_ecosystem_error(self, temp_multi_ecosystem: str) -> None:
         target = SnykTarget()
