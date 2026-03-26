@@ -18,6 +18,8 @@ import json
 import logging
 import re
 import tomllib
+import defusedxml
+import defusedxml.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -320,6 +322,121 @@ def _get_nuget_name(cwd: str) -> str:
     return match.group(1)
 
 
+def _get_open_vsx_name(cwd: str) -> str:
+    """Align extension target URLs with extension metadata already kept in package.json."""
+    package_json_path = Path(cwd) / "package.json"
+    if not package_json_path.exists():
+        raise ProjectMetadataError("No package.json found")
+
+    try:
+        with open(package_json_path, encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ProjectMetadataError(f"Invalid package.json: {e}") from e
+
+    publisher = data.get("publisher")
+    name = data.get("name")
+    if not publisher or not isinstance(publisher, str):
+        raise ProjectMetadataError("No 'publisher' in package.json for open-vsx")
+    if not name or not isinstance(name, str):
+        raise ProjectMetadataError("No 'name' in package.json")
+
+    return f"{publisher}.{name}"
+
+
+def _get_maven_name(cwd: str) -> str:
+    """Use Maven coordinates so artifact links stay stable across tooling and mirrors."""
+    pom_path = Path(cwd) / "pom.xml"
+    if not pom_path.exists():
+        raise ProjectMetadataError("No pom.xml found")
+
+    try:
+        root = ET.fromstring(pom_path.read_text(encoding="utf-8"))
+    except ET.ParseError as e:
+        raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
+    except defusedxml.DefusedXmlException as e:
+        raise ProjectMetadataError(
+            f"pom.xml contains disallowed XML features: {e}"
+        ) from e
+
+    namespace = ""
+    if root.tag.startswith("{"):
+        namespace = root.tag.split("}", 1)[0] + "}"
+
+    group_id = root.findtext(f"{namespace}groupId")
+    if not group_id:
+        parent = root.find(f"{namespace}parent")
+        if parent is not None:
+            group_id = parent.findtext(f"{namespace}groupId")
+
+    artifact_id = root.findtext(f"{namespace}artifactId")
+    if not group_id or not artifact_id:
+        raise ProjectMetadataError("No 'groupId'/'artifactId' in pom.xml")
+
+    return f"{group_id}:{artifact_id}"
+
+
+def _get_hackage_name(cwd: str) -> str:
+    """Read Cabal metadata directly to avoid external tool dependencies during lookup."""
+    cabal_files = list(Path(cwd).glob("*.cabal"))
+    if not cabal_files:
+        raise ProjectMetadataError("No .cabal file found")
+
+    content = cabal_files[0].read_text(encoding="utf-8")
+    match = re.search(r"^name\s*:\s*(\S+)", content, re.MULTILINE | re.IGNORECASE)
+    if not match:
+        raise ProjectMetadataError("No 'name' in .cabal file")
+    return match.group(1)
+
+
+def _get_cpan_name(cwd: str) -> str:
+    """Infer the primary CPAN module name from distribution metadata.
+
+    Checks Makefile.PL, dist.ini, and lib/ directory layout — avoids
+    cpanfile's `requires` entries which list dependencies, not the project itself.
+    """
+    root = Path(cwd)
+
+    # 1. Makefile.PL: NAME => 'My::Dist'
+    makefile_pl = root / "Makefile.PL"
+    if makefile_pl.exists():
+        content = makefile_pl.read_text(encoding="utf-8")
+        match = re.search(r"NAME\s*=>\s*['\"]([^'\"]+)['\"]", content)
+        if match:
+            return match.group(1)
+        logger.debug("Makefile.PL found but NAME not parseable, trying dist.ini")
+
+    # 2. dist.ini (Dist::Zilla): name = My-Dist
+    dist_ini_path = root / "dist.ini"
+    if dist_ini_path.exists():
+        content = dist_ini_path.read_text(encoding="utf-8")
+        match = re.search(r"^name\s*=\s*(\S+)", content, re.MULTILINE)
+        if match:
+            # Convert distribution-style name (My-Dist) to module-style (My::Dist)
+            return match.group(1).strip().replace("-", "::")
+        logger.debug("dist.ini found but name not parseable, trying lib/ layout")
+
+    # 3. Directory layout: lib/Foo/Bar.pm -> Foo::Bar (prefer shallowest module)
+    lib_dir = root / "lib"
+    if lib_dir.exists() and lib_dir.is_dir():
+        pm_files = sorted(lib_dir.rglob("*.pm"), key=lambda p: len(p.parts))
+        for pm in pm_files:
+            try:
+                rel = pm.relative_to(lib_dir)
+            except ValueError:
+                continue
+            module = rel.with_suffix("").as_posix().replace("/", "::")
+            if module:
+                logger.debug(
+                    "CPAN module name inferred from lib/ layout as '%s'", module
+                )
+                return module
+
+    raise ProjectMetadataError(
+        "Could not determine CPAN module name from project metadata"
+    )
+
+
 ECOSYSTEMS: dict[str, EcosystemConfig] = {
     "pypi": EcosystemConfig("pypi", "Python", "pyproject.toml", _get_pypi_name),
     "npm": EcosystemConfig("npm", "npm", "package.json", _get_npm_name),
@@ -332,6 +449,9 @@ ECOSYSTEMS: dict[str, EcosystemConfig] = {
     "pub": EcosystemConfig("pub", "Dart", "pubspec.yaml", _get_pub_name),
     "hex": EcosystemConfig("hex", "Elixir", "mix.exs", _get_hex_name),
     "nuget": EcosystemConfig("nuget", ".NET", "*.csproj", _get_nuget_name),
+    "maven": EcosystemConfig("maven", "Maven", "pom.xml", _get_maven_name),
+    "hackage": EcosystemConfig("hackage", "Haskell", "*.cabal", _get_hackage_name),
+    "cpan": EcosystemConfig("cpan", "Perl", "Makefile.PL", _get_cpan_name),
 }
 
 

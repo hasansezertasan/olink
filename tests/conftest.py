@@ -141,3 +141,31 @@ def temp_multi_ecosystem(temp_dir: str) -> Iterator[str]:
     """Create a temporary directory with both pyproject.toml and package.json."""
     copy_repo_fixture("multi_ecosystem", temp_dir)
     yield temp_dir
+
+
+@pytest.fixture
+def temp_open_vsx_package_json(temp_dir: str) -> Iterator[str]:
+    """Provide extension metadata fixture to validate Open VSX target composition."""
+    copy_repo_fixture("open_vsx_project", temp_dir)
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_maven_pom(temp_dir: str) -> Iterator[str]:
+    """Provide Maven coordinates fixture to exercise artifact URL generation paths."""
+    copy_repo_fixture("maven_project", temp_dir)
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_hackage_cabal(temp_dir: str) -> Iterator[str]:
+    """Provide Cabal metadata fixture so Hackage target parsing stays deterministic."""
+    copy_repo_fixture("haskell_project", temp_dir)
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_cpanfile(temp_dir: str) -> Iterator[str]:
+    """Provide Perl dependency metadata fixture for MetaCPAN URL generation coverage."""
+    copy_repo_fixture("perl_project", temp_dir)
+    yield temp_dir
