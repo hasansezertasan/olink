@@ -83,6 +83,13 @@ def temp_git_repo_bitbucket_https(temp_dir: str) -> Iterator[str]:
 
 
 @pytest.fixture
+def temp_git_repo_duplicate_keys(temp_dir: str) -> Iterator[str]:
+    """Create a temporary git repository with duplicate keys in config (e.g. VS Code)."""
+    init_git_with_config("github_ssh_duplicate_keys", temp_dir)
+    yield temp_dir
+
+
+@pytest.fixture
 def temp_git_repo_with_upstream(temp_dir: str) -> Iterator[str]:
     """Create a temporary git repository with both origin and upstream remotes."""
     init_git_with_config("with_upstream", temp_dir)

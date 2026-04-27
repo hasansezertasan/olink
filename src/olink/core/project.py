@@ -103,7 +103,7 @@ def _read_git_config(cwd: str) -> configparser.ConfigParser:
     if not config_path.exists():
         raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
 
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(strict=False)
     with open(config_path, encoding="utf-8") as f:
         config.read_file(f)
     return config
