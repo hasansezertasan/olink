@@ -125,6 +125,11 @@ class TestGetRemoteUrl:
         with pytest.raises(NotGitRepoError):
             get_remote_url(temp_dir, "origin")
 
+    def test_get_remote_url_duplicate_keys(self, temp_git_repo_duplicate_keys: str) -> None:
+        """Git configs with duplicate keys (e.g. VS Code's vscode-merge-base) should not crash."""
+        url = get_remote_url(temp_git_repo_duplicate_keys, "origin")
+        assert url == "git@github.com:testuser/testrepo.git"
+
 
 class TestParsedRemote:
     """Tests for ParsedRemote dataclass."""

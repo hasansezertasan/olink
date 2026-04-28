@@ -1,0 +1,8 @@
+[remote "origin"]
+	url = git@github.com:testuser/testrepo.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "qa"]
+	remote = origin
+	merge = refs/heads/qa
+	vscode-merge-base = origin/main
+	vscode-merge-base = origin/main
