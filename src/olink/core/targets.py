@@ -21,14 +21,28 @@ from olink.core.project import (
 
 
 class Target(ABC):
-    """Base class for all targets."""
+    """Base class for all targets.
+
+    Subclasses set `name` (CLI identifier) and `description` (help text), then
+    implement `get_url(cwd)`. Implementations MUST raise OlinkError subclasses
+    (NoRemoteError, ProjectMetadataError, UnsupportedFeatureError) rather than
+    generic exceptions — CLI relies on the hierarchy for user-facing messages.
+    """
 
     name: ClassVar[str]
     description: ClassVar[str]
 
     @abstractmethod
     def get_url(self, cwd: str) -> str:
-        """Return the URL to open."""
+        """Return the URL to open for this target, given a project directory.
+
+        Args:
+            cwd: Absolute path to the project root.
+
+        Raises:
+            OlinkError: Subclass appropriate to the failure (missing config,
+                unsupported platform, etc.). Never a generic Exception.
+        """
 
 
 class MultiEcosystemTarget(Target):
@@ -130,6 +144,29 @@ PLATFORM_URLS = {
         "security": None,
         "discussions": None,
     },
+    # Gitea/Forgejo are GitHub-compatible — paths mirror github except no /security or /discussions
+    "gitea": {
+        "issues": "/issues",
+        "pulls": "/pulls",
+        "actions": "/actions",
+        "wiki": "/wiki",
+        "releases": "/releases",
+        "branches": "/branches",
+        "commits": "/commits",
+        "security": None,
+        "discussions": None,
+    },
+    "forgejo": {
+        "issues": "/issues",
+        "pulls": "/pulls",
+        "actions": "/actions",
+        "wiki": "/wiki",
+        "releases": "/releases",
+        "branches": "/branches",
+        "commits": "/commits",
+        "security": None,
+        "discussions": None,
+    },
 }
 
 
@@ -157,7 +194,11 @@ def get_platform_url(base_url: str, platform: str, page: str) -> str:
 
 
 class OriginTarget(Target):
-    """Open the remote origin URL."""
+    """Open the remote origin URL.
+
+    Reads .git/config; raises NotGitRepoError outside a repo, NoRemoteError
+    if 'origin' is not configured.
+    """
 
     name = "origin"
     description = "Open the remote origin URL"
@@ -167,7 +208,10 @@ class OriginTarget(Target):
 
 
 class UpstreamTarget(Target):
-    """Open the upstream remote URL."""
+    """Open the upstream remote URL (fork workflows where origin = your fork).
+
+    Raises NoRemoteError if 'upstream' remote is not configured.
+    """
 
     name = "upstream"
     description = "Open the upstream remote URL"
@@ -177,7 +221,12 @@ class UpstreamTarget(Target):
 
 
 class GitPageTarget(Target):
-    """Base for targets that open a specific page on the git hosting platform."""
+    """Base for targets that open a specific page on the git hosting platform.
+
+    Subclasses set `_page` to a key in PLATFORM_URLS. Resolution raises
+    UnsupportedFeatureError when the page is unavailable on the detected
+    platform (e.g. discussions on GitLab).
+    """
 
     _page: str
 
@@ -276,6 +325,8 @@ class CoverallsTarget(Target):
 
 
 class PyPITarget(Target):
+    """Open the canonical PyPI project page. Requires pyproject.toml with [project].name."""
+
     name = "pypi"
     description = "Open the PyPI page"
 
@@ -286,6 +337,8 @@ class PyPITarget(Target):
 
 
 class InspectorTarget(Target):
+    """Open PyPI Inspector (browse package source/files). Requires pyproject.toml."""
+
     name = "inspector"
     description = "Open the PyPI Inspector page"
 
@@ -294,6 +347,8 @@ class InspectorTarget(Target):
 
 
 class PyPIJSONTarget(Target):
+    """Open the JSON API endpoint for the package — useful for CI scripts and metadata checks."""
+
     name = "pypi-json"
     description = "Open the PyPI JSON API"
 
@@ -304,6 +359,8 @@ class PyPIJSONTarget(Target):
 
 
 class PePyTarget(Target):
+    """Open PePy.tech download stats. Requires pyproject.toml."""
+
     name = "pepy"
     description = "Open the PePy download stats"
 
@@ -312,6 +369,8 @@ class PePyTarget(Target):
 
 
 class PyPIStatsTarget(Target):
+    """Open pypistats.org download charts. Requires pyproject.toml."""
+
     name = "pypistats"
     description = "Open the PyPI Stats page"
 
@@ -331,6 +390,8 @@ class PiWheelsTarget(Target):
 
 
 class PipTrendsTarget(Target):
+    """Open piptrends.com download trends. Requires pyproject.toml."""
+
     name = "piptrends"
     description = "Open the Pip Trends page"
 
@@ -339,6 +400,8 @@ class PipTrendsTarget(Target):
 
 
 class ClickPyTarget(Target):
+    """Open ClickPy ClickHouse-backed stats dashboard. Requires pyproject.toml."""
+
     name = "clickpy"
     description = "Open the ClickPy stats (ClickHouse)"
 
@@ -347,6 +410,8 @@ class ClickPyTarget(Target):
 
 
 class SafetyDBTarget(Target):
+    """Open Safety DB vulnerability page for the PyPI package. Requires pyproject.toml."""
+
     name = "safety-db"
     description = "Open the Safety DB page"
 
@@ -360,6 +425,8 @@ class SafetyDBTarget(Target):
 
 
 class SnykTarget(MultiEcosystemTarget):
+    """Snyk security advisor. Snyk uses non-obvious slugs (npm-package, golang, rust)."""
+
     name = "snyk"
     description = "Open the Snyk security advisor"
     ecosystem_url_map = {
@@ -374,6 +441,8 @@ class SnykTarget(MultiEcosystemTarget):
 
 
 class LibrariesIOTarget(MultiEcosystemTarget):
+    """Libraries.io aggregate package page. Slugs match ecosystem keys 1:1."""
+
     name = "libraries-io"
     description = "Open the Libraries.io page"
     ecosystem_url_map = {"pypi": "pypi", "npm": "npm", "cargo": "cargo", "go": "go"}
@@ -383,6 +452,8 @@ class LibrariesIOTarget(MultiEcosystemTarget):
 
 
 class DepsDevTarget(MultiEcosystemTarget):
+    """Google deps.dev — dependency graph and security info."""
+
     name = "deps"
     description = "Open deps.dev (Google Open Source Insights)"
     ecosystem_url_map = {"pypi": "pypi", "npm": "npm", "cargo": "cargo", "go": "go"}
@@ -392,6 +463,8 @@ class DepsDevTarget(MultiEcosystemTarget):
 
 
 class EcosystemsTarget(MultiEcosystemTarget):
+    """ecosyste.ms registry index. Uses host-style ecosystem slugs (pypi.org, npmjs.org)."""
+
     name = "ecosystems"
     description = "Open the ecosyste.ms page"
     ecosystem_url_map = {
@@ -429,6 +502,8 @@ class SocketTarget(MultiEcosystemTarget):
 
 
 class NPMTarget(Target):
+    """Open npmjs.com package page. Handles scoped names (@org/pkg) via _encode_name."""
+
     name = "npm"
     description = "Open the npm page"
 
@@ -437,6 +512,8 @@ class NPMTarget(Target):
 
 
 class BundlephobiaTarget(Target):
+    """Open Bundlephobia (browser bundle size analyzer). Requires package.json."""
+
     name = "bundlephobia"
     description = "Open Bundlephobia (bundle size)"
 
@@ -445,6 +522,8 @@ class BundlephobiaTarget(Target):
 
 
 class PackagephobiaTarget(Target):
+    """Open Packagephobia (install size). Uses ?p=<name> query — urlencode handles scoped names."""
+
     name = "packagephobia"
     description = "Open Packagephobia (install size)"
 
@@ -455,6 +534,8 @@ class PackagephobiaTarget(Target):
 
 
 class NPMStatTarget(Target):
+    """Open npm-stat download charts. Uses ?package=<name> query string."""
+
     name = "npm-stat"
     description = "Open npm-stat download charts"
 
@@ -504,6 +585,8 @@ class SkypackTarget(Target):
 
 
 class CratesTarget(Target):
+    """Open crates.io crate page. Requires Cargo.toml with [package].name."""
+
     name = "crates"
     description = "Open the crates.io page"
 
@@ -514,6 +597,8 @@ class CratesTarget(Target):
 
 
 class LibRsTarget(Target):
+    """Open lib.rs (alternative crates.io browser, faster UX). Requires Cargo.toml."""
+
     name = "librs"
     description = "Open lib.rs (alternative crates browser)"
 
@@ -565,6 +650,8 @@ class GoDocsTarget(Target):
 
 
 class GemsTarget(Target):
+    """Open rubygems.org gem page. Requires *.gemspec with `spec.name = "..."`."""
+
     name = "gems"
     description = "Open the RubyGems page"
 
@@ -592,6 +679,8 @@ class RubyGemsStatsTarget(Target):
 
 
 class PackagistTarget(Target):
+    """Open Packagist PHP package page. Composer name format vendor/package preserved."""
+
     name = "packagist"
     description = "Open the Packagist page (PHP)"
 
@@ -605,6 +694,8 @@ class PackagistTarget(Target):
 
 
 class PubTarget(Target):
+    """Open pub.dev (Dart/Flutter) package page. Requires pubspec.yaml."""
+
     name = "pub"
     description = "Open the pub.dev page (Dart/Flutter)"
 
@@ -618,6 +709,8 @@ class PubTarget(Target):
 
 
 class HexTarget(Target):
+    """Open hex.pm (Elixir) package page. Uses OTP `app:` atom from mix.exs."""
+
     name = "hex"
     description = "Open the hex.pm page (Elixir)"
 
@@ -631,6 +724,8 @@ class HexTarget(Target):
 
 
 class NuGetTarget(Target):
+    """Open NuGet (.NET) package page. Falls back to *.csproj filename when <PackageId> absent."""
+
     name = "nuget"
     description = "Open the NuGet page (.NET)"
 

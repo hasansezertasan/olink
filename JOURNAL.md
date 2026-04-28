@@ -1,6 +1,39 @@
 # Development Journal
 
-Chronological record of decisions, attempts (including failures), and outcomes.
+Chronological record of decisions, attempts (including failures), and outcomes. Newest entries at top.
+
+---
+
+## 2026-04-29 — Codebase audit: bug fixes, new features, expanded test coverage
+
+### Context
+Audit of README/code/docstring/test consistency. Found bugs (CPAN heuristic, Maven parent), missing features (Gitea/Forgejo, `insteadOf`), and test gaps (TUI rendering, edge cases). Worked through all in one pass.
+
+### Changes
+
+**Bugs fixed**
+- CPAN: reordered fallback chain (Makefile.PL → lib/ → dist.ini). lib/ layout is more reliable than the dist.ini hyphen-to-colon heuristic which fails on names like `Foo-Bar` distributions whose actual module is `FooBar`.
+- Maven: parent groupId lookup now walks the full `<parent>` chain via `<relativePath>` (defaults to `../pom.xml`). Bounded at 8 levels. Earlier one-level lookup missed corporate parent → product parent → service artifact patterns.
+- GitLab subgroup warning was misleading — generated URLs are correct. Downgraded to `debug`.
+
+**Features added**
+- Gitea / Forgejo / Codeberg platform support. Hostname heuristic + GitHub-compatible PLATFORM_URLS entries.
+- `[url].insteadOf` rewrite support. Longest-prefix match wins, matching git's algorithm. Lets shorthand remotes like `github:owner/repo` resolve correctly.
+
+**Hardening**
+- Centralized `_read_text(path, label)` helper wraps `PermissionError` and `UnicodeDecodeError` to `ProjectMetadataError` across all 12 extractors. Same wrapping in `_read_git_config` for consistent CLI errors.
+- Added docstrings (contract, raises, edge cases) to all `_get_*_name()` functions and most Target subclasses, satisfying the project's "Required for public interfaces" rule.
+
+**Test coverage**
+- 211 → 244 tests.
+- Added: Maven grandparent + no-group-in-chain, CPAN lib-wins-over-dist.ini, empty config files (5), invalid TOML, invalid UTF-8, permission-denied (POSIX-only), symlinked dir, Gitea/Forgejo/Codeberg targets, `insteadOf` rewrite (3 cases incl. longest-match), TUI render via Pilot (StatusBar, TargetListWidget, search flow, toggle mode, action handlers).
+- Added `pytest-asyncio` (auto mode) for Textual `App.run_test()` Pilot tests.
+
+### Lesson learned
+
+**Tests caught a real bug in the fix.** The first Maven recursive-walk implementation only inspected `<parent>` child's `groupId`, never the **top-level** `groupId` of the next parent pom. The grandparent test failed immediately and forced the second `findtext` after each pom switch. Without that test, the bug would have shipped silently.
+
+**Centralize before the third copy.** The first two extractors got hand-rolled `try/except PermissionError`. Twelve became unworkable — pulled out `_read_text(path, label)` once and reused everywhere. Repeated boilerplate is a smell that points at the missing abstraction.
 
 ---
 
@@ -71,6 +104,21 @@ Based on ecosystem fit with the current target model (registry pages, docs pages
 ### Outcome
 
 Recorded a concrete shortlist that can be implemented without changing the architecture, while noting that network-enabled validation of market demand should be done outside this restricted environment.
+
+---
+
+## 2026-02-22: New target expansion for Rust + Go discovery
+
+### Decision
+Add dedicated `docsrs` and `pkg-go` targets so users can open the most common language-specific documentation hubs directly.
+
+### Why
+The existing target set already supports Rust and Go package discovery via registry and multi-ecosystem services, but docs-focused entry points were missing. Adding these two targets keeps the CLI useful for the "I need API docs now" workflow without adding complexity.
+
+### Outcome
+- Added `docsrs` target (`https://docs.rs/<crate>`).
+- Added `pkg-go` target (`https://pkg.go.dev/<module>`).
+- Updated registry, tests, and README target tables.
 
 ---
 
@@ -302,7 +350,7 @@ subprocess.run(["git", "remote"], ...)
 
 1. **Worktrees**: `.git` is a file containing `gitdir: /path/to/main/.git/worktrees/branch`
 2. **Submodules**: `.git` is a file containing `gitdir: ../.git/modules/submodule`
-3. **URL rewrites**: `[url "..."].insteadOf` directives (NOT supported)
+3. **URL rewrites**: `[url "..."].insteadOf` directives (NOT supported — added 2026-04-29)
 4. **Config includes**: `[include]` directives (NOT supported)
 
 ### The Solution
@@ -365,16 +413,3 @@ While refactoring, discovered `get_remote_names()` was never used outside tests.
 **File I/O is faster than subprocess.** When you only need to read configuration data that's stored in a well-defined format, reading the file directly is simpler and faster than spawning a subprocess. The trade-off is you need to handle edge cases yourself — but for a focused tool like `olink`, the 95% case (regular repos with standard config) is sufficient.
 
 **Document your limitations.** Rather than pretend the file-based approach is equivalent to `git`, document what it doesn't support (`insteadOf`, `include`). Users who rely on those features will know why it doesn't work.
-
-## 2026-02-22 — New target expansion for Rust + Go discovery
-
-### Decision
-Add dedicated `docsrs` and `pkg-go` targets so users can open the most common language-specific documentation hubs directly.
-
-### Why
-The existing target set already supports Rust and Go package discovery via registry and multi-ecosystem services, but docs-focused entry points were missing. Adding these two targets keeps the CLI useful for the “I need API docs now” workflow without adding complexity.
-
-### Outcome
-- Added `docsrs` target (`https://docs.rs/<crate>`).
-- Added `pkg-go` target (`https://pkg.go.dev/<module>`).
-- Updated registry, tests, and README target tables.

@@ -256,6 +256,31 @@ class TestGitTargets:
         url = target.get_url(temp_git_repo_with_upstream)
         assert url == "https://github.com/original-author/testrepo"
 
+    def test_origin_target_gitea(self, temp_git_repo_gitea: str) -> None:
+        target = OriginTarget()
+        url = target.get_url(temp_git_repo_gitea)
+        assert url == "https://gitea.example.com/testuser/testrepo"
+
+    def test_issues_target_gitea(self, temp_git_repo_gitea: str) -> None:
+        target = IssuesTarget()
+        url = target.get_url(temp_git_repo_gitea)
+        assert url == "https://gitea.example.com/testuser/testrepo/issues"
+
+    def test_pulls_target_gitea(self, temp_git_repo_gitea: str) -> None:
+        target = PullsTarget()
+        url = target.get_url(temp_git_repo_gitea)
+        assert url == "https://gitea.example.com/testuser/testrepo/pulls"
+
+    def test_origin_target_codeberg_forgejo(self, temp_git_repo_codeberg: str) -> None:
+        target = OriginTarget()
+        url = target.get_url(temp_git_repo_codeberg)
+        assert url == "https://codeberg.org/testuser/testrepo"
+
+    def test_issues_target_forgejo(self, temp_git_repo_codeberg: str) -> None:
+        target = IssuesTarget()
+        url = target.get_url(temp_git_repo_codeberg)
+        assert url == "https://codeberg.org/testuser/testrepo/issues"
+
 
 class TestRegistryTargets:
     """Tests for package registry targets."""
@@ -452,6 +477,67 @@ class TestRegistryTargets:
         url = target.get_url(str(tmp_path))
         assert url == "https://central.sonatype.com/artifact/com.parent/child-app"
 
+    def test_maven_target_grandparent_group_id(self, tmp_path: Path) -> None:
+        """groupId resolved via two-level parent chain (parent has no groupId either)."""
+        grandparent = tmp_path / "grandparent"
+        parent = tmp_path / "parent"
+        child = tmp_path / "child"
+        grandparent.mkdir()
+        parent.mkdir()
+        child.mkdir()
+
+        (grandparent / "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <groupId>com.corp</groupId>\n"
+            "  <artifactId>corp-bom</artifactId>\n"
+            "  <version>1.0.0</version>\n"
+            "</project>\n",
+            encoding="utf-8",
+        )
+        (parent / "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <parent>\n"
+            "    <artifactId>corp-bom</artifactId>\n"
+            "    <version>1.0.0</version>\n"
+            "    <relativePath>../grandparent/pom.xml</relativePath>\n"
+            "  </parent>\n"
+            "  <artifactId>product-parent</artifactId>\n"
+            "</project>\n",
+            encoding="utf-8",
+        )
+        (child / "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <parent>\n"
+            "    <artifactId>product-parent</artifactId>\n"
+            "    <version>1.0.0</version>\n"
+            "    <relativePath>../parent/pom.xml</relativePath>\n"
+            "  </parent>\n"
+            "  <artifactId>service-app</artifactId>\n"
+            "</project>\n",
+            encoding="utf-8",
+        )
+
+        target = MavenTarget()
+        url = target.get_url(str(child))
+        assert url == "https://central.sonatype.com/artifact/com.corp/service-app"
+
+    def test_maven_target_no_group_in_chain(self, tmp_path: Path) -> None:
+        """No groupId anywhere in chain raises ProjectMetadataError."""
+        pom = tmp_path / "pom.xml"
+        pom.write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <artifactId>orphan-app</artifactId>\n"
+            "</project>\n",
+            encoding="utf-8",
+        )
+        target = MavenTarget()
+        with pytest.raises(ProjectMetadataError, match="No 'groupId'"):
+            target.get_url(str(tmp_path))
+
     def test_hackage_target(self, temp_hackage_cabal: str) -> None:
         target = HackageTarget()
         url = target.get_url(temp_hackage_cabal)
@@ -498,6 +584,20 @@ class TestRegistryTargets:
         url = target.get_url(str(tmp_path))
         # Should prefer shallowest module (Foo) over deeper (Foo::Bar)
         assert url == "https://metacpan.org/pod/Foo"
+
+    def test_cpan_target_lib_wins_over_dist_ini(self, tmp_path: Path) -> None:
+        """When dist hyphen-name would mislead, lib/ layout takes precedence.
+
+        Distribution `Foo-Bar` containing single module `FooBar.pm` should resolve
+        to `FooBar`, not the heuristic `Foo::Bar` from dist.ini.
+        """
+        (tmp_path / "dist.ini").write_text("name = Foo-Bar\nversion = 0.001\n", encoding="utf-8")
+        lib_dir = tmp_path / "lib"
+        lib_dir.mkdir()
+        (lib_dir / "FooBar.pm").write_text("package FooBar;\n1;\n", encoding="utf-8")
+        target = CpanTarget()
+        url = target.get_url(str(tmp_path))
+        assert url == "https://metacpan.org/pod/FooBar"
 
 
 class TestMultiEcosystemTargets:

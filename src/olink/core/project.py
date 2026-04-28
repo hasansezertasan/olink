@@ -2,15 +2,14 @@
 
 Git note: This module reads .git/config directly instead of calling git commands.
 This is faster but has limitations:
-- Does not support [url "..."].insteadOf rewrites
-- Does not support [include] directives in git config
-- Does not support GitLab subgroups (e.g., group/subgroup/repo).
-  URLs like git@gitlab.com:group/subgroup/repo.git will match but produce
-  owner="group" and repo="subgroup/repo", generating incorrect URLs.
-- Platform detection uses a hostname heuristic fallback (e.g., "gitlab" in host).
-  Self-hosted Gitea, Forgejo, or other GitHub-compatible forges will raise
-  UnknownPlatformError unless their hostname contains "github", "gitlab",
-  or "bitbucket".
+- Supports [url "..."].insteadOf rewrites (longest-match prefix wins).
+- Does not support [include] directives in git config (no recursive merging).
+- Recognized platforms: github, gitlab, bitbucket, gitea, forgejo (incl. codeberg).
+  Hostname heuristic falls back when host is not the canonical SaaS one
+  (self-hosted GitHub Enterprise, GitLab CE, Gitea, Forgejo).
+- GitLab subgroups (e.g., group/subgroup/repo) are parsed as owner="group"
+  and repo="subgroup/repo". The generated URL https://host/group/subgroup/repo
+  is correct for GitLab, but may not work for other platforms with nested paths.
 """
 
 import configparser
@@ -104,23 +103,60 @@ def _read_git_config(cwd: str) -> configparser.ConfigParser:
         raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
 
     config = configparser.ConfigParser(strict=False)
-    with open(config_path, encoding="utf-8") as f:
-        config.read_file(f)
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            config.read_file(f)
+    except PermissionError as e:
+        raise NotGitRepoError(f"Cannot read git config: {e}") from e
+    except UnicodeDecodeError as e:
+        raise NotGitRepoError(f"Git config has invalid UTF-8: {e}") from e
     return config
 
 
-def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
-    """Get the URL for a git remote.
+def _collect_insteadof_rewrites(config: configparser.ConfigParser) -> list[tuple[str, str]]:
+    """Extract [url "<rewritten>"].insteadOf entries, sorted by match length descending.
 
-    Note: Does not apply [url].insteadOf rewrites.
+    Git applies the longest-matching prefix when multiple rules match — see
+    `git config --get-urlmatch`. Sorting longest-first lets first-match-wins
+    yield the same result.
     """
+    rules: list[tuple[str, str]] = []
+    for section in config.sections():
+        if not section.startswith('url "') or not section.endswith('"'):
+            continue
+        rewritten = section[len('url "'):-1]
+        match_value = config.get(section, "insteadof", fallback=None)
+        if match_value is None:
+            continue
+        for prefix in match_value.splitlines():
+            prefix = prefix.strip()
+            if prefix:
+                rules.append((prefix, rewritten))
+    rules.sort(key=lambda r: len(r[0]), reverse=True)
+    return rules
+
+
+def _apply_insteadof(url: str, rules: list[tuple[str, str]]) -> str:
+    """Apply first matching insteadOf rewrite (rules already sorted longest-first)."""
+    for prefix, rewritten in rules:
+        if url.startswith(prefix):
+            return rewritten + url[len(prefix):]
+    return url
+
+
+def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
+    """Get the URL for a git remote, applying [url].insteadOf rewrites if configured."""
     config = _read_git_config(cwd)
 
     section = f'remote "{remote_name}"'
     if section not in config:
         return None
 
-    return config.get(section, "url", fallback=None)
+    raw_url = config.get(section, "url", fallback=None)
+    if raw_url is None:
+        return None
+    rules = _collect_insteadof_rewrites(config)
+    return _apply_insteadof(raw_url, rules)
 
 
 def parse_remote_url(url: str) -> ParsedRemote:
@@ -134,19 +170,23 @@ def parse_remote_url(url: str) -> ParsedRemote:
 
             platform = HOST_TO_PLATFORM.get(host.lower())
             if platform is None:
-                if "gitlab" in host.lower():
+                host_lower = host.lower()
+                if "gitlab" in host_lower:
                     platform = "gitlab"
-                elif "github" in host.lower():
+                elif "github" in host_lower:
                     platform = "github"
-                elif "bitbucket" in host.lower():
+                elif "bitbucket" in host_lower:
                     platform = "bitbucket"
+                elif "gitea" in host_lower:
+                    platform = "gitea"
+                elif "forgejo" in host_lower or "codeberg" in host_lower:
+                    platform = "forgejo"
                 else:
                     raise UnknownPlatformError(f"Unknown git hosting platform: {host}")
 
             if "/" in repo:
-                logger.warning(
-                    "Repo path '%s/%s' contains subgroups — generated URLs may be incorrect. "
-                    "See module docstring for details.",
+                logger.debug(
+                    "Repo path '%s/%s' contains nested groups (e.g. GitLab subgroups).",
                     owner,
                     repo,
                 )
@@ -188,15 +228,33 @@ class EcosystemConfig:
         return (Path(cwd) / self.config_file).exists()
 
 
+def _read_text(path: Path, label: str) -> str:
+    """Read a text config file, mapping OS/encoding errors to ProjectMetadataError.
+
+    Centralizes the "missing perms / non-UTF8" handling all extractors need so
+    CLI consistently surfaces OlinkError messages instead of bare tracebacks.
+    """
+    try:
+        return path.read_text(encoding="utf-8")
+    except PermissionError as e:
+        raise ProjectMetadataError(f"Cannot read {label}: {e}") from e
+    except UnicodeDecodeError as e:
+        raise ProjectMetadataError(f"Invalid {label} (non-UTF-8): {e}") from e
+
+
 def _get_pypi_name(cwd: str) -> str:
-    """Extract package name from pyproject.toml."""
+    """Read PEP 621 [project].name from pyproject.toml.
+
+    Raises ProjectMetadataError if file missing, TOML invalid, or name absent.
+    Does not resolve dynamic = ["name"] — only static metadata supported.
+    """
     pyproject_path = Path(cwd) / "pyproject.toml"
     if not pyproject_path.exists():
         raise ProjectMetadataError("No pyproject.toml found")
 
+    content = _read_text(pyproject_path, "pyproject.toml")
     try:
-        with open(pyproject_path, "rb") as f:
-            data = tomllib.load(f)
+        data = tomllib.loads(content)
     except tomllib.TOMLDecodeError as e:
         raise ProjectMetadataError(f"Invalid pyproject.toml: {e}") from e
 
@@ -207,14 +265,18 @@ def _get_pypi_name(cwd: str) -> str:
 
 
 def _get_npm_name(cwd: str) -> str:
-    """Extract package name from package.json."""
+    """Read top-level "name" from package.json.
+
+    Returns scoped names (@org/pkg) verbatim — callers handle URL encoding.
+    Raises ProjectMetadataError if file missing, JSON invalid, or name absent.
+    """
     package_json_path = Path(cwd) / "package.json"
     if not package_json_path.exists():
         raise ProjectMetadataError("No package.json found")
 
+    content = _read_text(package_json_path, "package.json")
     try:
-        with open(package_json_path, encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads(content)
     except json.JSONDecodeError as e:
         raise ProjectMetadataError(f"Invalid package.json: {e}") from e
 
@@ -225,14 +287,17 @@ def _get_npm_name(cwd: str) -> str:
 
 
 def _get_cargo_name(cwd: str) -> str:
-    """Extract package name from Cargo.toml."""
+    """Read [package].name from Cargo.toml.
+
+    Workspace-only manifests (no [package] table) raise ProjectMetadataError.
+    """
     cargo_path = Path(cwd) / "Cargo.toml"
     if not cargo_path.exists():
         raise ProjectMetadataError("No Cargo.toml found")
 
+    content = _read_text(cargo_path, "Cargo.toml")
     try:
-        with open(cargo_path, "rb") as f:
-            data = tomllib.load(f)
+        data = tomllib.loads(content)
     except tomllib.TOMLDecodeError as e:
         raise ProjectMetadataError(f"Invalid Cargo.toml: {e}") from e
 
@@ -243,12 +308,16 @@ def _get_cargo_name(cwd: str) -> str:
 
 
 def _get_go_name(cwd: str) -> str:
-    """Extract module name from go.mod."""
+    """Read first `module <path>` declaration from go.mod.
+
+    Returns full module path (e.g. github.com/user/repo). Raises if file
+    missing or no module directive present.
+    """
     go_mod_path = Path(cwd) / "go.mod"
     if not go_mod_path.exists():
         raise ProjectMetadataError("No go.mod found")
 
-    content = go_mod_path.read_text(encoding="utf-8")
+    content = _read_text(go_mod_path, "go.mod")
     match = re.search(r"^module\s+(\S+)", content, re.MULTILINE)
     if not match:
         raise ProjectMetadataError("No 'module' declaration in go.mod")
@@ -256,11 +325,15 @@ def _get_go_name(cwd: str) -> str:
 
 
 def _get_gems_name(cwd: str) -> str:
-    """Extract gem name from *.gemspec."""
+    """Read spec.name = '...' from first matching *.gemspec.
+
+    Picks first glob match if multiple gemspecs exist (rare). Regex assumes
+    standard `<var>.name = "..."` form — won't catch dynamically computed names.
+    """
     gemspec_files = list(Path(cwd).glob("*.gemspec"))
     if not gemspec_files:
         raise ProjectMetadataError("No .gemspec file found")
-    content = gemspec_files[0].read_text(encoding="utf-8")
+    content = _read_text(gemspec_files[0], gemspec_files[0].name)
     match = re.search(r"""\w+\.name\s*=\s*['"]([^'"]+)['"]""", content)
     if not match:
         raise ProjectMetadataError("No 'name' in .gemspec file")
@@ -268,14 +341,17 @@ def _get_gems_name(cwd: str) -> str:
 
 
 def _get_packagist_name(cwd: str) -> str:
-    """Extract package name from composer.json."""
+    """Read top-level "name" from composer.json (vendor/package format).
+
+    Packagist requires vendor/package — value returned verbatim, no validation.
+    """
     composer_path = Path(cwd) / "composer.json"
     if not composer_path.exists():
         raise ProjectMetadataError("No composer.json found")
 
+    content = _read_text(composer_path, "composer.json")
     try:
-        with open(composer_path, encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads(content)
     except json.JSONDecodeError as e:
         raise ProjectMetadataError(f"Invalid composer.json: {e}") from e
 
@@ -286,12 +362,16 @@ def _get_packagist_name(cwd: str) -> str:
 
 
 def _get_pub_name(cwd: str) -> str:
-    """Extract package name from pubspec.yaml."""
+    """Read `name:` key from pubspec.yaml (line-level regex, no YAML parser).
+
+    Avoids pulling a YAML dependency for one field. Won't handle multi-line
+    or quoted-key forms — only the canonical `name: value` style pub uses.
+    """
     pubspec_path = Path(cwd) / "pubspec.yaml"
     if not pubspec_path.exists():
         raise ProjectMetadataError("No pubspec.yaml found")
 
-    content = pubspec_path.read_text(encoding="utf-8")
+    content = _read_text(pubspec_path, "pubspec.yaml")
     match = re.search(r"^name:\s*['\"]?([^\s'\"]+)['\"]?", content, re.MULTILINE)
     if not match:
         raise ProjectMetadataError("No 'name' in pubspec.yaml")
@@ -299,11 +379,15 @@ def _get_pub_name(cwd: str) -> str:
 
 
 def _get_hex_name(cwd: str) -> str:
-    """Extract app name from mix.exs."""
+    """Extract `app: :name` atom from mix.exs (Elixir build script).
+
+    Hex.pm uses the OTP app atom as the package slug. Regex won't match
+    dynamic computed atoms — those are uncommon in published packages.
+    """
     mix_path = Path(cwd) / "mix.exs"
     if not mix_path.exists():
         raise ProjectMetadataError("No mix.exs found")
-    content = mix_path.read_text(encoding="utf-8")
+    content = _read_text(mix_path, "mix.exs")
     match = re.search(r"""app:\s*:(\w+)""", content)
     if not match:
         raise ProjectMetadataError("No 'app' in mix.exs")
@@ -311,11 +395,15 @@ def _get_hex_name(cwd: str) -> str:
 
 
 def _get_nuget_name(cwd: str) -> str:
-    """Extract package name from *.csproj."""
+    """Read <PackageId> from first *.csproj, fall back to filename stem.
+
+    .NET convention: when <PackageId> is absent, NuGet uses the project file
+    name as the package id. Mirrors that behavior.
+    """
     csproj_files = list(Path(cwd).glob("*.csproj"))
     if not csproj_files:
         raise ProjectMetadataError("No .csproj file found")
-    content = csproj_files[0].read_text(encoding="utf-8")
+    content = _read_text(csproj_files[0], csproj_files[0].name)
     match = re.search(r"<PackageId>([^<]+)</PackageId>", content)
     if not match:
         return csproj_files[0].stem
@@ -323,14 +411,19 @@ def _get_nuget_name(cwd: str) -> str:
 
 
 def _get_open_vsx_name(cwd: str) -> str:
-    """Align extension target URLs with extension metadata already kept in package.json."""
+    """Build `publisher.name` extension id from package.json.
+
+    Open VSX (and VS Code Marketplace) identify extensions by publisher + name.
+    Both fields required — raises ProjectMetadataError if either missing.
+    Caller must split on '.' to extract URL components.
+    """
     package_json_path = Path(cwd) / "package.json"
     if not package_json_path.exists():
         raise ProjectMetadataError("No package.json found")
 
+    content = _read_text(package_json_path, "package.json")
     try:
-        with open(package_json_path, encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads(content)
     except json.JSONDecodeError as e:
         raise ProjectMetadataError(f"Invalid package.json: {e}") from e
 
@@ -344,45 +437,85 @@ def _get_open_vsx_name(cwd: str) -> str:
     return f"{publisher}.{name}"
 
 
-def _get_maven_name(cwd: str) -> str:
-    """Use Maven coordinates so artifact links stay stable across tooling and mirrors."""
-    pom_path = Path(cwd) / "pom.xml"
-    if not pom_path.exists():
-        raise ProjectMetadataError("No pom.xml found")
+_MAVEN_PARENT_DEPTH = 8
 
+
+def _parse_pom(pom_path: Path) -> tuple[ET.Element, str]:
+    """Parse a pom.xml and return (root, namespace_prefix). Raises ProjectMetadataError."""
+    content = _read_text(pom_path, "pom.xml")
     try:
-        root = ET.fromstring(pom_path.read_text(encoding="utf-8"))
+        root = ET.fromstring(content)
     except ET.ParseError as e:
         raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
     except defusedxml.DefusedXmlException as e:
         raise ProjectMetadataError(
             f"pom.xml contains disallowed XML features: {e}"
         ) from e
-
     namespace = ""
     if root.tag.startswith("{"):
         namespace = root.tag.split("}", 1)[0] + "}"
+    return root, namespace
 
-    group_id = root.findtext(f"{namespace}groupId")
+
+def _get_maven_name(cwd: str) -> str:
+    """Resolve Maven groupId:artifactId, walking <parent> chain via <relativePath> when needed.
+
+    Why recursive: Maven inheritance can span multiple levels (corporate parent ->
+    product parent -> service artifact). One-level lookup misses grandparent groupId.
+    Walks at most _MAVEN_PARENT_DEPTH ancestors to bound work and prevent cycles.
+    """
+    pom_path = Path(cwd) / "pom.xml"
+    if not pom_path.exists():
+        raise ProjectMetadataError("No pom.xml found")
+
+    root, ns = _parse_pom(pom_path)
+
+    artifact_id = root.findtext(f"{ns}artifactId")
+    if not artifact_id:
+        raise ProjectMetadataError("No 'artifactId' in pom.xml")
+
+    group_id = root.findtext(f"{ns}groupId")
+    current_pom = pom_path
+    current_root = root
+    current_ns = ns
+    depth = 0
+    while not group_id and depth < _MAVEN_PARENT_DEPTH:
+        parent = current_root.find(f"{current_ns}parent")
+        if parent is None:
+            break
+        group_id = parent.findtext(f"{current_ns}groupId")
+        if group_id:
+            break
+        relative = (parent.findtext(f"{current_ns}relativePath") or "../pom.xml").strip()
+        if not relative:
+            break
+        next_pom = (current_pom.parent / relative).resolve()
+        if next_pom.is_dir():
+            next_pom = next_pom / "pom.xml"
+        if not next_pom.exists() or next_pom == current_pom:
+            break
+        current_pom = next_pom
+        current_root, current_ns = _parse_pom(next_pom)
+        group_id = current_root.findtext(f"{current_ns}groupId")
+        depth += 1
+
     if not group_id:
-        parent = root.find(f"{namespace}parent")
-        if parent is not None:
-            group_id = parent.findtext(f"{namespace}groupId")
-
-    artifact_id = root.findtext(f"{namespace}artifactId")
-    if not group_id or not artifact_id:
-        raise ProjectMetadataError("No 'groupId'/'artifactId' in pom.xml")
+        raise ProjectMetadataError("No 'groupId' in pom.xml or parent chain")
 
     return f"{group_id}:{artifact_id}"
 
 
 def _get_hackage_name(cwd: str) -> str:
-    """Read Cabal metadata directly to avoid external tool dependencies during lookup."""
+    """Read `name:` field from first *.cabal file (case-insensitive).
+
+    Direct read avoids cabal/ghc dependency. Cabal field names are case-insensitive
+    per spec — regex uses re.IGNORECASE.
+    """
     cabal_files = list(Path(cwd).glob("*.cabal"))
     if not cabal_files:
         raise ProjectMetadataError("No .cabal file found")
 
-    content = cabal_files[0].read_text(encoding="utf-8")
+    content = _read_text(cabal_files[0], cabal_files[0].name)
     match = re.search(r"^name\s*:\s*(\S+)", content, re.MULTILINE | re.IGNORECASE)
     if not match:
         raise ProjectMetadataError("No 'name' in .cabal file")
@@ -392,31 +525,23 @@ def _get_hackage_name(cwd: str) -> str:
 def _get_cpan_name(cwd: str) -> str:
     """Infer the primary CPAN module name from distribution metadata.
 
-    Checks Makefile.PL, dist.ini, and lib/ directory layout — avoids
-    cpanfile's `requires` entries which list dependencies, not the project itself.
+    Checks Makefile.PL first (authoritative), then lib/ directory layout
+    (reliable), then dist.ini as a last resort — the dist.ini hyphen-to-colon
+    conversion is a heuristic that can be wrong for distributions whose name
+    doesn't mirror the main module.
     """
     root = Path(cwd)
 
-    # 1. Makefile.PL: NAME => 'My::Dist'
+    # 1. Makefile.PL: NAME => 'My::Dist' (most reliable — author-specified)
     makefile_pl = root / "Makefile.PL"
     if makefile_pl.exists():
-        content = makefile_pl.read_text(encoding="utf-8")
+        content = _read_text(makefile_pl, "Makefile.PL")
         match = re.search(r"NAME\s*=>\s*['\"]([^'\"]+)['\"]", content)
         if match:
             return match.group(1)
-        logger.debug("Makefile.PL found but NAME not parseable, trying dist.ini")
+        logger.debug("Makefile.PL found but NAME not parseable, trying lib/ layout")
 
-    # 2. dist.ini (Dist::Zilla): name = My-Dist
-    dist_ini_path = root / "dist.ini"
-    if dist_ini_path.exists():
-        content = dist_ini_path.read_text(encoding="utf-8")
-        match = re.search(r"^name\s*=\s*(\S+)", content, re.MULTILINE)
-        if match:
-            # Convert distribution-style name (My-Dist) to module-style (My::Dist)
-            return match.group(1).strip().replace("-", "::")
-        logger.debug("dist.ini found but name not parseable, trying lib/ layout")
-
-    # 3. Directory layout: lib/Foo/Bar.pm -> Foo::Bar (prefer shallowest module)
+    # 2. Directory layout: lib/Foo/Bar.pm -> Foo::Bar (prefer shallowest module)
     lib_dir = root / "lib"
     if lib_dir.exists() and lib_dir.is_dir():
         pm_files = sorted(lib_dir.rglob("*.pm"), key=lambda p: len(p.parts))
@@ -431,6 +556,15 @@ def _get_cpan_name(cwd: str) -> str:
                     "CPAN module name inferred from lib/ layout as '%s'", module
                 )
                 return module
+
+    # 3. dist.ini (Dist::Zilla): name = My-Dist (heuristic — hyphen-to-colon)
+    dist_ini_path = root / "dist.ini"
+    if dist_ini_path.exists():
+        content = _read_text(dist_ini_path, "dist.ini")
+        match = re.search(r"^name\s*=\s*(\S+)", content, re.MULTILINE)
+        if match:
+            return match.group(1).strip().replace("-", "::")
+        logger.debug("dist.ini found but name not parseable")
 
     raise ProjectMetadataError(
         "Could not determine CPAN module name from project metadata"

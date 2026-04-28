@@ -23,7 +23,7 @@ def main_callback(
     ctx: typer.Context,
     target: str | None = typer.Argument(
         None,
-        help="Target to open (origin, upstream, issues, pulls, actions, pypi, npm, gems, crates)",
+        help="Target to open (e.g. origin, issues, pypi, npm, crates, and more — use --list-all to see all)",
     ),
     directory: str | None = typer.Option(
         None,

@@ -83,13 +83,8 @@ src/olink/
   core/                  # Core domain logic
     __init__.py          # Public API exports (slim: Target, REGISTRY, exceptions)
     exceptions.py        # Custom exception hierarchy
-    extractors.py        # Package name extractors (pypi, npm, cargo, etc.)
-    ecosystems.py        # Ecosystem config, detection, and name lookup
-    git.py               # Git remote parsing & URL extraction
-    targets.py           # Abstract Target & MultiEcosystemTarget base classes
-    git_targets.py       # GitHub/GitLab/Bitbucket page targets
-    package_targets.py   # PyPI/npm/crates/etc registry targets
-    service_targets.py   # Codecov/Coveralls targets
+    project.py           # Git remote parsing, ecosystem detection, package name extraction
+    targets.py           # All target definitions (git, registry, multi-ecosystem, service)
     catalog.py           # REGISTRY dict, get_target(), list_targets()
   cli/                   # CLI interface
     __init__.py          # Exports main, app
@@ -103,9 +98,11 @@ src/olink/
 tests/
   conftest.py            # Shared fixtures
   core/                  # Core module tests
-    test_utils.py
-    test_platforms.py
-    test_targets.py
+    test_utils.py        # Git parsing & ecosystem detection tests
+    test_platforms.py    # PLATFORM_URLS dict tests
+    test_targets.py      # Target URL generation tests
   cli/                   # CLI tests
     test_cli.py
+  tui/                   # TUI tests
+    test_tui.py
 ```

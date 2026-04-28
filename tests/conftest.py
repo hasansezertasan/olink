@@ -96,6 +96,36 @@ def temp_git_repo_with_upstream(temp_dir: str) -> Iterator[str]:
     yield temp_dir
 
 
+@pytest.fixture
+def temp_git_repo_gitea(temp_dir: str) -> Iterator[str]:
+    """Create a temporary git repository with a self-hosted Gitea origin remote."""
+    import subprocess
+
+    subprocess.run(["git", "init"], cwd=temp_dir, capture_output=True, check=True)
+    config = Path(temp_dir) / ".git" / "config"
+    with open(config, "a") as f:
+        f.write(
+            '\n[remote "origin"]\n'
+            "\turl = git@gitea.example.com:testuser/testrepo.git\n"
+        )
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_git_repo_codeberg(temp_dir: str) -> Iterator[str]:
+    """Create a temporary git repository with a Codeberg (Forgejo) origin remote."""
+    import subprocess
+
+    subprocess.run(["git", "init"], cwd=temp_dir, capture_output=True, check=True)
+    config = Path(temp_dir) / ".git" / "config"
+    with open(config, "a") as f:
+        f.write(
+            '\n[remote "origin"]\n'
+            "\turl = git@codeberg.org:testuser/testrepo.git\n"
+        )
+    yield temp_dir
+
+
 # =============================================================================
 # Project file fixtures
 # =============================================================================
