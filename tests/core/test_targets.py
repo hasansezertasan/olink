@@ -1,4 +1,4 @@
-"""Tests for targets/ - Target URL generation."""
+"""Tests for targets.py - Target URL generation."""
 
 import subprocess
 from pathlib import Path
@@ -15,39 +15,54 @@ from olink.core.catalog import REGISTRY, get_target, list_targets
 from olink.core.targets import (
     ActionsTarget,
     BranchesTarget,
+    BundlephobiaTarget,
+    ClickPyTarget,
     CodecovTarget,
     CommitsTarget,
     CoverallsTarget,
+    CpanTarget,
     CratesTarget,
-    DocsRsTarget,
-    GoPkgTarget,
-    GoDocsTarget,
     DepsDevTarget,
     DiscussionsTarget,
+    DocsRsTarget,
     EcosystemsTarget,
     GemsTarget,
+    GoDocsTarget,
+    GoPkgTarget,
+    HackageTarget,
+    HexTarget,
+    InspectorTarget,
     IssuesTarget,
-    LibrariesIOTarget,
-    MultiEcosystemTarget,
-    NPMTarget,
     JsDelivrTarget,
-    UnpkgTarget,
-    SkypackTarget,
+    LibRsTarget,
+    LibrariesIOTarget,
+    MavenTarget,
+    MultiEcosystemTarget,
+    NPMStatTarget,
+    NPMTarget,
+    NuGetTarget,
+    OpenVSXTarget,
     OriginTarget,
-    PullsTarget,
-    ReleasesTarget,
-    SecurityTarget,
-    WikiTarget,
+    PackagephobiaTarget,
+    PackagistTarget,
+    PePyTarget,
+    PipTrendsTarget,
     PiWheelsTarget,
+    PubTarget,
+    PullsTarget,
+    PyPIJSONTarget,
+    PyPIStatsTarget,
     PyPITarget,
+    ReleasesTarget,
     RubyGemsStatsTarget,
+    SafetyDBTarget,
+    SecurityTarget,
+    SkypackTarget,
     SnykTarget,
     SocketTarget,
-    OpenVSXTarget,
-    MavenTarget,
-    HackageTarget,
-    CpanTarget,
+    UnpkgTarget,
     UpstreamTarget,
+    WikiTarget,
 )
 
 
@@ -817,13 +832,114 @@ class TestServiceTargets:
     def test_coveralls_target_gitlab(self, temp_git_repo_gitlab: str) -> None:
         target = CoverallsTarget()
         url = target.get_url(temp_git_repo_gitlab)
-        assert url.startswith("https://coveralls.io/")
-        assert "testuser" in url
-        assert "testrepo" in url
+        assert url == "https://coveralls.io/gitlab/testuser/testrepo"
 
     def test_coveralls_target_bitbucket(self, temp_git_repo_bitbucket: str) -> None:
         target = CoverallsTarget()
         url = target.get_url(temp_git_repo_bitbucket)
-        assert url.startswith("https://coveralls.io/")
-        assert "testuser" in url
-        assert "testrepo" in url
+        assert url == "https://coveralls.io/bitbucket/testuser/testrepo"
+
+    def test_codecov_target_gitea_unsupported(self, temp_git_repo_gitea: str) -> None:
+        """Codecov has no gitea integration — must raise, not emit a 404 URL."""
+        target = CodecovTarget()
+        with pytest.raises(UnsupportedFeatureError, match="does not support 'gitea'"):
+            target.get_url(temp_git_repo_gitea)
+
+    def test_codecov_target_forgejo_unsupported(self, temp_git_repo_forgejo: str) -> None:
+        target = CodecovTarget()
+        with pytest.raises(UnsupportedFeatureError, match="does not support 'forgejo'"):
+            target.get_url(temp_git_repo_forgejo)
+
+    def test_coveralls_target_gitea_unsupported(self, temp_git_repo_gitea: str) -> None:
+        target = CoverallsTarget()
+        with pytest.raises(UnsupportedFeatureError, match="does not support 'gitea'"):
+            target.get_url(temp_git_repo_gitea)
+
+    def test_coveralls_target_forgejo_unsupported(self, temp_git_repo_forgejo: str) -> None:
+        target = CoverallsTarget()
+        with pytest.raises(UnsupportedFeatureError, match="does not support 'forgejo'"):
+            target.get_url(temp_git_repo_forgejo)
+
+
+class TestRegistryURLCoverage:
+    """One assertion per remaining target so URL drift surfaces in CI."""
+
+    def test_inspector(self, temp_pyproject: str) -> None:
+        assert InspectorTarget().get_url(temp_pyproject) == "https://inspector.pypi.io/project/test-project/"
+
+    def test_pypi_json(self, temp_pyproject: str) -> None:
+        assert PyPIJSONTarget().get_url(temp_pyproject) == "https://pypi.org/pypi/test-project/json"
+
+    def test_pepy(self, temp_pyproject: str) -> None:
+        assert PePyTarget().get_url(temp_pyproject) == "https://www.pepy.tech/projects/test-project"
+
+    def test_pypistats(self, temp_pyproject: str) -> None:
+        assert PyPIStatsTarget().get_url(temp_pyproject) == "https://pypistats.org/packages/test-project"
+
+    def test_piptrends(self, temp_pyproject: str) -> None:
+        assert PipTrendsTarget().get_url(temp_pyproject) == "https://piptrends.com/package/test-project"
+
+    def test_clickpy(self, temp_pyproject: str) -> None:
+        assert ClickPyTarget().get_url(temp_pyproject) == "https://clickpy.clickhouse.com/dashboard/test-project"
+
+    def test_safety_db(self, temp_pyproject: str) -> None:
+        assert SafetyDBTarget().get_url(temp_pyproject) == "https://data.safetycli.com/packages/pypi/test-project"
+
+    def test_bundlephobia(self, temp_package_json: str) -> None:
+        assert BundlephobiaTarget().get_url(temp_package_json) == "https://bundlephobia.com/package/test-project"
+
+    def test_packagephobia(self, temp_package_json: str) -> None:
+        assert PackagephobiaTarget().get_url(temp_package_json) == "https://packagephobia.com/result?p=test-project"
+
+    def test_packagephobia_scoped_encoded(self, temp_package_json_scoped: str) -> None:
+        """Scoped names must round-trip through urlencode (`@` → `%40`, `/` → `%2F`)."""
+        url = PackagephobiaTarget().get_url(temp_package_json_scoped)
+        assert url == "https://packagephobia.com/result?p=%40myorg%2Ftest-project"
+
+    def test_npm_stat(self, temp_package_json: str) -> None:
+        assert NPMStatTarget().get_url(temp_package_json) == "https://npm-stat.com/charts.html?package=test-project"
+
+    def test_npm_stat_scoped_encoded(self, temp_package_json_scoped: str) -> None:
+        url = NPMStatTarget().get_url(temp_package_json_scoped)
+        assert url == "https://npm-stat.com/charts.html?package=%40myorg%2Ftest-project"
+
+    def test_librs(self, temp_cargo_toml: str) -> None:
+        assert LibRsTarget().get_url(temp_cargo_toml) == "https://lib.rs/crates/test-crate"
+
+    def test_packagist_target_no_config(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError, match="No composer.json found"):
+            PackagistTarget().get_url(temp_dir)
+
+    def test_pub_target_no_config(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError, match="No pubspec.yaml found"):
+            PubTarget().get_url(temp_dir)
+
+    def test_hex_target_no_config(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError, match="No mix.exs found"):
+            HexTarget().get_url(temp_dir)
+
+    def test_nuget_target_no_config(self, temp_dir: str) -> None:
+        with pytest.raises(ProjectMetadataError, match="No .csproj file found"):
+            NuGetTarget().get_url(temp_dir)
+
+
+class TestRegistryDriftGuard:
+    """Guard against REGISTRY ↔ targets module drift."""
+
+    def test_registry_keys_match_target_classes(self) -> None:
+        """Every Target subclass with a `name` should be in REGISTRY (or a base)."""
+        from olink.core import targets as targets_mod
+        from olink.core.targets import Target
+
+        target_subclasses = {
+            cls
+            for _, cls in vars(targets_mod).items()
+            if isinstance(cls, type) and issubclass(cls, Target) and cls is not Target
+        }
+        # Skip abstract bases (no `name` ClassVar set on the class itself).
+        concrete = {
+            cls for cls in target_subclasses if "name" in cls.__dict__
+        }
+        registered_classes = set(REGISTRY.values())
+        missing = concrete - registered_classes
+        assert missing == set(), f"Target classes defined but not in REGISTRY: {missing}"

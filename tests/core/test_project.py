@@ -1,4 +1,4 @@
-"""Tests for git.py - Git operations, URL parsing, and project metadata."""
+"""Tests for project.py - Git operations, URL parsing, and project metadata."""
 
 import json
 import os
@@ -140,6 +140,28 @@ class TestParseRemoteUrl:
         assert result.platform == "forgejo"
         assert result.host == "codeberg.org"
 
+    def test_parse_ssh_with_port_unsupported(self) -> None:
+        """`ssh://git@host:22/owner/repo.git` form is currently unsupported.
+
+        Documented refusal — not a panic. If/when port-form is added, switch to
+        a positive assertion.
+        """
+        with pytest.raises(UnknownPlatformError):
+            parse_remote_url("ssh://git@github.com:22/owner/repo.git")
+
+    def test_parse_no_substring_false_positive(self) -> None:
+        """Hostname `gitlabby.example.com` must NOT match the `gitlab` keyword.
+
+        Earlier substring-based detection wrongly classified arbitrary hosts;
+        label-based detection rejects them.
+        """
+        with pytest.raises(UnknownPlatformError):
+            parse_remote_url("git@gitlabby.example.com:owner/repo.git")
+        with pytest.raises(UnknownPlatformError):
+            parse_remote_url("git@mygiteahome.io:owner/repo.git")
+        with pytest.raises(UnknownPlatformError):
+            parse_remote_url("git@notforgejostuff.dev:owner/repo.git")
+
 
 class TestInsteadOfRewrites:
     """Tests for [url].insteadOf rewriting in get_remote_url."""
@@ -202,6 +224,22 @@ class TestInsteadOfRewrites:
         )
         assert get_remote_url(temp_dir, "origin") == "git@github.com:owner/repo.git"
 
+    def test_insteadof_strips_trailing_comment(self, temp_dir: str) -> None:
+        """`insteadOf = github: # alias` should not capture ` # alias` in the prefix."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=temp_dir, capture_output=True, check=True)
+        config = Path(temp_dir) / ".git" / "config"
+        config.write_text(
+            config.read_text()
+            + '\n[remote "origin"]\n'
+            + "\turl = github:owner/repo.git\n"
+            + '[url "git@github.com:"]\n'
+            + "\tinsteadOf = github: # personal alias\n"
+        )
+        url = get_remote_url(temp_dir, "origin")
+        assert url == "git@github.com:owner/repo.git"
+
     def test_insteadof_no_match_returns_raw(self, temp_dir: str) -> None:
         import subprocess
 
@@ -234,7 +272,7 @@ class TestGetRemoteUrl:
             get_remote_url(temp_dir, "origin")
 
     @pytest.mark.skipif(
-        sys.platform == "win32" or os.geteuid() == 0,
+        sys.platform == "win32" or getattr(os, "geteuid", lambda: -1)() == 0,
         reason="POSIX permission semantics; root bypasses chmod",
     )
     def test_git_config_permission_denied_raises(self, temp_dir: str) -> None:
@@ -306,12 +344,12 @@ class TestDetectEcosystems:
         assert ecosystems == []
 
     def test_detect_skips_invalid_metadata_with_warning(self, temp_dir: str, caplog: pytest.LogCaptureFixture) -> None:
-        # pyproject.toml without [project].name
-        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
         import logging
 
-        with caplog.at_level(logging.WARNING):
-            ecosystems = detect_ecosystems(temp_dir)
+        caplog.set_level(logging.WARNING)
+        # pyproject.toml without [project].name
+        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
+        ecosystems = detect_ecosystems(temp_dir)
         assert "pypi" not in ecosystems
         assert any("skipped" in r.message.lower() for r in caplog.records)
 
@@ -388,7 +426,7 @@ class TestGetPackageName:
             get_package_name(temp_dir, "packagist")
 
     @pytest.mark.skipif(
-        sys.platform == "win32" or os.geteuid() == 0,
+        sys.platform == "win32" or getattr(os, "geteuid", lambda: -1)() == 0,
         reason="POSIX permission semantics; root bypasses chmod",
     )
     def test_pyproject_permission_denied_raises(self, temp_dir: str) -> None:

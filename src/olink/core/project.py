@@ -17,11 +17,12 @@ import json
 import logging
 import re
 import tomllib
-import defusedxml
-import defusedxml.ElementTree as ET
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+
+import defusedxml
+import defusedxml.ElementTree as ET
 
 from olink.core.exceptions import (
     NotGitRepoError,
@@ -92,9 +93,8 @@ def _get_git_dir(cwd: str) -> Path | None:
     return None
 
 
-def _read_git_config(cwd: str) -> configparser.ConfigParser:
-    """Read and parse .git/config file (parsed view; loses duplicate options)."""
-    text = _read_git_config_text(cwd)
+def _parse_git_config(text: str) -> configparser.ConfigParser:
+    """Parse already-loaded .git/config text (parsed view; loses duplicate options)."""
     config = configparser.ConfigParser(strict=False)
     config.read_string(text)
     return config
@@ -103,6 +103,17 @@ def _read_git_config(cwd: str) -> configparser.ConfigParser:
 _URL_SECTION_RE = re.compile(r'^\s*\[url\s+"(?P<url>[^"]+)"\]\s*$')
 _SECTION_HEADER_RE = re.compile(r"^\s*\[")
 _INSTEADOF_RE = re.compile(r"^\s*insteadof\s*=\s*(?P<value>.*)$", re.IGNORECASE)
+_TRAILING_COMMENT_RE = re.compile(r"\s+[#;].*$")
+
+
+def _strip_git_config_value(raw: str) -> str:
+    """Strip surrounding whitespace and trailing ` # ...` / ` ; ...` comments.
+
+    Git treats `#` and `;` as comment markers when preceded by whitespace; values
+    must drop them so `insteadOf = github: # alias` doesn't capture the comment.
+    """
+    no_comment = _TRAILING_COMMENT_RE.sub("", raw)
+    return no_comment.strip()
 
 
 def _collect_insteadof_rewrites(config_text: str) -> list[tuple[str, str]]:
@@ -129,7 +140,7 @@ def _collect_insteadof_rewrites(config_text: str) -> list[tuple[str, str]]:
             continue
         io_match = _INSTEADOF_RE.match(line)
         if io_match:
-            value = io_match.group("value").strip()
+            value = _strip_git_config_value(io_match.group("value"))
             if value:
                 rules.append((value, current_url))
     rules.sort(key=lambda r: len(r[0]), reverse=True)
@@ -162,7 +173,8 @@ def _read_git_config_text(cwd: str) -> str:
 
 def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
     """Get the URL for a git remote, applying [url].insteadOf rewrites if configured."""
-    config = _read_git_config(cwd)
+    config_text = _read_git_config_text(cwd)
+    config = _parse_git_config(config_text)
 
     section = f'remote "{remote_name}"'
     if section not in config:
@@ -171,8 +183,31 @@ def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
     raw_url = config.get(section, "url", fallback=None)
     if raw_url is None:
         return None
-    rules = _collect_insteadof_rewrites(_read_git_config_text(cwd))
+    rules = _collect_insteadof_rewrites(config_text)
     return _apply_insteadof(raw_url, rules)
+
+
+_HOST_LABEL_TO_PLATFORM = {
+    "gitlab": "gitlab",
+    "github": "github",
+    "bitbucket": "bitbucket",
+    "gitea": "gitea",
+    "forgejo": "forgejo",
+    "codeberg": "forgejo",
+}
+
+
+def _detect_platform_from_labels(host: str) -> str | None:
+    """Detect platform from hostname labels (DNS components), not arbitrary substrings.
+
+    Avoids false positives like `gitlabby.example.com` matching gitlab. Each
+    dot-separated label is checked exactly against the keyword map.
+    """
+    for label in host.lower().split("."):
+        platform = _HOST_LABEL_TO_PLATFORM.get(label)
+        if platform is not None:
+            return platform
+    return None
 
 
 def parse_remote_url(url: str) -> ParsedRemote:
@@ -186,19 +221,9 @@ def parse_remote_url(url: str) -> ParsedRemote:
 
             platform = HOST_TO_PLATFORM.get(host.lower())
             if platform is None:
-                host_lower = host.lower()
-                if "gitlab" in host_lower:
-                    platform = "gitlab"
-                elif "github" in host_lower:
-                    platform = "github"
-                elif "bitbucket" in host_lower:
-                    platform = "bitbucket"
-                elif "gitea" in host_lower:
-                    platform = "gitea"
-                elif "forgejo" in host_lower or "codeberg" in host_lower:
-                    platform = "forgejo"
-                else:
-                    raise UnknownPlatformError(f"Unknown git hosting platform: {host}")
+                platform = _detect_platform_from_labels(host)
+            if platform is None:
+                raise UnknownPlatformError(f"Unknown git hosting platform: {host}")
 
             if "/" in repo:
                 logger.debug(
@@ -223,7 +248,13 @@ def parse_remote_url(url: str) -> ParsedRemote:
 
 
 class EcosystemConfig:
-    """Configuration for an ecosystem."""
+    """Configuration for an ecosystem.
+
+    `config_file` is the canonical filename (or glob) used by the simple existence
+    check. `extra_signals` lists additional filename globs that also count as
+    "ecosystem present" — used for ecosystems where multiple, equally-valid
+    metadata layouts exist (e.g. CPAN's Makefile.PL / dist.ini / lib/*.pm).
+    """
 
     def __init__(
         self,
@@ -231,17 +262,27 @@ class EcosystemConfig:
         display_name: str,
         config_file: str,
         get_package_name: Callable[[str], str],
+        extra_signals: tuple[str, ...] = (),
     ):
         self.name = name
         self.display_name = display_name
         self.config_file = config_file
         self.get_package_name = get_package_name
+        self.extra_signals = extra_signals
 
     def exists(self, cwd: str) -> bool:
-        """Check if this ecosystem's config file exists."""
-        if "*" in self.config_file:
-            return bool(list(Path(cwd).glob(self.config_file)))
-        return (Path(cwd) / self.config_file).exists()
+        """Check if this ecosystem's config file (or any extra signal) exists.
+
+        Glob results are sorted so detection is deterministic across filesystems.
+        """
+        candidates = (self.config_file, *self.extra_signals)
+        for pattern in candidates:
+            if "*" in pattern:
+                if sorted(Path(cwd).glob(pattern)):
+                    return True
+            elif (Path(cwd) / pattern).exists():
+                return True
+        return False
 
 
 def _read_text(path: Path, label: str) -> str:
@@ -277,7 +318,7 @@ def _get_pypi_name(cwd: str) -> str:
     name = data.get("project", {}).get("name")
     if not name or not isinstance(name, str):
         raise ProjectMetadataError("No 'project.name' in pyproject.toml")
-    return name
+    return str(name)
 
 
 def _get_npm_name(cwd: str) -> str:
@@ -299,7 +340,7 @@ def _get_npm_name(cwd: str) -> str:
     name = data.get("name")
     if not name or not isinstance(name, str):
         raise ProjectMetadataError("No 'name' in package.json")
-    return name
+    return str(name)
 
 
 def _get_cargo_name(cwd: str) -> str:
@@ -320,7 +361,7 @@ def _get_cargo_name(cwd: str) -> str:
     name = data.get("package", {}).get("name")
     if not name or not isinstance(name, str):
         raise ProjectMetadataError("No 'package.name' in Cargo.toml")
-    return name
+    return str(name)
 
 
 def _get_go_name(cwd: str) -> str:
@@ -346,7 +387,7 @@ def _get_gems_name(cwd: str) -> str:
     Picks first glob match if multiple gemspecs exist (rare). Regex assumes
     standard `<var>.name = "..."` form — won't catch dynamically computed names.
     """
-    gemspec_files = list(Path(cwd).glob("*.gemspec"))
+    gemspec_files = sorted(Path(cwd).glob("*.gemspec"))
     if not gemspec_files:
         raise ProjectMetadataError("No .gemspec file found")
     content = _read_text(gemspec_files[0], gemspec_files[0].name)
@@ -374,7 +415,7 @@ def _get_packagist_name(cwd: str) -> str:
     name = data.get("name")
     if not name or not isinstance(name, str):
         raise ProjectMetadataError("No 'name' in composer.json")
-    return name
+    return str(name)
 
 
 def _get_pub_name(cwd: str) -> str:
@@ -416,7 +457,7 @@ def _get_nuget_name(cwd: str) -> str:
     .NET convention: when <PackageId> is absent, NuGet uses the project file
     name as the package id. Mirrors that behavior.
     """
-    csproj_files = list(Path(cwd).glob("*.csproj"))
+    csproj_files = sorted(Path(cwd).glob("*.csproj"))
     if not csproj_files:
         raise ProjectMetadataError("No .csproj file found")
     content = _read_text(csproj_files[0], csproj_files[0].name)
@@ -426,7 +467,7 @@ def _get_nuget_name(cwd: str) -> str:
     return match.group(1)
 
 
-def _get_open_vsx_name(cwd: str) -> str:
+def get_open_vsx_name(cwd: str) -> str:
     """Build `publisher.name` extension id from package.json.
 
     Open VSX (and VS Code Marketplace) identify extensions by publisher + name.
@@ -527,7 +568,7 @@ def _get_hackage_name(cwd: str) -> str:
     Direct read avoids cabal/ghc dependency. Cabal field names are case-insensitive
     per spec — regex uses re.IGNORECASE.
     """
-    cabal_files = list(Path(cwd).glob("*.cabal"))
+    cabal_files = sorted(Path(cwd).glob("*.cabal"))
     if not cabal_files:
         raise ProjectMetadataError("No .cabal file found")
 
@@ -560,7 +601,10 @@ def _get_cpan_name(cwd: str) -> str:
     # 2. Directory layout: lib/Foo/Bar.pm -> Foo::Bar (prefer shallowest module)
     lib_dir = root / "lib"
     if lib_dir.exists() and lib_dir.is_dir():
-        pm_files = sorted(lib_dir.rglob("*.pm"), key=lambda p: len(p.parts))
+        pm_files = sorted(
+            lib_dir.rglob("*.pm"),
+            key=lambda p: (len(p.parts), p.as_posix()),
+        )
         for pm in pm_files:
             try:
                 rel = pm.relative_to(lib_dir)
@@ -601,7 +645,16 @@ ECOSYSTEMS: dict[str, EcosystemConfig] = {
     "nuget": EcosystemConfig("nuget", ".NET", "*.csproj", _get_nuget_name),
     "maven": EcosystemConfig("maven", "Maven", "pom.xml", _get_maven_name),
     "hackage": EcosystemConfig("hackage", "Haskell", "*.cabal", _get_hackage_name),
-    "cpan": EcosystemConfig("cpan", "Perl", "Makefile.PL", _get_cpan_name),
+    "cpan": EcosystemConfig(
+        "cpan",
+        "Perl",
+        "Makefile.PL",
+        _get_cpan_name,
+        extra_signals=("dist.ini", "lib/*.pm", "lib/**/*.pm"),
+    ),
+    "open-vsx": EcosystemConfig(
+        "open-vsx", "VS Code Extension", "package.json", get_open_vsx_name
+    ),
 }
 
 

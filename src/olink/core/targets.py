@@ -12,8 +12,8 @@ from olink.core.exceptions import (
 )
 from olink.core.project import (
     ParsedRemote,
-    _get_open_vsx_name,
     detect_ecosystems,
+    get_open_vsx_name,
     get_package_name,
     get_remote_url,
     parse_remote_url,
@@ -110,7 +110,7 @@ def _encode_name(name: str) -> str:
 
 # Platform URL patterns: {platform: {page: path_suffix}}
 # None means the feature is not available on that platform
-PLATFORM_URLS = {
+PLATFORM_URLS: dict[str, dict[str, str | None]] = {
     "github": {
         "issues": "/issues",
         "pulls": "/pulls",
@@ -295,7 +295,12 @@ class DiscussionsTarget(GitPageTarget):
 
 
 class CodecovTarget(Target):
-    """Open the Codecov page for the project."""
+    """Open the Codecov page for the project.
+
+    Codecov only integrates with GitHub, GitLab, and Bitbucket. Self-hosted
+    forges (Gitea, Forgejo, Codeberg) are unsupported — raise rather than
+    emit a 404 URL.
+    """
 
     name = "codecov"
     description = "Open the Codecov page"
@@ -304,18 +309,35 @@ class CodecovTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         parsed = _get_parsed_remote(cwd, "origin")
-        platform_code = self._PLATFORM_CODES.get(parsed.platform, parsed.platform)
+        platform_code = self._PLATFORM_CODES.get(parsed.platform)
+        if platform_code is None:
+            raise UnsupportedFeatureError(
+                f"Codecov does not support '{parsed.platform}' "
+                "(only github, gitlab, bitbucket)"
+            )
         return f"https://codecov.io/{platform_code}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
 
 
 class CoverallsTarget(Target):
-    """Open the Coveralls page for the project."""
+    """Open the Coveralls page for the project.
+
+    Coveralls only integrates with GitHub, GitLab, and Bitbucket. Self-hosted
+    forges (Gitea, Forgejo, Codeberg) are unsupported — raise rather than
+    emit a 404 URL.
+    """
 
     name = "coveralls"
     description = "Open the Coveralls page"
 
+    _SUPPORTED_PLATFORMS = {"github", "gitlab", "bitbucket"}
+
     def get_url(self, cwd: str) -> str:
         parsed = _get_parsed_remote(cwd, "origin")
+        if parsed.platform not in self._SUPPORTED_PLATFORMS:
+            raise UnsupportedFeatureError(
+                f"Coveralls does not support '{parsed.platform}' "
+                "(only github, gitlab, bitbucket)"
+            )
         return f"https://coveralls.io/{parsed.platform}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
 
 
@@ -742,7 +764,7 @@ class OpenVSXTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         """Use publisher + name from package.json because Open VSX identifies extensions by both."""
-        publisher_name = _get_open_vsx_name(cwd)
+        publisher_name = get_open_vsx_name(cwd)
         if "." not in publisher_name:
             raise ProjectMetadataError(
                 f"Invalid Open VSX identifier '{publisher_name}': "

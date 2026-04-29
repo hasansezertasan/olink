@@ -4,6 +4,83 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-04-29 — Pre-PyPI release hardening
+
+### Context
+Preparing initial PyPI release. Ran a harsh review against the codebase, README, and tests. Acted on every actionable finding to make 0.1.0 publishable.
+
+### Decisions
+
+- **Build backend**: switched `uv_build` → `hatchling`. uv_build's narrow version range was already producing CI warnings; hatchling is the de-facto standard for `[project]`-only Python packages and is supported indefinitely.
+- **Distribution shape**: kept `requires-python = ">=3.14"`. Olink is intended to be installed once per machine via `uvx` / `pipx tool install`, not pinned per-project, so the latest-Python floor doesn't hurt adoption the way it would for a library.
+- **TUI deps**: moved `textual` and `pyperclip` to `[project.optional-dependencies] tui`. CLI users no longer pay for ~15 MB of TUI dependencies. CLI gracefully reports the missing extra with the exact install hint.
+- **Codecov/Coveralls on Gitea/Forgejo**: chose to raise `UnsupportedFeatureError` rather than emit silently-broken URLs. Better to fail loudly when the upstream service has no integration than to send users to 404s.
+- **Hostname platform detection**: switched substring (`"gitlab" in host`) to label-based (`split(".")` then exact match). Substring matched `gitlabby.example.com` and friends; label match doesn't.
+- **CPAN ecosystem detection**: extended `EcosystemConfig` with `extra_signals` so detection accepts `Makefile.PL` OR `dist.ini` OR `lib/*.pm`. Resolves the long-standing divergence where `olink cpan` worked direct but never appeared in `--list` for `dist.ini`-only or `lib/`-only Perl projects.
+- **Open VSX**: registered as its own ecosystem (`open-vsx` → `package.json` + publisher field). Now autodetected and listed in `--list` for VS Code extension projects.
+- **PyPI publishing**: chose OIDC trusted publishing over API tokens. No secrets in repo, automatic short-lived credentials, scoped to the specific `release.yml` workflow + `pypi` environment.
+- **Fully automated version bumps via Release Please** (modeled on `hasansezertasan/copier-pyproject`): `release-please.yml` runs on every push to `main`, reads Conventional Commits since the last release, opens / maintains a "release PR" that bumps `pyproject.toml` `[project].version` and updates `CHANGELOG.md`. Merging that PR creates the GitHub Release + tag, which fires `release.yml` (build → `pypa/gh-action-pypi-publish@release/v1` via OIDC → upload artifacts to the release). No tag is ever pushed by hand.
+- **PR-title linting**: `amannn/action-semantic-pull-request` enforces Conventional Commits on PR titles so release-please can correctly classify changes (feat → minor, fix/perf/refactor → patch, BREAKING CHANGE → major).
+- **Type checking**: added `[tool.mypy]` strict config and `py.typed` PEP 561 marker. Honours the `Typing :: Typed` classifier the package already advertises.
+
+### Changes
+
+**Bugs fixed**
+- `CodecovTarget` / `CoverallsTarget`: raise `UnsupportedFeatureError` for non-supported platforms instead of building 404 URLs.
+- `parse_remote_url`: hostname-label matching prevents false-positive platform detection on substrings.
+- `_collect_insteadof_rewrites`: strips trailing ` # comment` / ` ; comment` from values.
+- `get_remote_url`: reads `.git/config` once per call (was twice).
+- `EcosystemConfig.exists`: `sorted()` glob results for deterministic detection across filesystems.
+- CPAN `lib/` walk: stable tiebreaker `(len(parts), as_posix())` for siblings.
+
+**Metadata / packaging**
+- `pyproject.toml`: full PyPI metadata — `license = "MIT"`, `LICENSE` file, `authors`, `keywords`, `classifiers`, `[project.urls]`, `description` from README first line.
+- `[project.optional-dependencies] tui = [textual, pyperclip]`.
+- `[tool.ruff]` (line-length 100, py314, E/F/I/B/UP/ANN/RUF rules).
+- `[tool.mypy]` (strict, Python 3.14, files = `src/olink`).
+- `LICENSE`, `CHANGELOG.md`, `src/olink/py.typed` created.
+- `.gitkeep` removed.
+
+**CLI**
+- `__version__` exported via `importlib.metadata.version("olink")`.
+- `--version` / `-V` flag (eager callback).
+- TUI launch wrapped in `try/except ImportError` with actionable install hint.
+- `B904` fixed: `raise typer.Exit(1) from e`.
+
+**Tests**
+- 257 → 286 (+29 net).
+- New: `--version`/`-V` flag, codecov/coveralls gitea/forgejo unsupported, `ssh://` port form refusal, hostname false-positive guard, insteadOf trailing-comment strip, scoped npm-stat/packagephobia URL encoding, registry-drift guard, CPAN multi-signal detection.
+- `TestRegistryURLCoverage`: 16 missing-target URL assertions (inspector, pypi-json, pepy, pypistats, piptrends, clickpy, safety-db, bundlephobia, packagephobia, npm-stat, librs, packagist, pub, hex, nuget, …).
+- Renamed `tests/core/test_utils.py` → `test_project.py` (matched the actual module under test).
+- `os.geteuid()` skip-marker now win32-safe via `getattr`.
+- `caplog.set_level` moved before triggering action.
+- `conftest.copy_repo_fixture` now `shutil.copytree(..., dirs_exist_ok=True)` — subdir-safe.
+
+**CI / CD**
+- `.github/workflows/ci.yml`: pytest matrix (ubuntu+macos, py3.14), ruff check + format, mypy job.
+- `.github/workflows/release-please.yml`: runs on push-to-main; opens / maintains a release PR that bumps version and updates CHANGELOG.
+- `release-please-config.json` + `.release-please-manifest.json`: declarative configuration for release-please, seeded at `0.1.0`.
+- `.github/workflows/release.yml`: three-job pipeline (build → pypi-publish → attach-github-release) triggered on `release: published`. Uses `pypa/gh-action-pypi-publish@release/v1` with OIDC; environment `pypi`.
+- `.github/workflows/check-pr-title.yml`: enforces Conventional Commits on PR titles.
+
+**Docs**
+- README: `[tui]` install hint, `--version` line, CPAN multi-signal note.
+
+### Outcome
+- 286/286 tests pass.
+- ruff clean.
+- mypy strict clean (13 source files).
+- Trusted publishing wired and tagged-release-driven.
+
+### Release ritual (going forward)
+- Land any number of Conventional-Commit PRs onto `main`.
+- `release-please` opens (or updates) a single "chore: release X.Y.Z" PR that bumps `pyproject.toml` `[project].version` and prepends a `CHANGELOG.md` entry. Reviewer's only job: merge.
+- Merging the release PR creates the GitHub Release + tag.
+- That fires `release.yml`: `uv build` → upload artifact → `pypa/gh-action-pypi-publish@release/v1` → attach dist files to the GitHub Release.
+- No tag is ever pushed by hand. `pyproject.toml` version is never edited by hand.
+
+---
+
 ## 2026-04-29 — Codebase audit: bug fixes, new features, expanded test coverage
 
 ### Context

@@ -18,6 +18,17 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert "Open external URLs" in result.stdout
 
+    def test_version_flag(self) -> None:
+        """`--version` must print `olink <version>` and exit 0 without a target."""
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.stdout.startswith("olink ")
+
+    def test_version_short_flag(self) -> None:
+        result = runner.invoke(app, ["-V"])
+        assert result.exit_code == 0
+        assert result.stdout.startswith("olink ")
+
     def test_list_all_targets(self) -> None:
         result = runner.invoke(app, ["--list-all"])
         assert result.exit_code == 0
@@ -47,13 +58,13 @@ class TestCLIDryRun:
     def test_dry_run_pypi(self, temp_pyproject: str) -> None:
         result = runner.invoke(app, ["-n", "-d", temp_pyproject, "pypi"])
         assert result.exit_code == 0
-        assert "pypi.org/project/test-project" in result.stdout
+        assert "https://pypi.org/project/test-project/" in result.stdout
 
     def test_dry_run_piwheels(self, temp_pyproject: str) -> None:
         """Ensure dry-run mode reveals the exact piwheels URL before opening a browser."""
         result = runner.invoke(app, ["-n", "-d", temp_pyproject, "piwheels"])
         assert result.exit_code == 0
-        assert "piwheels.org/project/test-project" in result.stdout
+        assert "https://www.piwheels.org/project/test-project/" in result.stdout
 
     def test_dry_run_npm(self, temp_package_json: str) -> None:
         result = runner.invoke(app, ["-n", "-d", temp_package_json, "npm"])
@@ -116,6 +127,31 @@ class TestCLIErrors:
         result = runner.invoke(app, ["--list", "-d", temp_dir])
         assert result.exit_code == 0
         assert "No targets available for this project." in result.stdout
+
+    def test_list_excludes_codecov_on_gitea(self, temp_git_repo_gitea: str) -> None:
+        """Codecov target must NOT show in `--list` for self-hosted gitea repos.
+
+        Earlier silent-bad-URL behavior would have erroneously listed it.
+        """
+        result = runner.invoke(app, ["--list", "-d", temp_git_repo_gitea])
+        assert result.exit_code == 0
+        assert "codecov" not in result.stdout
+        assert "coveralls" not in result.stdout
+        assert "origin" in result.stdout
+
+    def test_subdir_does_not_resolve_parent_pyproject(self, temp_pyproject: str) -> None:
+        """README documents: olink must be run from project root.
+
+        From `src/` (no pyproject.toml there), `olink pypi` must error rather
+        than silently traverse upward.
+        """
+        import os
+
+        subdir = os.path.join(temp_pyproject, "src")
+        os.makedirs(subdir)
+        result = runner.invoke(app, ["-n", "-d", subdir, "pypi"])
+        assert result.exit_code == 1
+        assert "No pyproject.toml found" in result.output
 
 
 class TestCLIOpenBrowser:

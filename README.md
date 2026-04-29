@@ -5,7 +5,15 @@ A CLI tool that opens external URLs related to your project.
 ## Installation
 
 ```bash
-uv tool install olink
+uv tool install olink            # CLI only
+uv tool install 'olink[tui]'     # Include the interactive TUI
+```
+
+Or with `pipx`:
+
+```bash
+pipx install olink
+pipx install 'olink[tui]'
 ```
 
 ## Usage
@@ -16,6 +24,7 @@ olink -n <target>           # Dry-run: print URL without opening
 olink -d /path <target>     # Use a different project directory
 olink --list                # List targets available for current project
 olink --list-all            # List all targets
+olink --version             # Show olink version
 ```
 
 ## Available Targets
@@ -135,7 +144,7 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 | `open-vsx`  | Open the Open VSX extension page | `package.json` |
 | `maven`     | Open Maven Central artifact page | `pom.xml`      |
 | `hackage`   | Open Hackage package page        | `*.cabal`      |
-| `cpan`      | Open MetaCPAN module page        | `Makefile.PL`  |
+| `cpan`      | Open MetaCPAN module page        | `Makefile.PL`, `dist.ini`, or `lib/*.pm` |
 | `hex`       | Open hex.pm (Elixir)             | `mix.exs`      |
 | `nuget`     | Open NuGet (.NET)                | `*.csproj`     |
 

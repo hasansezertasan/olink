@@ -1,0 +1,66 @@
+name: Release
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build the package
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Setup uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Build the package
+        run: uv build --no-sources --quiet
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-distributions
+          path: dist/
+
+  pypi-publish:
+    runs-on: ubuntu-latest
+    name: Publish to PyPI
+    needs: build
+    permissions:
+      id-token: write   # Mandatory for PyPI Trusted Publishing
+    environment:
+      name: pypi
+      url: https://pypi.org/project/olink/${{ github.ref_name }}
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: package-distributions
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  attach-github-release:
+    runs-on: ubuntu-latest
+    name: Attach build artifacts to GitHub Release
+    needs: pypi-publish
+    permissions:
+      contents: write   # Mandatory to upload to the release
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v4
+        with:
+          name: package-distributions
+          path: dist/
+      - name: Upload to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.ref_name }} ./dist/* --clobber

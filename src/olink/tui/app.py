@@ -20,7 +20,7 @@ HEADER_TEXT = (
 )
 
 
-class OlinkTUI(App):
+class OlinkTUI(App[None]):
     """Main TUI application managing state and widget composition."""
 
     BINDINGS = [

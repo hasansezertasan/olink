@@ -1,0 +1,24 @@
+name: Release Please
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    name: Release Please
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          # Behavior is driven by release-please-config.json + .release-please-manifest.json
+          # at the repo root. release-please reads conventional commits since the last
+          # release, opens / maintains a release PR with pyproject.toml + CHANGELOG.md
+          # bumped, and on merge creates the GitHub Release + tag. The tag triggers
+          # release.yml (CD), which publishes to PyPI via OIDC.
+          token: ${{ secrets.GITHUB_TOKEN }}

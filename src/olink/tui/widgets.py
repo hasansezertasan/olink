@@ -1,6 +1,7 @@
 """Custom Textual widgets for the TUI."""
 
 from rich.text import Text
+from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.widgets import Input, ListItem, ListView, Static
 
@@ -14,7 +15,7 @@ class TargetRow(ListItem):
         self.item = item
         super().__init__()
 
-    def compose(self):  # noqa: ANN201
+    def compose(self) -> ComposeResult:
         label = Text()
         label.append(f" {self.item.name:20s}", style="cyan")
         label.append(f" {self.item.description}")
