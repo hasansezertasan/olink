@@ -110,7 +110,7 @@ def main_callback(
 
         try:
             launch_tui(cwd)
-        except (KeyboardInterrupt, SystemExit):
+        except KeyboardInterrupt, SystemExit:
             pass
         raise typer.Exit(0)
 
