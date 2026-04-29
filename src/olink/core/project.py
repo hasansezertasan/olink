@@ -36,15 +36,9 @@ logger = logging.getLogger(__name__)
 # Git remote parsing
 # =============================================================================
 
-SSH_PATTERN = re.compile(
-    r"^git@(?P<host>[^:]+):(?P<owner>[^/]+)/(?P<repo>.+?)(?:\.git)?$"
-)
-HTTPS_PATTERN = re.compile(
-    r"^https?://(?P<host>[^/]+)/(?P<owner>[^/]+)/(?P<repo>.+?)(?:\.git)?$"
-)
-GIT_PATTERN = re.compile(
-    r"^git://(?P<host>[^/]+)/(?P<owner>[^/]+)/(?P<repo>.+?)(?:\.git)?$"
-)
+SSH_PATTERN = re.compile(r"^git@(?P<host>[^:]+):(?P<owner>[^/]+)/(?P<repo>.+?)(?:\.git)?$")
+HTTPS_PATTERN = re.compile(r"^https?://(?P<host>[^/]+)/(?P<owner>[^/]+)/(?P<repo>.+?)(?:\.git)?$")
+GIT_PATTERN = re.compile(r"^git://(?P<host>[^/]+)/(?P<owner>[^/]+)/(?P<repo>.+?)(?:\.git)?$")
 
 HOST_TO_PLATFORM = {
     "github.com": "github",
@@ -151,7 +145,7 @@ def _apply_insteadof(url: str, rules: list[tuple[str, str]]) -> str:
     """Apply first matching insteadOf rewrite (rules already sorted longest-first)."""
     for prefix, rewritten in rules:
         if url.startswith(prefix):
-            return rewritten + url[len(prefix):]
+            return rewritten + url[len(prefix) :]
     return url
 
 
@@ -503,9 +497,7 @@ def _parse_pom(pom_path: Path) -> tuple[ET.Element, str]:
     try:
         root = ET.fromstring(content)
     except defusedxml.DefusedXmlException as e:
-        raise ProjectMetadataError(
-            f"pom.xml contains disallowed XML features: {e}"
-        ) from e
+        raise ProjectMetadataError(f"pom.xml contains disallowed XML features: {e}") from e
     except ET.ParseError as e:
         raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
     namespace = ""
@@ -612,9 +604,7 @@ def _get_cpan_name(cwd: str) -> str:
                 continue
             module = rel.with_suffix("").as_posix().replace("/", "::")
             if module:
-                logger.debug(
-                    "CPAN module name inferred from lib/ layout as '%s'", module
-                )
+                logger.debug("CPAN module name inferred from lib/ layout as '%s'", module)
                 return module
 
     # 3. dist.ini (Dist::Zilla): name = My-Dist (heuristic — hyphen-to-colon)
@@ -626,9 +616,7 @@ def _get_cpan_name(cwd: str) -> str:
             return match.group(1).strip().replace("-", "::")
         logger.debug("dist.ini found but name not parseable")
 
-    raise ProjectMetadataError(
-        "Could not determine CPAN module name from project metadata"
-    )
+    raise ProjectMetadataError("Could not determine CPAN module name from project metadata")
 
 
 ECOSYSTEMS: dict[str, EcosystemConfig] = {
@@ -637,9 +625,7 @@ ECOSYSTEMS: dict[str, EcosystemConfig] = {
     "cargo": EcosystemConfig("cargo", "Rust", "Cargo.toml", _get_cargo_name),
     "go": EcosystemConfig("go", "Go", "go.mod", _get_go_name),
     "gems": EcosystemConfig("gems", "Ruby", "*.gemspec", _get_gems_name),
-    "packagist": EcosystemConfig(
-        "packagist", "PHP", "composer.json", _get_packagist_name
-    ),
+    "packagist": EcosystemConfig("packagist", "PHP", "composer.json", _get_packagist_name),
     "pub": EcosystemConfig("pub", "Dart", "pubspec.yaml", _get_pub_name),
     "hex": EcosystemConfig("hex", "Elixir", "mix.exs", _get_hex_name),
     "nuget": EcosystemConfig("nuget", ".NET", "*.csproj", _get_nuget_name),
@@ -652,9 +638,7 @@ ECOSYSTEMS: dict[str, EcosystemConfig] = {
         _get_cpan_name,
         extra_signals=("dist.ini", "lib/*.pm", "lib/**/*.pm"),
     ),
-    "open-vsx": EcosystemConfig(
-        "open-vsx", "VS Code Extension", "package.json", get_open_vsx_name
-    ),
+    "open-vsx": EcosystemConfig("open-vsx", "VS Code Extension", "package.json", get_open_vsx_name),
 }
 
 
@@ -675,7 +659,5 @@ def get_package_name(cwd: str, ecosystem: str) -> str:
     """Get the package name for a specific ecosystem."""
     if ecosystem not in ECOSYSTEMS:
         available = ", ".join(sorted(ECOSYSTEMS.keys()))
-        raise ProjectMetadataError(
-            f"Unknown ecosystem: '{ecosystem}'. Available: {available}"
-        )
+        raise ProjectMetadataError(f"Unknown ecosystem: '{ecosystem}'. Available: {available}")
     return ECOSYSTEMS[ecosystem].get_package_name(cwd)

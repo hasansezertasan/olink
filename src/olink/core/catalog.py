@@ -148,9 +148,7 @@ def get_target(name: str) -> Target:
 
     if base_name not in REGISTRY:
         available = ", ".join(sorted(REGISTRY.keys()))
-        raise UnknownTargetError(
-            f"Unknown target: '{base_name}'. Available targets: {available}"
-        )
+        raise UnknownTargetError(f"Unknown target: '{base_name}'. Available targets: {available}")
 
     target_cls = REGISTRY[base_name]
 
@@ -201,9 +199,7 @@ def list_available_targets(
 
     for name, target_cls in sorted(REGISTRY.items()):
         if issubclass(target_cls, MultiEcosystemTarget):
-            supported = [
-                e for e in detected_ecosystems if e in target_cls.ecosystem_url_map
-            ]
+            supported = [e for e in detected_ecosystems if e in target_cls.ecosystem_url_map]
             if not supported:
                 continue
             if len(supported) == 1:
@@ -217,9 +213,7 @@ def list_available_targets(
                 for eco in sorted(supported):
                     try:
                         target_cls(ecosystem=eco).get_url(cwd)
-                        results.append(
-                            (f"{name}:{eco}", target_cls.description, target_cls, eco)
-                        )
+                        results.append((f"{name}:{eco}", target_cls.description, target_cls, eco))
                     except UNAVAILABLE_ERRORS as e:
                         logger.debug("Skipping %s:%s: %s", name, eco, e)
         else:

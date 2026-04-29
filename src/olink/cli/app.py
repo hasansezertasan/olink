@@ -16,6 +16,7 @@ def _get_version() -> str:
     except PackageNotFoundError:
         return "0.0.0+unknown"
 
+
 logger = logging.getLogger(__name__)
 
 app = typer.Typer(
@@ -113,7 +114,7 @@ def main_callback(
 
         try:
             launch_tui(cwd)
-        except (KeyboardInterrupt, SystemExit):
+        except KeyboardInterrupt, SystemExit:
             pass
         raise typer.Exit(0)
 

@@ -218,9 +218,7 @@ class TestInsteadOfRewrites:
         assert get_remote_url(temp_dir, "origin") == "git@github.com:owner/repo.git"
         # Second alias also rewrites — write new remote using gh: prefix
         config.write_text(
-            config.read_text().replace(
-                "url = github:owner/repo.git", "url = gh:owner/repo.git"
-            )
+            config.read_text().replace("url = github:owner/repo.git", "url = gh:owner/repo.git")
         )
         assert get_remote_url(temp_dir, "origin") == "git@github.com:owner/repo.git"
 
@@ -343,7 +341,9 @@ class TestDetectEcosystems:
         ecosystems = detect_ecosystems(temp_dir)
         assert ecosystems == []
 
-    def test_detect_skips_invalid_metadata_with_warning(self, temp_dir: str, caplog: pytest.LogCaptureFixture) -> None:
+    def test_detect_skips_invalid_metadata_with_warning(
+        self, temp_dir: str, caplog: pytest.LogCaptureFixture
+    ) -> None:
         import logging
 
         caplog.set_level(logging.WARNING)
@@ -449,9 +449,7 @@ class TestGetPackageName:
         """Reading pyproject.toml via a symlinked project dir works."""
         real_dir = tmp_path / "real"
         real_dir.mkdir()
-        (real_dir / "pyproject.toml").write_text(
-            '[project]\nname = "linked-project"\n'
-        )
+        (real_dir / "pyproject.toml").write_text('[project]\nname = "linked-project"\n')
         link_dir = Path(temp_dir) / "link"
         link_dir.symlink_to(real_dir, target_is_directory=True)
         assert get_package_name(str(link_dir), "pypi") == "linked-project"

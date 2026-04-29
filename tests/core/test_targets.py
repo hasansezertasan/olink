@@ -71,15 +71,55 @@ class TestRegistry:
 
     def test_all_targets_registered(self) -> None:
         expected_targets = {
-            "origin", "upstream", "issues", "pulls", "actions", "wiki",
-            "releases", "branches", "commits", "security", "discussions",
-            "pypi", "inspector", "pypi-json", "pepy", "piwheels", "pypistats",
-            "piptrends", "clickpy", "snyk", "safety-db",
-            "libraries-io", "deps", "ecosystems", "socket",
-            "npm", "bundlephobia", "packagephobia", "npm-stat", "jsdelivr", "unpkg", "skypack",
-            "crates", "librs", "docsrs", "pkg-go", "go-docs",
-            "gems", "rubygems-stats", "packagist", "pub", "hex", "nuget", "open-vsx", "maven", "hackage", "cpan",
-            "codecov", "coveralls",
+            "origin",
+            "upstream",
+            "issues",
+            "pulls",
+            "actions",
+            "wiki",
+            "releases",
+            "branches",
+            "commits",
+            "security",
+            "discussions",
+            "pypi",
+            "inspector",
+            "pypi-json",
+            "pepy",
+            "piwheels",
+            "pypistats",
+            "piptrends",
+            "clickpy",
+            "snyk",
+            "safety-db",
+            "libraries-io",
+            "deps",
+            "ecosystems",
+            "socket",
+            "npm",
+            "bundlephobia",
+            "packagephobia",
+            "npm-stat",
+            "jsdelivr",
+            "unpkg",
+            "skypack",
+            "crates",
+            "librs",
+            "docsrs",
+            "pkg-go",
+            "go-docs",
+            "gems",
+            "rubygems-stats",
+            "packagist",
+            "pub",
+            "hex",
+            "nuget",
+            "open-vsx",
+            "maven",
+            "hackage",
+            "cpan",
+            "codecov",
+            "coveralls",
         }
         assert set(REGISTRY.keys()) == expected_targets
 
@@ -772,26 +812,42 @@ class TestMultiEcosystemTargets:
             target.get_url(temp_dir)
         assert "No supported ecosystem found" in str(exc_info.value)
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
-    def test_multi_ecosystem_auto_detect_pypi(self, target_cls: type[MultiEcosystemTarget], temp_pyproject: str) -> None:
+    @pytest.mark.parametrize(
+        "target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget]
+    )
+    def test_multi_ecosystem_auto_detect_pypi(
+        self, target_cls: type[MultiEcosystemTarget], temp_pyproject: str
+    ) -> None:
         target = target_cls()
         url = target.get_url(temp_pyproject)
         assert "test-project" in url
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
-    def test_multi_ecosystem_auto_detect_npm(self, target_cls: type[MultiEcosystemTarget], temp_package_json: str) -> None:
+    @pytest.mark.parametrize(
+        "target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget]
+    )
+    def test_multi_ecosystem_auto_detect_npm(
+        self, target_cls: type[MultiEcosystemTarget], temp_package_json: str
+    ) -> None:
         target = target_cls()
         url = target.get_url(temp_package_json)
         assert "test-project" in url
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
-    def test_multi_ecosystem_auto_detect_cargo(self, target_cls: type[MultiEcosystemTarget], temp_cargo_toml: str) -> None:
+    @pytest.mark.parametrize(
+        "target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget]
+    )
+    def test_multi_ecosystem_auto_detect_cargo(
+        self, target_cls: type[MultiEcosystemTarget], temp_cargo_toml: str
+    ) -> None:
         target = target_cls()
         url = target.get_url(temp_cargo_toml)
         assert "test-crate" in url
 
-    @pytest.mark.parametrize("target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget])
-    def test_multi_ecosystem_auto_detect_go(self, target_cls: type[MultiEcosystemTarget], temp_go_mod: str) -> None:
+    @pytest.mark.parametrize(
+        "target_cls", [LibrariesIOTarget, DepsDevTarget, EcosystemsTarget, SocketTarget]
+    )
+    def test_multi_ecosystem_auto_detect_go(
+        self, target_cls: type[MultiEcosystemTarget], temp_go_mod: str
+    ) -> None:
         target = target_cls()
         url = target.get_url(temp_go_mod)
         assert "test-go-module" in url
@@ -865,7 +921,10 @@ class TestRegistryURLCoverage:
     """One assertion per remaining target so URL drift surfaces in CI."""
 
     def test_inspector(self, temp_pyproject: str) -> None:
-        assert InspectorTarget().get_url(temp_pyproject) == "https://inspector.pypi.io/project/test-project/"
+        assert (
+            InspectorTarget().get_url(temp_pyproject)
+            == "https://inspector.pypi.io/project/test-project/"
+        )
 
     def test_pypi_json(self, temp_pyproject: str) -> None:
         assert PyPIJSONTarget().get_url(temp_pyproject) == "https://pypi.org/pypi/test-project/json"
@@ -874,22 +933,40 @@ class TestRegistryURLCoverage:
         assert PePyTarget().get_url(temp_pyproject) == "https://www.pepy.tech/projects/test-project"
 
     def test_pypistats(self, temp_pyproject: str) -> None:
-        assert PyPIStatsTarget().get_url(temp_pyproject) == "https://pypistats.org/packages/test-project"
+        assert (
+            PyPIStatsTarget().get_url(temp_pyproject)
+            == "https://pypistats.org/packages/test-project"
+        )
 
     def test_piptrends(self, temp_pyproject: str) -> None:
-        assert PipTrendsTarget().get_url(temp_pyproject) == "https://piptrends.com/package/test-project"
+        assert (
+            PipTrendsTarget().get_url(temp_pyproject)
+            == "https://piptrends.com/package/test-project"
+        )
 
     def test_clickpy(self, temp_pyproject: str) -> None:
-        assert ClickPyTarget().get_url(temp_pyproject) == "https://clickpy.clickhouse.com/dashboard/test-project"
+        assert (
+            ClickPyTarget().get_url(temp_pyproject)
+            == "https://clickpy.clickhouse.com/dashboard/test-project"
+        )
 
     def test_safety_db(self, temp_pyproject: str) -> None:
-        assert SafetyDBTarget().get_url(temp_pyproject) == "https://data.safetycli.com/packages/pypi/test-project"
+        assert (
+            SafetyDBTarget().get_url(temp_pyproject)
+            == "https://data.safetycli.com/packages/pypi/test-project"
+        )
 
     def test_bundlephobia(self, temp_package_json: str) -> None:
-        assert BundlephobiaTarget().get_url(temp_package_json) == "https://bundlephobia.com/package/test-project"
+        assert (
+            BundlephobiaTarget().get_url(temp_package_json)
+            == "https://bundlephobia.com/package/test-project"
+        )
 
     def test_packagephobia(self, temp_package_json: str) -> None:
-        assert PackagephobiaTarget().get_url(temp_package_json) == "https://packagephobia.com/result?p=test-project"
+        assert (
+            PackagephobiaTarget().get_url(temp_package_json)
+            == "https://packagephobia.com/result?p=test-project"
+        )
 
     def test_packagephobia_scoped_encoded(self, temp_package_json_scoped: str) -> None:
         """Scoped names must round-trip through urlencode (`@` → `%40`, `/` → `%2F`)."""
@@ -897,7 +974,10 @@ class TestRegistryURLCoverage:
         assert url == "https://packagephobia.com/result?p=%40myorg%2Ftest-project"
 
     def test_npm_stat(self, temp_package_json: str) -> None:
-        assert NPMStatTarget().get_url(temp_package_json) == "https://npm-stat.com/charts.html?package=test-project"
+        assert (
+            NPMStatTarget().get_url(temp_package_json)
+            == "https://npm-stat.com/charts.html?package=test-project"
+        )
 
     def test_npm_stat_scoped_encoded(self, temp_package_json_scoped: str) -> None:
         url = NPMStatTarget().get_url(temp_package_json_scoped)
@@ -937,9 +1017,7 @@ class TestRegistryDriftGuard:
             if isinstance(cls, type) and issubclass(cls, Target) and cls is not Target
         }
         # Skip abstract bases (no `name` ClassVar set on the class itself).
-        concrete = {
-            cls for cls in target_subclasses if "name" in cls.__dict__
-        }
+        concrete = {cls for cls in target_subclasses if "name" in cls.__dict__}
         registered_classes = set(REGISTRY.values())
         missing = concrete - registered_classes
         assert missing == set(), f"Target classes defined but not in REGISTRY: {missing}"
