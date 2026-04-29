@@ -189,7 +189,10 @@ class TestStatusBarRendering:
             status.set_error("boom")
             assert "boom" in _status_text(status)
             color = status.styles.color
-            assert (color.r, color.g, color.b) == (255, 0, 0)
+            assert color is not None
+            # "Red-like": red channel dominates green and blue. Avoids
+            # coupling the test to a specific theme RGB.
+            assert color.r > color.g and color.r > color.b
 
 
 class TestTargetListRendering:

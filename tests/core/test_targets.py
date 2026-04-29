@@ -281,6 +281,36 @@ class TestGitTargets:
         url = target.get_url(temp_git_repo_codeberg)
         assert url == "https://codeberg.org/testuser/testrepo/issues"
 
+    def test_origin_target_forgejo_ssh(self, temp_git_repo_forgejo: str) -> None:
+        target = OriginTarget()
+        url = target.get_url(temp_git_repo_forgejo)
+        assert url == "https://forgejo.example.com/testuser/testrepo"
+
+    def test_issues_target_forgejo_ssh(self, temp_git_repo_forgejo: str) -> None:
+        target = IssuesTarget()
+        url = target.get_url(temp_git_repo_forgejo)
+        assert url == "https://forgejo.example.com/testuser/testrepo/issues"
+
+    def test_origin_target_gitea_https(self, temp_git_repo_gitea_https: str) -> None:
+        target = OriginTarget()
+        url = target.get_url(temp_git_repo_gitea_https)
+        assert url == "https://gitea.example.com/testuser/testrepo"
+
+    def test_issues_target_gitea_https(self, temp_git_repo_gitea_https: str) -> None:
+        target = IssuesTarget()
+        url = target.get_url(temp_git_repo_gitea_https)
+        assert url == "https://gitea.example.com/testuser/testrepo/issues"
+
+    def test_origin_target_forgejo_https(self, temp_git_repo_forgejo_https: str) -> None:
+        target = OriginTarget()
+        url = target.get_url(temp_git_repo_forgejo_https)
+        assert url == "https://forgejo.example.com/testuser/testrepo"
+
+    def test_origin_target_codeberg_https(self, temp_git_repo_codeberg_https: str) -> None:
+        target = OriginTarget()
+        url = target.get_url(temp_git_repo_codeberg_https)
+        assert url == "https://codeberg.org/testuser/testrepo"
+
 
 class TestRegistryTargets:
     """Tests for package registry targets."""

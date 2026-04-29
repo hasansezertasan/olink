@@ -22,7 +22,7 @@ olink --list-all            # List all targets
 
 ### Git Targets
 
-Automatically detects GitHub, GitLab, Bitbucket, Gitea, and Forgejo (incl. Codeberg) from your remote URL. Self-hosted instances are detected by hostname keyword.
+Automatically detects GitHub, GitLab, Bitbucket, Gitea, and Forgejo (incl. Codeberg) from your remote URL. Self-hosted instances are detected by hostname keyword matching.
 
 | Target        | Description                          |
 | ------------- | ------------------------------------ |

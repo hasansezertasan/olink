@@ -93,45 +93,45 @@ def _get_git_dir(cwd: str) -> Path | None:
 
 
 def _read_git_config(cwd: str) -> configparser.ConfigParser:
-    """Read and parse .git/config file."""
-    git_dir = _get_git_dir(cwd)
-    if git_dir is None:
-        raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
-
-    config_path = git_dir / "config"
-    if not config_path.exists():
-        raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
-
+    """Read and parse .git/config file (parsed view; loses duplicate options)."""
+    text = _read_git_config_text(cwd)
     config = configparser.ConfigParser(strict=False)
-    try:
-        with open(config_path, encoding="utf-8") as f:
-            config.read_file(f)
-    except PermissionError as e:
-        raise NotGitRepoError(f"Cannot read git config: {e}") from e
-    except UnicodeDecodeError as e:
-        raise NotGitRepoError(f"Git config has invalid UTF-8: {e}") from e
+    config.read_string(text)
     return config
 
 
-def _collect_insteadof_rewrites(config: configparser.ConfigParser) -> list[tuple[str, str]]:
-    """Extract [url "<rewritten>"].insteadOf entries, sorted by match length descending.
+_URL_SECTION_RE = re.compile(r'^\s*\[url\s+"(?P<url>[^"]+)"\]\s*$')
+_SECTION_HEADER_RE = re.compile(r"^\s*\[")
+_INSTEADOF_RE = re.compile(r"^\s*insteadof\s*=\s*(?P<value>.*)$", re.IGNORECASE)
 
-    Git applies the longest-matching prefix when multiple rules match — see
-    `git config --get-urlmatch`. Sorting longest-first lets first-match-wins
-    yield the same result.
+
+def _collect_insteadof_rewrites(config_text: str) -> list[tuple[str, str]]:
+    """Scan raw git config text for [url "<rewritten>"].insteadOf entries.
+
+    Why a raw scanner: configparser collapses duplicate options to a single
+    value (last-wins with strict=False), but git supports *multiple* `insteadOf`
+    lines per `[url "..."]` section — each adds another rewrite rule. The raw
+    scanner preserves all entries.
+
+    Sorted longest-prefix-first to match git's longest-match resolution.
     """
     rules: list[tuple[str, str]] = []
-    for section in config.sections():
-        if not section.startswith('url "') or not section.endswith('"'):
+    current_url: str | None = None
+    for line in config_text.splitlines():
+        url_match = _URL_SECTION_RE.match(line)
+        if url_match:
+            current_url = url_match.group("url")
             continue
-        rewritten = section[len('url "'):-1]
-        match_value = config.get(section, "insteadof", fallback=None)
-        if match_value is None:
+        if _SECTION_HEADER_RE.match(line):
+            current_url = None
             continue
-        for prefix in match_value.splitlines():
-            prefix = prefix.strip()
-            if prefix:
-                rules.append((prefix, rewritten))
+        if current_url is None:
+            continue
+        io_match = _INSTEADOF_RE.match(line)
+        if io_match:
+            value = io_match.group("value").strip()
+            if value:
+                rules.append((value, current_url))
     rules.sort(key=lambda r: len(r[0]), reverse=True)
     return rules
 
@@ -142,6 +142,22 @@ def _apply_insteadof(url: str, rules: list[tuple[str, str]]) -> str:
         if url.startswith(prefix):
             return rewritten + url[len(prefix):]
     return url
+
+
+def _read_git_config_text(cwd: str) -> str:
+    """Read raw .git/config text, mapping permission/encoding errors to NotGitRepoError."""
+    git_dir = _get_git_dir(cwd)
+    if git_dir is None:
+        raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
+    config_path = git_dir / "config"
+    if not config_path.exists():
+        raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
+    try:
+        return config_path.read_text(encoding="utf-8")
+    except PermissionError as e:
+        raise NotGitRepoError(f"Cannot read git config: {e}") from e
+    except UnicodeDecodeError as e:
+        raise NotGitRepoError(f"Git config has invalid UTF-8: {e}") from e
 
 
 def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
@@ -155,7 +171,7 @@ def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
     raw_url = config.get(section, "url", fallback=None)
     if raw_url is None:
         return None
-    rules = _collect_insteadof_rewrites(config)
+    rules = _collect_insteadof_rewrites(_read_git_config_text(cwd))
     return _apply_insteadof(raw_url, rules)
 
 
@@ -445,12 +461,12 @@ def _parse_pom(pom_path: Path) -> tuple[ET.Element, str]:
     content = _read_text(pom_path, "pom.xml")
     try:
         root = ET.fromstring(content)
-    except ET.ParseError as e:
-        raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
     except defusedxml.DefusedXmlException as e:
         raise ProjectMetadataError(
             f"pom.xml contains disallowed XML features: {e}"
         ) from e
+    except ET.ParseError as e:
+        raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
     namespace = ""
     if root.tag.startswith("{"):
         namespace = root.tag.split("}", 1)[0] + "}"
