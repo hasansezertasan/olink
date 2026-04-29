@@ -14,15 +14,15 @@ uv tool install olink
 olink <target>              # Open a target URL
 olink -n <target>           # Dry-run: print URL without opening
 olink -d /path <target>     # Use a different project directory
-olink --list                # List all targets
-olink --list-available      # List targets available for current project
+olink --list                # List targets available for current project
+olink --list-all            # List all targets
 ```
 
 ## Available Targets
 
 ### Git Targets
 
-Automatically detects GitHub, GitLab, and Bitbucket from your remote URL.
+Automatically detects GitHub, GitLab, Bitbucket, Gitea, and Forgejo (incl. Codeberg) from your remote URL. Self-hosted instances are detected by hostname keyword matching.
 
 | Target        | Description                          |
 | ------------- | ------------------------------------ |
@@ -49,7 +49,17 @@ Automatically detects GitHub, GitLab, and Bitbucket from your remote URL.
 **Note:** Some features are platform-specific:
 
 - `discussions` is GitHub-only
-- `security` is not available on Bitbucket
+- `security` is not available on Bitbucket, Gitea, or Forgejo
+- Gitea/Forgejo paths mirror GitHub (`/issues`, `/pulls`, `/releases`, etc.)
+
+**SSH aliases (`insteadOf`):** olink honors `[url "<rewritten>"].insteadOf = <prefix>` rules
+in `.git/config`. Longest-prefix match wins, matching git's own behavior. This means
+shorthand remotes like `github:owner/repo` resolve correctly when you have:
+
+```ini
+[url "git@github.com:"]
+    insteadOf = github:
+```
 
 ### Python / PyPI Targets
 
@@ -178,7 +188,7 @@ olink -n pulls
 olink -d ~/projects/other-project origin
 
 # See which targets work for your project
-olink --list-available
+olink --list
 ```
 
 ## Limitations

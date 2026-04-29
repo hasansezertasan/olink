@@ -96,6 +96,56 @@ def temp_git_repo_with_upstream(temp_dir: str) -> Iterator[str]:
     yield temp_dir
 
 
+def _init_repo_with_origin(dest: str, origin_url: str) -> None:
+    """Init a git repo with a single origin remote URL (inline, no fixture file needed)."""
+    subprocess.run(["git", "init"], cwd=dest, capture_output=True, check=True)
+    config = Path(dest) / ".git" / "config"
+    with open(config, "a") as f:
+        f.write(f'\n[remote "origin"]\n\turl = {origin_url}\n')
+
+
+@pytest.fixture
+def temp_git_repo_gitea(temp_dir: str) -> Iterator[str]:
+    """Self-hosted Gitea origin via SSH."""
+    _init_repo_with_origin(temp_dir, "git@gitea.example.com:testuser/testrepo.git")
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_git_repo_gitea_https(temp_dir: str) -> Iterator[str]:
+    """Self-hosted Gitea origin via HTTPS."""
+    _init_repo_with_origin(temp_dir, "https://gitea.example.com/testuser/testrepo.git")
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_git_repo_forgejo(temp_dir: str) -> Iterator[str]:
+    """Self-hosted Forgejo origin via SSH."""
+    _init_repo_with_origin(temp_dir, "git@forgejo.example.com:testuser/testrepo.git")
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_git_repo_forgejo_https(temp_dir: str) -> Iterator[str]:
+    """Self-hosted Forgejo origin via HTTPS."""
+    _init_repo_with_origin(temp_dir, "https://forgejo.example.com/testuser/testrepo.git")
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_git_repo_codeberg(temp_dir: str) -> Iterator[str]:
+    """Codeberg (Forgejo) origin via SSH."""
+    _init_repo_with_origin(temp_dir, "git@codeberg.org:testuser/testrepo.git")
+    yield temp_dir
+
+
+@pytest.fixture
+def temp_git_repo_codeberg_https(temp_dir: str) -> Iterator[str]:
+    """Codeberg (Forgejo) origin via HTTPS."""
+    _init_repo_with_origin(temp_dir, "https://codeberg.org/testuser/testrepo.git")
+    yield temp_dir
+
+
 # =============================================================================
 # Project file fixtures
 # =============================================================================

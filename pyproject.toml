@@ -17,7 +17,11 @@ olink = "olink.cli:main"
 [dependency-groups]
 dev = [
     "pytest==9.0.2",
+    "pytest-asyncio>=0.24",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["uv_build>=0.9.22,<0.10.0"]
