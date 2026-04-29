@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.14"]
 
     steps:
@@ -42,7 +42,7 @@ jobs:
         run: uv run pytest -v
 
   lint:
-    name: Lint (ruff)
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -56,14 +56,26 @@ jobs:
       - name: Set up Python
         run: uv python install 3.14
 
-      - name: Install dev tooling
-        run: uv tool install ruff
+      - name: Install dev dependencies
+        run: uv sync --all-extras
 
       - name: ruff check
-        run: uv tool run ruff check .
+        run: uv run ruff check .
 
       - name: ruff format check
-        run: uv tool run ruff format --check .
+        run: uv run ruff format --check .
+
+      - name: typos
+        run: uv run typos
+
+      - name: validate-pyproject
+        run: uv run validate-pyproject pyproject.toml
+
+      - name: taplo lint
+        run: uv run taplo lint
+
+      - name: taplo format check
+        run: uv run taplo format --check
 
   typecheck:
     name: Type check (mypy)
