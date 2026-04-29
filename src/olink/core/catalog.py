@@ -9,6 +9,7 @@ from olink.core.exceptions import (
     UnknownTargetError,
     UnsupportedFeatureError,
 )
+from olink.core.project import detect_ecosystems
 from olink.core.targets import (
     ActionsTarget,
     BranchesTarget,
@@ -192,8 +193,6 @@ def list_available_targets(
 
     Returns (name, description, target_cls, ecosystem) tuples.
     """
-    from olink.core.project import detect_ecosystems
-
     results: list[tuple[str, str, type[Target], str | None]] = []
     detected_ecosystems = detect_ecosystems(cwd)
 

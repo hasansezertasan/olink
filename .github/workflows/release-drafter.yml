@@ -3,8 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-  pull_request:
-    types: [opened, reopened, synchronize]
   pull_request_target:
     types: [opened, reopened, synchronize]
 
@@ -22,5 +20,7 @@ jobs:
         uses: release-drafter/release-drafter@v7
         with:
           config-name: release-drafter.yml
+          # Only update the draft release on push to main; PR events run autolabeler only.
+          disable-releaser: ${{ github.event_name != 'push' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

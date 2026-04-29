@@ -136,7 +136,8 @@ class TestSearchFiltering:
 def _status_text(status: StatusBar) -> str:
     """Render the StatusBar's content to a plain string for assertions."""
     rendered = status.render()
-    return rendered.plain if hasattr(rendered, "plain") else str(rendered)
+    plain = getattr(rendered, "plain", None)
+    return plain if isinstance(plain, str) else str(rendered)
 
 
 class TestOpenInBrowser:

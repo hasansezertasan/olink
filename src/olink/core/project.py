@@ -20,6 +20,7 @@ import tomllib
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from xml.etree.ElementTree import Element
 
 import defusedxml
 import defusedxml.ElementTree as ET
@@ -253,6 +254,7 @@ def parse_remote_url(url: str) -> ParsedRemote:
 # =============================================================================
 
 
+@dataclass(frozen=True)
 class EcosystemConfig:
     """Configuration for an ecosystem.
 
@@ -262,19 +264,11 @@ class EcosystemConfig:
     metadata layouts exist (e.g. CPAN's Makefile.PL / dist.ini / lib/*.pm).
     """
 
-    def __init__(
-        self,
-        name: str,
-        display_name: str,
-        config_file: str,
-        get_package_name: Callable[[str], str],
-        extra_signals: tuple[str, ...] = (),
-    ):
-        self.name = name
-        self.display_name = display_name
-        self.config_file = config_file
-        self.get_package_name = get_package_name
-        self.extra_signals = extra_signals
+    name: str
+    display_name: str
+    config_file: str
+    get_package_name: Callable[[str], str]
+    extra_signals: tuple[str, ...] = ()
 
     def exists(self, cwd: str) -> bool:
         """Check if this ecosystem's config file (or any extra signal) exists.
@@ -503,7 +497,7 @@ def get_open_vsx_name(cwd: str) -> str:
 _MAVEN_PARENT_DEPTH = 8
 
 
-def _parse_pom(pom_path: Path) -> tuple[ET.Element, str]:
+def _parse_pom(pom_path: Path) -> tuple[Element, str]:
     """Parse a pom.xml and return (root, namespace_prefix). Raises ProjectMetadataError."""
     content = _read_text(pom_path, "pom.xml")
     try:

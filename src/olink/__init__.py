@@ -10,6 +10,4 @@ except PackageNotFoundError:
     except ImportError:
         __version__ = "0.0.0+unknown"
 
-from olink.cli import main
-
-__all__ = ["main", "__version__"]
+__all__ = ["__version__"]

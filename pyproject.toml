@@ -136,12 +136,7 @@ packages = ["src/olink"]
 "src/olink/py.typed" = "olink/py.typed"
 
 [tool.hatch.build.targets.sdist]
-include = [
-  "src/olink",
-  "README.md",
-  "LICENSE",
-  "pyproject.toml",
-]
+include = ["src/olink", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.mypy]
 python_version = "3.14"
@@ -174,6 +169,18 @@ pythonVersion = "3.14"
 typeCheckingMode = "strict"
 reportMissingImports = "error"
 
+# Tests use monkeypatch lambdas, access private members for white-box testing,
+# and rely on plugin-typed fixtures — strict checks add noise without value.
+[[tool.pyright.executionEnvironments]]
+root = "tests"
+reportPrivateUsage = "none"
+reportMissingParameterType = "none"
+reportUnknownParameterType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownLambdaType = "none"
+
 [tool.ty.src]
 include = ["src", "tests"]
 respect-ignore-files = false
@@ -199,6 +206,11 @@ disable = [
   "too-few-public-methods",
   "line-too-long",
 ]
+
+[tool.pylint.DESIGN]
+max-args = 10
+max-positional-arguments = 10
+max-branches = 20
 
 [tool.vulture]
 ignore_decorators = ["@app.command", "@app.callback"]

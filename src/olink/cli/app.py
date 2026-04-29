@@ -28,7 +28,6 @@ def _version_callback(value: bool) -> None:
 
 @app.callback(invoke_without_command=True)
 def main_callback(
-    ctx: typer.Context,
     target: str | None = typer.Argument(
         None,
         help="Target to open (e.g. origin, issues, pypi, npm, crates, and more — use --list-all to see all)",
@@ -97,7 +96,7 @@ def main_callback(
 
     if target is None:
         try:
-            from olink.tui import launch_tui
+            from olink.tui import launch_tui  # pylint: disable=import-outside-toplevel
         except ImportError as e:
             if e.name not in _TUI_OPTIONAL_DEPS:
                 raise

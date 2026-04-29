@@ -58,7 +58,8 @@ class SearchInput(Input):
     }
     """
 
-    placeholder = "Search…"
+    def __init__(self) -> None:
+        super().__init__(placeholder="Search…")
 
 
 class StatusBar(Static):
