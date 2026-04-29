@@ -162,6 +162,24 @@ class TestParseRemoteUrl:
         with pytest.raises(UnknownPlatformError):
             parse_remote_url("git@notforgejostuff.dev:owner/repo.git")
 
+    def test_parse_numbered_label_self_hosted(self) -> None:
+        """`<platform><digits>` labels (e.g. `gitlab01`) belong to that platform.
+
+        Common self-hosted naming. Strict equality-only matching was a regression
+        from prior substring behavior; `<keyword>[0-9-]` boundary preserves it.
+        """
+        assert parse_remote_url("git@gitlab01.example.com:owner/repo.git").platform == "gitlab"
+        assert parse_remote_url("git@github2.corp.example.com:owner/repo.git").platform == "github"
+        assert parse_remote_url("git@gitea3.example.com:owner/repo.git").platform == "gitea"
+
+    def test_parse_dashed_label_self_hosted(self) -> None:
+        """`<platform>-<suffix>` labels (e.g. `github-enterprise`) belong to that platform."""
+        result = parse_remote_url("git@github-enterprise.example.com:owner/repo.git")
+        assert result.platform == "github"
+        assert (
+            parse_remote_url("git@gitlab-internal.example.com:owner/repo.git").platform == "gitlab"
+        )
+
 
 class TestInsteadOfRewrites:
     """Tests for [url].insteadOf rewriting in get_remote_url."""

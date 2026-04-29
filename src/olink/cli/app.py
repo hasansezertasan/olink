@@ -1,23 +1,17 @@
 """CLI interface for olink."""
 
 import logging
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import typer
 
+from olink import __version__
 from olink.core.catalog import get_target, list_available_targets, list_targets
 from olink.core.exceptions import OlinkError
 
-
-def _get_version() -> str:
-    try:
-        return version("olink")
-    except PackageNotFoundError:
-        return "0.0.0+unknown"
-
-
 logger = logging.getLogger(__name__)
+
+_TUI_OPTIONAL_DEPS = frozenset({"olink.tui", "textual", "pyperclip"})
 
 app = typer.Typer(
     name="olink",
@@ -28,7 +22,7 @@ app = typer.Typer(
 
 def _version_callback(value: bool) -> None:
     if value:
-        typer.echo(f"olink {_get_version()}")
+        typer.echo(f"olink {__version__}")
         raise typer.Exit(0)
 
 
@@ -104,7 +98,9 @@ def main_callback(
     if target is None:
         try:
             from olink.tui import launch_tui
-        except ImportError:
+        except ImportError as e:
+            if e.name not in _TUI_OPTIONAL_DEPS:
+                raise
             typer.echo(
                 "Error: TUI requires extra dependencies. Install with: "
                 "pip install olink[tui]  (or: uv tool install 'olink[tui]')",
@@ -114,7 +110,7 @@ def main_callback(
 
         try:
             launch_tui(cwd)
-        except KeyboardInterrupt, SystemExit:
+        except (KeyboardInterrupt, SystemExit):
             pass
         raise typer.Exit(0)
 

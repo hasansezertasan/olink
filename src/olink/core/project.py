@@ -181,26 +181,38 @@ def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
     return _apply_insteadof(raw_url, rules)
 
 
-_HOST_LABEL_TO_PLATFORM = {
-    "gitlab": "gitlab",
-    "github": "github",
-    "bitbucket": "bitbucket",
+_SELF_HOSTED_LABEL_TO_PLATFORM = {
     "gitea": "gitea",
     "forgejo": "forgejo",
     "codeberg": "forgejo",
 }
 
+_HOST_LABEL_TO_PLATFORM: dict[str, str] = {
+    host.split(".", 1)[0]: platform
+    for host, platform in HOST_TO_PLATFORM.items()
+    if not host.startswith("www.")
+} | _SELF_HOSTED_LABEL_TO_PLATFORM
+
+_LABEL_BOUNDARY_RE = re.compile(r"[0-9-]")
+
 
 def _detect_platform_from_labels(host: str) -> str | None:
     """Detect platform from hostname labels (DNS components), not arbitrary substrings.
 
-    Avoids false positives like `gitlabby.example.com` matching gitlab. Each
-    dot-separated label is checked exactly against the keyword map.
+    A label matches a platform keyword if it equals the keyword or starts with
+    `<keyword>` followed by a digit or `-`. So `gitlab01`, `github-enterprise`,
+    `gitea2` match; `gitlabby` does not.
     """
     for label in host.lower().split("."):
-        platform = _HOST_LABEL_TO_PLATFORM.get(label)
-        if platform is not None:
+        if (platform := _HOST_LABEL_TO_PLATFORM.get(label)) is not None:
             return platform
+        for keyword, platform in _HOST_LABEL_TO_PLATFORM.items():
+            if (
+                label.startswith(keyword)
+                and len(label) > len(keyword)
+                and _LABEL_BOUNDARY_RE.match(label[len(keyword)])
+            ):
+                return platform
     return None
 
 

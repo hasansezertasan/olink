@@ -29,6 +29,22 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert result.stdout.startswith("olink ")
 
+    def test_version_fallback_when_package_not_installed(self, monkeypatch) -> None:
+        """`--version` must fall back to `0.0.0+unknown` when metadata is missing.
+
+        Guards the `PackageNotFoundError` branch in `olink.__init__` (e.g. running
+        from a source checkout without an installed dist). The dotted path
+        `olink.cli.app` is shadowed by the Typer instance re-exported from
+        `olink.cli`, so reach the module via `sys.modules`.
+        """
+        import sys
+
+        cli_module = sys.modules["olink.cli.app"]
+        monkeypatch.setattr(cli_module, "__version__", "0.0.0+unknown")
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.stdout.strip() == "olink 0.0.0+unknown"
+
     def test_list_all_targets(self) -> None:
         result = runner.invoke(app, ["--list-all"])
         assert result.exit_code == 0
@@ -133,6 +149,22 @@ class TestCLIErrors:
         Earlier silent-bad-URL behavior would have erroneously listed it.
         """
         result = runner.invoke(app, ["--list", "-d", temp_git_repo_gitea])
+        assert result.exit_code == 0
+        assert "codecov" not in result.stdout
+        assert "coveralls" not in result.stdout
+        assert "origin" in result.stdout
+
+    def test_list_excludes_codecov_on_forgejo(self, temp_git_repo_forgejo: str) -> None:
+        """Mirror of the gitea exclusion test for forgejo. Guards platform-detection drift."""
+        result = runner.invoke(app, ["--list", "-d", temp_git_repo_forgejo])
+        assert result.exit_code == 0
+        assert "codecov" not in result.stdout
+        assert "coveralls" not in result.stdout
+        assert "origin" in result.stdout
+
+    def test_list_excludes_codecov_on_codeberg(self, temp_git_repo_codeberg: str) -> None:
+        """Codeberg resolves to forgejo platform and must inherit the same exclusion."""
+        result = runner.invoke(app, ["--list", "-d", temp_git_repo_codeberg])
         assert result.exit_code == 0
         assert "codecov" not in result.stdout
         assert "coveralls" not in result.stdout
