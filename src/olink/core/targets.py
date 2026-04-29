@@ -12,8 +12,8 @@ from olink.core.exceptions import (
 )
 from olink.core.project import (
     ParsedRemote,
-    _get_open_vsx_name,
     detect_ecosystems,
+    get_open_vsx_name,
     get_package_name,
     get_remote_url,
     parse_remote_url,
@@ -81,8 +81,7 @@ class MultiEcosystemTarget(Target):
             if not supported:
                 available = ", ".join(sorted(self.ecosystem_url_map.keys()))
                 raise ProjectMetadataError(
-                    f"No supported ecosystem found for '{self.name}'. "
-                    f"Supported: {available}"
+                    f"No supported ecosystem found for '{self.name}'. Supported: {available}"
                 )
 
             if len(supported) > 1:
@@ -110,7 +109,7 @@ def _encode_name(name: str) -> str:
 
 # Platform URL patterns: {platform: {page: path_suffix}}
 # None means the feature is not available on that platform
-PLATFORM_URLS = {
+PLATFORM_URLS: dict[str, dict[str, str | None]] = {
     "github": {
         "issues": "/issues",
         "pulls": "/pulls",
@@ -295,7 +294,12 @@ class DiscussionsTarget(GitPageTarget):
 
 
 class CodecovTarget(Target):
-    """Open the Codecov page for the project."""
+    """Open the Codecov page for the project.
+
+    Codecov only integrates with GitHub, GitLab, and Bitbucket. Self-hosted
+    forges (Gitea, Forgejo, Codeberg) are unsupported — raise rather than
+    emit a 404 URL.
+    """
 
     name = "codecov"
     description = "Open the Codecov page"
@@ -304,18 +308,33 @@ class CodecovTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         parsed = _get_parsed_remote(cwd, "origin")
-        platform_code = self._PLATFORM_CODES.get(parsed.platform, parsed.platform)
+        platform_code = self._PLATFORM_CODES.get(parsed.platform)
+        if platform_code is None:
+            raise UnsupportedFeatureError(
+                f"Codecov does not support '{parsed.platform}' (only github, gitlab, bitbucket)"
+            )
         return f"https://codecov.io/{platform_code}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
 
 
 class CoverallsTarget(Target):
-    """Open the Coveralls page for the project."""
+    """Open the Coveralls page for the project.
+
+    Coveralls only integrates with GitHub, GitLab, and Bitbucket. Self-hosted
+    forges (Gitea, Forgejo, Codeberg) are unsupported — raise rather than
+    emit a 404 URL.
+    """
 
     name = "coveralls"
     description = "Open the Coveralls page"
 
+    _SUPPORTED_PLATFORMS = {"github", "gitlab", "bitbucket"}
+
     def get_url(self, cwd: str) -> str:
         parsed = _get_parsed_remote(cwd, "origin")
+        if parsed.platform not in self._SUPPORTED_PLATFORMS:
+            raise UnsupportedFeatureError(
+                f"Coveralls does not support '{parsed.platform}' (only github, gitlab, bitbucket)"
+            )
         return f"https://coveralls.io/{parsed.platform}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
 
 
@@ -331,9 +350,7 @@ class PyPITarget(Target):
     description = "Open the PyPI page"
 
     def get_url(self, cwd: str) -> str:
-        return (
-            f"https://pypi.org/project/{_encode_name(get_package_name(cwd, 'pypi'))}/"
-        )
+        return f"https://pypi.org/project/{_encode_name(get_package_name(cwd, 'pypi'))}/"
 
 
 class InspectorTarget(Target):
@@ -353,9 +370,7 @@ class PyPIJSONTarget(Target):
     description = "Open the PyPI JSON API"
 
     def get_url(self, cwd: str) -> str:
-        return (
-            f"https://pypi.org/pypi/{_encode_name(get_package_name(cwd, 'pypi'))}/json"
-        )
+        return f"https://pypi.org/pypi/{_encode_name(get_package_name(cwd, 'pypi'))}/json"
 
 
 class PePyTarget(Target):
@@ -478,7 +493,6 @@ class EcosystemsTarget(MultiEcosystemTarget):
         return f"https://packages.ecosyste.ms/registries/{ecosystem_path}/packages/{_encode_name(package_name)}"
 
 
-
 class SocketTarget(MultiEcosystemTarget):
     """Expose Socket.dev package risk pages across major ecosystems from one target."""
 
@@ -528,9 +542,7 @@ class PackagephobiaTarget(Target):
     description = "Open Packagephobia (install size)"
 
     def get_url(self, cwd: str) -> str:
-        return "https://packagephobia.com/result?" + urlencode(
-            {"p": get_package_name(cwd, "npm")}
-        )
+        return "https://packagephobia.com/result?" + urlencode({"p": get_package_name(cwd, "npm")})
 
 
 class NPMStatTarget(Target):
@@ -543,7 +555,6 @@ class NPMStatTarget(Target):
         return "https://npm-stat.com/charts.html?" + urlencode(
             {"package": get_package_name(cwd, "npm")}
         )
-
 
 
 class JsDelivrTarget(Target):
@@ -591,9 +602,7 @@ class CratesTarget(Target):
     description = "Open the crates.io page"
 
     def get_url(self, cwd: str) -> str:
-        return (
-            f"https://crates.io/crates/{_encode_name(get_package_name(cwd, 'cargo'))}"
-        )
+        return f"https://crates.io/crates/{_encode_name(get_package_name(cwd, 'cargo'))}"
 
 
 class LibRsTarget(Target):
@@ -656,10 +665,7 @@ class GemsTarget(Target):
     description = "Open the RubyGems page"
 
     def get_url(self, cwd: str) -> str:
-        return (
-            f"https://rubygems.org/gems/{_encode_name(get_package_name(cwd, 'gems'))}"
-        )
-
+        return f"https://rubygems.org/gems/{_encode_name(get_package_name(cwd, 'gems'))}"
 
 
 class RubyGemsStatsTarget(Target):
@@ -733,7 +739,6 @@ class NuGetTarget(Target):
         return f"https://www.nuget.org/packages/{_encode_name(get_package_name(cwd, 'nuget'))}"
 
 
-
 class OpenVSXTarget(Target):
     """Enable extension authors to jump from local metadata straight to Open VSX listings."""
 
@@ -742,7 +747,7 @@ class OpenVSXTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         """Use publisher + name from package.json because Open VSX identifies extensions by both."""
-        publisher_name = _get_open_vsx_name(cwd)
+        publisher_name = get_open_vsx_name(cwd)
         if "." not in publisher_name:
             raise ProjectMetadataError(
                 f"Invalid Open VSX identifier '{publisher_name}': "
@@ -778,7 +783,9 @@ class HackageTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         """Reuse cabal package naming to avoid introducing Haskell-specific URL translation logic."""
-        return f"https://hackage.haskell.org/package/{_encode_name(get_package_name(cwd, 'hackage'))}"
+        return (
+            f"https://hackage.haskell.org/package/{_encode_name(get_package_name(cwd, 'hackage'))}"
+        )
 
 
 class CpanTarget(Target):

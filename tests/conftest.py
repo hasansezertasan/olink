@@ -14,10 +14,9 @@ GIT_CONFIGS_DIR = FIXTURES_DIR / "git_configs"
 
 
 def copy_repo_fixture(fixture_name: str, dest: str) -> None:
-    """Copy project files from a fixture template into the destination directory."""
+    """Copy project files (including subdirectories) from a fixture template into dest."""
     src = REPOS_DIR / fixture_name
-    for item in src.iterdir():
-        shutil.copy2(item, dest)
+    shutil.copytree(src, dest, dirs_exist_ok=True)
 
 
 def init_git_with_config(config_name: str, dest: str) -> None:

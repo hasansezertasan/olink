@@ -5,22 +5,29 @@ from pathlib import Path
 
 import typer
 
+from olink import __version__
 from olink.core.catalog import get_target, list_available_targets, list_targets
 from olink.core.exceptions import OlinkError
 
 logger = logging.getLogger(__name__)
 
+_TUI_OPTIONAL_DEPS = frozenset({"olink.tui", "textual", "pyperclip"})
+
 app = typer.Typer(
     name="olink",
     help="Open external URLs related to your project.",
     no_args_is_help=False,
-    invoke_without_command=True,
 )
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"olink {__version__}")
+        raise typer.Exit(0)
 
 
 @app.callback(invoke_without_command=True)
 def main_callback(
-    ctx: typer.Context,
     target: str | None = typer.Argument(
         None,
         help="Target to open (e.g. origin, issues, pypi, npm, crates, and more — use --list-all to see all)",
@@ -49,6 +56,14 @@ def main_callback(
         "-a",
         help="List all targets",
     ),
+    _version: bool = typer.Option(
+        False,
+        "--version",
+        "-V",
+        help="Show olink version and exit",
+        callback=_version_callback,
+        is_eager=True,
+    ),
 ) -> None:
     """Open external URLs related to your project."""
     cwd = directory or str(Path.cwd())
@@ -61,7 +76,6 @@ def main_callback(
         typer.echo(f"Error: Not a directory: {cwd}", err=True)
         raise typer.Exit(1)
 
-    # Handle --list flag (available targets for current project)
     if list_available_flag:
         available = list_available_targets(cwd)
 
@@ -74,20 +88,28 @@ def main_callback(
             typer.echo("No targets available for this project.")
         raise typer.Exit(0)
 
-    # Handle --list-all flag
     if list_all_flag:
         typer.echo("All targets:\n")
         for name, description in list_targets():
             typer.echo(f"  {name:16} - {description}")
         raise typer.Exit(0)
 
-    # If no target provided, launch TUI
     if target is None:
-        from olink.tui import launch_tui
+        try:
+            from olink.tui import launch_tui  # pylint: disable=import-outside-toplevel
+        except ImportError as e:
+            if e.name not in _TUI_OPTIONAL_DEPS:
+                raise
+            typer.echo(
+                "Error: TUI requires extra dependencies. Install with: "
+                "pip install olink[tui]  (or: uv tool install 'olink[tui]')",
+                err=True,
+            )
+            raise typer.Exit(1) from None
 
         try:
             launch_tui(cwd)
-        except (KeyboardInterrupt, SystemExit):
+        except KeyboardInterrupt, SystemExit:
             pass
         raise typer.Exit(0)
 
@@ -102,7 +124,7 @@ def main_callback(
             typer.launch(url)
     except OlinkError as e:
         typer.echo(f"Error: {e}", err=True)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 def main() -> None:

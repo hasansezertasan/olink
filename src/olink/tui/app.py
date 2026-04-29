@@ -20,7 +20,7 @@ HEADER_TEXT = (
 )
 
 
-class OlinkTUI(App):
+class OlinkTUI(App[None]):
     """Main TUI application managing state and widget composition."""
 
     BINDINGS = [
@@ -56,11 +56,7 @@ class OlinkTUI(App):
         self._refresh_list()
 
     def _source(self) -> list[TargetItem]:
-        return (
-            self.available_targets
-            if self.state.mode == "available"
-            else self.all_targets
-        )
+        return self.available_targets if self.state.mode == "available" else self.all_targets
 
     def _refresh_list(self) -> None:
         self.query_one(TargetListWidget).update_items(self._source())
@@ -134,9 +130,7 @@ class OlinkTUI(App):
         self._end_search()
         target_list = self.query_one(TargetListWidget)
         count = len(target_list.children)
-        self.query_one(StatusBar).status_update(
-            self.state.mode, count, len(self.all_targets)
-        )
+        self.query_one(StatusBar).status_update(self.state.mode, count, len(self.all_targets))
         target_list.focus()
 
     def _action_on_selected(self, action: str) -> None:

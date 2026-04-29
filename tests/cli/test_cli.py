@@ -18,6 +18,33 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert "Open external URLs" in result.stdout
 
+    def test_version_flag(self) -> None:
+        """`--version` must print `olink <version>` and exit 0 without a target."""
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.stdout.startswith("olink ")
+
+    def test_version_short_flag(self) -> None:
+        result = runner.invoke(app, ["-V"])
+        assert result.exit_code == 0
+        assert result.stdout.startswith("olink ")
+
+    def test_version_fallback_when_package_not_installed(self, monkeypatch) -> None:
+        """`--version` must fall back to `0.0.0+unknown` when metadata is missing.
+
+        Guards the `PackageNotFoundError` branch in `olink.__init__` (e.g. running
+        from a source checkout without an installed dist). The dotted path
+        `olink.cli.app` is shadowed by the Typer instance re-exported from
+        `olink.cli`, so reach the module via `sys.modules`.
+        """
+        import sys
+
+        cli_module = sys.modules["olink.cli.app"]
+        monkeypatch.setattr(cli_module, "__version__", "0.0.0+unknown")
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.stdout.strip() == "olink 0.0.0+unknown"
+
     def test_list_all_targets(self) -> None:
         result = runner.invoke(app, ["--list-all"])
         assert result.exit_code == 0
@@ -47,13 +74,13 @@ class TestCLIDryRun:
     def test_dry_run_pypi(self, temp_pyproject: str) -> None:
         result = runner.invoke(app, ["-n", "-d", temp_pyproject, "pypi"])
         assert result.exit_code == 0
-        assert "pypi.org/project/test-project" in result.stdout
+        assert "https://pypi.org/project/test-project/" in result.stdout
 
     def test_dry_run_piwheels(self, temp_pyproject: str) -> None:
         """Ensure dry-run mode reveals the exact piwheels URL before opening a browser."""
         result = runner.invoke(app, ["-n", "-d", temp_pyproject, "piwheels"])
         assert result.exit_code == 0
-        assert "piwheels.org/project/test-project" in result.stdout
+        assert "https://www.piwheels.org/project/test-project/" in result.stdout
 
     def test_dry_run_npm(self, temp_package_json: str) -> None:
         result = runner.invoke(app, ["-n", "-d", temp_package_json, "npm"])
@@ -69,7 +96,6 @@ class TestCLIDryRun:
         result = runner.invoke(app, ["-n", "-d", temp_git_repo, "issues"])
         assert result.exit_code == 0
         assert "github.com/testuser/testrepo/issues" in result.stdout
-
 
     def test_piwheels_without_pyproject(self, temp_dir: str) -> None:
         """Verify CLI errors stay actionable when piwheels is run outside Python projects."""
@@ -116,6 +142,47 @@ class TestCLIErrors:
         result = runner.invoke(app, ["--list", "-d", temp_dir])
         assert result.exit_code == 0
         assert "No targets available for this project." in result.stdout
+
+    def test_list_excludes_codecov_on_gitea(self, temp_git_repo_gitea: str) -> None:
+        """Codecov target must NOT show in `--list` for self-hosted gitea repos.
+
+        Earlier silent-bad-URL behavior would have erroneously listed it.
+        """
+        result = runner.invoke(app, ["--list", "-d", temp_git_repo_gitea])
+        assert result.exit_code == 0
+        assert "codecov" not in result.stdout
+        assert "coveralls" not in result.stdout
+        assert "origin" in result.stdout
+
+    def test_list_excludes_codecov_on_forgejo(self, temp_git_repo_forgejo: str) -> None:
+        """Mirror of the gitea exclusion test for forgejo. Guards platform-detection drift."""
+        result = runner.invoke(app, ["--list", "-d", temp_git_repo_forgejo])
+        assert result.exit_code == 0
+        assert "codecov" not in result.stdout
+        assert "coveralls" not in result.stdout
+        assert "origin" in result.stdout
+
+    def test_list_excludes_codecov_on_codeberg(self, temp_git_repo_codeberg: str) -> None:
+        """Codeberg resolves to forgejo platform and must inherit the same exclusion."""
+        result = runner.invoke(app, ["--list", "-d", temp_git_repo_codeberg])
+        assert result.exit_code == 0
+        assert "codecov" not in result.stdout
+        assert "coveralls" not in result.stdout
+        assert "origin" in result.stdout
+
+    def test_subdir_does_not_resolve_parent_pyproject(self, temp_pyproject: str) -> None:
+        """README documents: olink must be run from project root.
+
+        From `src/` (no pyproject.toml there), `olink pypi` must error rather
+        than silently traverse upward.
+        """
+        import os
+
+        subdir = os.path.join(temp_pyproject, "src")
+        os.makedirs(subdir)
+        result = runner.invoke(app, ["-n", "-d", subdir, "pypi"])
+        assert result.exit_code == 1
+        assert "No pyproject.toml found" in result.output
 
 
 class TestCLIOpenBrowser:

@@ -9,66 +9,67 @@ from olink.core.exceptions import (
     UnknownTargetError,
     UnsupportedFeatureError,
 )
+from olink.core.project import detect_ecosystems
 from olink.core.targets import (
-    # Git targets
-    OriginTarget,
-    UpstreamTarget,
-    IssuesTarget,
-    PullsTarget,
     ActionsTarget,
-    WikiTarget,
-    ReleasesTarget,
     BranchesTarget,
-    CommitsTarget,
-    SecurityTarget,
-    DiscussionsTarget,
+    BundlephobiaTarget,
+    ClickPyTarget,
     # Service targets
     CodecovTarget,
+    CommitsTarget,
     CoverallsTarget,
-    # Python / PyPI
-    PyPITarget,
-    InspectorTarget,
-    PyPIJSONTarget,
-    PePyTarget,
-    PiWheelsTarget,
-    PyPIStatsTarget,
-    PipTrendsTarget,
-    ClickPyTarget,
-    SafetyDBTarget,
-    # Multi-ecosystem
-    SnykTarget,
-    LibrariesIOTarget,
-    DepsDevTarget,
-    EcosystemsTarget,
-    SocketTarget,
-    # npm
-    NPMTarget,
-    BundlephobiaTarget,
-    PackagephobiaTarget,
-    NPMStatTarget,
-    JsDelivrTarget,
-    UnpkgTarget,
-    SkypackTarget,
+    CpanTarget,
     # Rust
     CratesTarget,
-    LibRsTarget,
+    DepsDevTarget,
+    DiscussionsTarget,
     DocsRsTarget,
-    # Go
-    GoPkgTarget,
-    GoDocsTarget,
+    EcosystemsTarget,
     # Other ecosystems
     GemsTarget,
-    RubyGemsStatsTarget,
-    PackagistTarget,
-    PubTarget,
+    GoDocsTarget,
+    # Go
+    GoPkgTarget,
+    HackageTarget,
     HexTarget,
+    InspectorTarget,
+    IssuesTarget,
+    JsDelivrTarget,
+    LibrariesIOTarget,
+    LibRsTarget,
+    MavenTarget,
+    MultiEcosystemTarget,
+    NPMStatTarget,
+    # npm
+    NPMTarget,
     NuGetTarget,
     OpenVSXTarget,
-    MavenTarget,
-    HackageTarget,
-    CpanTarget,
-    MultiEcosystemTarget,
+    # Git targets
+    OriginTarget,
+    PackagephobiaTarget,
+    PackagistTarget,
+    PePyTarget,
+    PipTrendsTarget,
+    PiWheelsTarget,
+    PubTarget,
+    PullsTarget,
+    PyPIJSONTarget,
+    PyPIStatsTarget,
+    # Python / PyPI
+    PyPITarget,
+    ReleasesTarget,
+    RubyGemsStatsTarget,
+    SafetyDBTarget,
+    SecurityTarget,
+    SkypackTarget,
+    # Multi-ecosystem
+    SnykTarget,
+    SocketTarget,
     Target,
+    UnpkgTarget,
+    UpstreamTarget,
+    WikiTarget,
 )
 
 # Explicit registry of all available targets
@@ -148,9 +149,7 @@ def get_target(name: str) -> Target:
 
     if base_name not in REGISTRY:
         available = ", ".join(sorted(REGISTRY.keys()))
-        raise UnknownTargetError(
-            f"Unknown target: '{base_name}'. Available targets: {available}"
-        )
+        raise UnknownTargetError(f"Unknown target: '{base_name}'. Available targets: {available}")
 
     target_cls = REGISTRY[base_name]
 
@@ -194,16 +193,12 @@ def list_available_targets(
 
     Returns (name, description, target_cls, ecosystem) tuples.
     """
-    from olink.core.project import detect_ecosystems
-
     results: list[tuple[str, str, type[Target], str | None]] = []
     detected_ecosystems = detect_ecosystems(cwd)
 
     for name, target_cls in sorted(REGISTRY.items()):
         if issubclass(target_cls, MultiEcosystemTarget):
-            supported = [
-                e for e in detected_ecosystems if e in target_cls.ecosystem_url_map
-            ]
+            supported = [e for e in detected_ecosystems if e in target_cls.ecosystem_url_map]
             if not supported:
                 continue
             if len(supported) == 1:
@@ -217,9 +212,7 @@ def list_available_targets(
                 for eco in sorted(supported):
                     try:
                         target_cls(ecosystem=eco).get_url(cwd)
-                        results.append(
-                            (f"{name}:{eco}", target_cls.description, target_cls, eco)
-                        )
+                        results.append((f"{name}:{eco}", target_cls.description, target_cls, eco))
                     except UNAVAILABLE_ERRORS as e:
                         logger.debug("Skipping %s:%s: %s", name, eco, e)
         else:

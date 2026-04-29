@@ -74,9 +74,7 @@ class _DummyTarget(Target):
 
 
 def _item(name: str, description: str) -> TargetItem:
-    return TargetItem(
-        name=name, description=description, target_cls=_DummyTarget
-    )
+    return TargetItem(name=name, description=description, target_cls=_DummyTarget)
 
 
 def _make_items() -> list[TargetItem]:
@@ -138,7 +136,8 @@ class TestSearchFiltering:
 def _status_text(status: StatusBar) -> str:
     """Render the StatusBar's content to a plain string for assertions."""
     rendered = status.render()
-    return rendered.plain if hasattr(rendered, "plain") else str(rendered)
+    plain = getattr(rendered, "plain", None)
+    return plain if isinstance(plain, str) else str(rendered)
 
 
 class TestOpenInBrowser:
@@ -211,9 +210,7 @@ class TestTargetListRendering:
             target_list = app.query_one(TargetListWidget)
             rows = list(target_list.query(TargetRow))
             assert len(rows) == 5
-            assert {r.item.name for r in rows} == {
-                "pypi", "npm", "origin", "issues", "pypistats"
-            }
+            assert {r.item.name for r in rows} == {"pypi", "npm", "origin", "issues", "pypistats"}
 
     @pytest.mark.asyncio
     async def test_get_selected_item_returns_highlighted(self) -> None:
@@ -242,9 +239,7 @@ class TestActionHandlers:
     ) -> None:
         items = _make_items()
         opened: list[str] = []
-        monkeypatch.setattr(
-            "olink.tui.app.open_in_browser", lambda url: opened.append(url) or True
-        )
+        monkeypatch.setattr("olink.tui.app.open_in_browser", lambda url: opened.append(url) or True)
         with (
             patch("olink.tui.app.build_all_targets", return_value=items),
             patch("olink.tui.app.build_available_targets", return_value=items),
@@ -262,9 +257,7 @@ class TestActionHandlers:
             assert "Opened" in status_text
 
     @pytest.mark.asyncio
-    async def test_action_copy_target_uses_clipboard(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_action_copy_target_uses_clipboard(self, monkeypatch: pytest.MonkeyPatch) -> None:
         items = _make_items()
         copied: list[str] = []
         monkeypatch.setattr(
@@ -287,9 +280,7 @@ class TestActionHandlers:
             assert "Copied" in _status_text(app.query_one(StatusBar))
 
     @pytest.mark.asyncio
-    async def test_action_copy_failure_sets_error(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_action_copy_failure_sets_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         items = _make_items()
         monkeypatch.setattr("olink.tui.app.copy_to_clipboard", lambda url: False)
         with (

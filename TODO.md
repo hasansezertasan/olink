@@ -1,5 +1,0 @@
-# TODO
-
-## Future Ideas
-
-## Implementation

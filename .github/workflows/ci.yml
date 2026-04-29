@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Configure git identity (required by tests that init repos)
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "CI"
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run tests
+        run: uv run pytest -v
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.14
+
+      - name: Install dev dependencies
+        run: uv sync --all-extras
+
+      - name: ruff check
+        run: uv run ruff check .
+
+      - name: ruff format check
+        run: uv run ruff format --check .
+
+      - name: typos
+        run: uv run typos
+
+      - name: validate-pyproject
+        run: uv run validate-pyproject pyproject.toml
+
+      - name: taplo lint
+        run: uv run taplo lint
+
+      - name: taplo format check
+        run: uv run taplo format --check
+
+  typecheck:
+    name: Type check (${{ matrix.tool }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [mypy, pyright, ty, pyrefly, pylint, vulture, slotscheck]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.14
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run ${{ matrix.tool }}
+        run: |
+          case "${{ matrix.tool }}" in
+            mypy)       uv run mypy ;;
+            pyright)    uv run pyright ;;
+            ty)         uv run ty check ;;
+            pyrefly)    uv run pyrefly check ;;
+            pylint)     uv run pylint src ;;
+            vulture)    uv run vulture ;;
+            slotscheck) uv run slotscheck -m olink ;;
+          esac
