@@ -1,6 +1,6 @@
 [project]
 name = "olink"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A CLI tool that opens external URLs related to your project."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -38,7 +38,7 @@ dependencies = ["typer==0.21.1", "defusedxml>=0.7.1"]
 Homepage = "https://github.com/hasansezertasan/olink"
 Repository = "https://github.com/hasansezertasan/olink"
 Issues = "https://github.com/hasansezertasan/olink/issues"
-Changelog = "https://github.com/hasansezertasan/olink/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/hasansezertasan/olink/releases"
 
 [project.optional-dependencies]
 tui = ["textual>=3.0.0", "pyperclip==1.11.0"]
@@ -48,19 +48,34 @@ olink = "olink.cli:main"
 
 [dependency-groups]
 dev = [
+  "olink[tui]",
+  { include-group = "lint" },
+  { include-group = "test" },
+  { include-group = "tool" },
+]
+lint = [
+  "mypy>=1.11",
+  "pyright>=1.1.403",
+  "ty==0.0.32",
+  "pyrefly==0.62.0",
+  "pylint>=3.2.7",
+  "ruff>=0.7",
+  "taplo>=0.9.3",
+  "typos>=1.30",
+  "validate-pyproject[all]>=0.24",
+  "vulture>=2.14",
+  "slotscheck>=0.16.5",
+]
+test = [
   "pytest==9.0.2",
   "pytest-asyncio>=0.24",
   "pytest-cov>=6.0",
+  "pytest-mock~=3.12",
   "pytest-xdist>=3.6",
   "coverage[toml]>=7.6",
-  "mypy>=1.11",
-  "ruff>=0.7",
-  "typos>=1.30",
-  "validate-pyproject[all]>=0.24",
-  "taplo>=0.9.3",
-  "pre-commit>=4.0",
-  "olink[tui]",
+  "coverage-enable-subprocess==1.0",
 ]
+tool = ["pre-commit>=4.0", "poethepoet>=0.30.0"]
 
 [tool.uv]
 trusted-publishing = "always"
@@ -73,6 +88,7 @@ addopts = "-n auto --cov=olink --cov-report=term-missing"
 source_pkgs = ["olink"]
 branch = true
 parallel = true
+omit = ["src/olink/_version.py"]
 
 [tool.coverage.paths]
 olink = ["src/olink", "*/olink/src/olink"]
@@ -99,8 +115,19 @@ ignore = ["ANN401", "E501", "RUF012", "ANN204", "RUF022"]
 "tests/**" = ["ANN", "B", "RUF043", "I001", "E402"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.1.0"
+
+[tool.hatch.version.raw-options]
+version_scheme = "only-version"
+local_scheme = "no-local-version"
+
+[tool.hatch.build]
+hooks.vcs.version-file = "src/olink/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/olink"]
@@ -113,7 +140,6 @@ include = [
   "src/olink",
   "README.md",
   "LICENSE",
-  "CHANGELOG.md",
   "pyproject.toml",
 ]
 
@@ -137,3 +163,88 @@ disallow_incomplete_defs = false
 [[tool.mypy.overrides]]
 module = ["pyperclip", "defusedxml.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "olink._version"
+ignore_errors = true
+
+[tool.pyright]
+include = ["src/olink", "tests"]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+reportMissingImports = "error"
+
+[tool.ty.src]
+include = ["src", "tests"]
+respect-ignore-files = false
+
+[tool.ty.environment]
+python-version = "3.14"
+
+[tool.ty.terminal]
+error-on-warning = true
+
+[tool.pyrefly]
+python-version = "3.14"
+project-includes = ["src", "tests"]
+
+[tool.pylint.MASTER]
+ignore-paths = ["^tests/.*$", "^src/olink/_version\\.py$"]
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+  "missing-module-docstring",
+  "missing-function-docstring",
+  "missing-class-docstring",
+  "too-few-public-methods",
+  "line-too-long",
+]
+
+[tool.vulture]
+ignore_decorators = ["@app.command", "@app.callback"]
+ignore_names = ["return_value", "side_effect", "pytestmark"]
+min_confidence = 70
+paths = ["src", "tests"]
+exclude = ["src/olink/_version.py"]
+
+[tool.slotscheck]
+strict-imports = false
+exclude-modules = "olink.tui"
+
+[tool.poe]
+executor.type = "uv"
+
+[tool.poe.tasks.test]
+help = "Run tests"
+cmd = "pytest"
+
+[tool.poe.tasks.style]
+help = "Run linters and formatters"
+sequence = [
+  { cmd = "ruff check ." },
+  { cmd = "ruff format --check ." },
+  { cmd = "typos" },
+  { cmd = "validate-pyproject pyproject.toml" },
+  { cmd = "taplo lint" },
+  { cmd = "taplo format --check" },
+]
+
+[tool.poe.tasks.typecheck]
+help = "Run all type checkers"
+sequence = [
+  { cmd = "mypy" },
+  { cmd = "pyright" },
+  { cmd = "ty check" },
+  { cmd = "pyrefly check" },
+  { cmd = "pylint src" },
+  { cmd = "vulture" },
+  { cmd = "slotscheck -m olink" },
+]
+
+[tool.poe.tasks.fix]
+help = "Auto-fix style issues"
+sequence = [
+  { cmd = "ruff check --fix ." },
+  { cmd = "ruff format ." },
+  { cmd = "taplo format" },
+]

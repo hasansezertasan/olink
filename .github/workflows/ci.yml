@@ -78,8 +78,12 @@ jobs:
         run: uv run taplo format --check
 
   typecheck:
-    name: Type check (mypy)
+    name: Type check (${{ matrix.tool }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [mypy, pyright, ty, pyrefly, pylint, vulture, slotscheck]
 
     steps:
       - uses: actions/checkout@v4
@@ -95,5 +99,14 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
 
-      - name: mypy
-        run: uv run mypy
+      - name: Run ${{ matrix.tool }}
+        run: |
+          case "${{ matrix.tool }}" in
+            mypy)       uv run mypy ;;
+            pyright)    uv run pyright ;;
+            ty)         uv run ty check ;;
+            pyrefly)    uv run pyrefly check ;;
+            pylint)     uv run pylint src ;;
+            vulture)    uv run vulture ;;
+            slotscheck) uv run slotscheck -m olink ;;
+          esac

@@ -19,8 +19,8 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 - **CPAN ecosystem detection**: extended `EcosystemConfig` with `extra_signals` so detection accepts `Makefile.PL` OR `dist.ini` OR `lib/*.pm`. Resolves the long-standing divergence where `olink cpan` worked direct but never appeared in `--list` for `dist.ini`-only or `lib/`-only Perl projects.
 - **Open VSX**: registered as its own ecosystem (`open-vsx` → `package.json` + publisher field). Now autodetected and listed in `--list` for VS Code extension projects.
 - **PyPI publishing**: chose OIDC trusted publishing over API tokens. No secrets in repo, automatic short-lived credentials, scoped to the specific `release.yml` workflow + `pypi` environment.
-- **Fully automated version bumps via Release Please** (modeled on `hasansezertasan/copier-pyproject`): `release-please.yml` runs on every push to `main`, reads Conventional Commits since the last release, opens / maintains a "release PR" that bumps `pyproject.toml` `[project].version` and updates `CHANGELOG.md`. Merging that PR creates the GitHub Release + tag, which fires `release.yml` (build → `pypa/gh-action-pypi-publish@release/v1` via OIDC → upload artifacts to the release). No tag is ever pushed by hand.
-- **PR-title linting**: `amannn/action-semantic-pull-request` enforces Conventional Commits on PR titles so release-please can correctly classify changes (feat → minor, fix/perf/refactor → patch, BREAKING CHANGE → major).
+- **Release pipeline (drafter + hatch-vcs)**: `release-drafter.yml` runs on push-to-main and PR events, accumulating PR titles + autolabels into a single Draft GitHub Release. The maintainer publishes the draft when ready, which creates tag `vX.Y.Z`. The tag fires `release.yml` (build via `uv build` → `hatch-vcs` reads the tag → `pypa/gh-action-pypi-publish@release/v1` via OIDC → upload artifacts). The GitHub Releases page is the single source of truth for the changelog; no in-repo `CHANGELOG.md` is maintained.
+- **PR-title linting**: `amannn/action-semantic-pull-request` enforces Conventional Commits on PR titles so release-drafter's autolabeler classifies changes correctly (feat → minor, fix → patch, breaking → major) and the release notes read cleanly.
 - **Type checking**: added `[tool.mypy]` strict config and `py.typed` PEP 561 marker. Honours the `Typing :: Typed` classifier the package already advertises.
 
 ### Changes
@@ -38,7 +38,7 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 - `[project.optional-dependencies] tui = [textual, pyperclip]`.
 - `[tool.ruff]` (line-length 100, py314, E/F/I/B/UP/ANN/RUF rules).
 - `[tool.mypy]` (strict, Python 3.14, files = `src/olink`).
-- `LICENSE`, `CHANGELOG.md`, `src/olink/py.typed` created.
+- `LICENSE`, `src/olink/py.typed` created.
 - `.gitkeep` removed.
 
 **CLI**
@@ -58,10 +58,10 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 
 **CI / CD**
 - `.github/workflows/ci.yml`: pytest matrix (ubuntu+macos, py3.14), ruff check + format, mypy job.
-- `.github/workflows/release-please.yml`: runs on push-to-main; opens / maintains a release PR that bumps version and updates CHANGELOG.
-- `release-please-config.json` + `.release-please-manifest.json`: declarative configuration for release-please, seeded at `0.1.0`.
-- `.github/workflows/release.yml`: three-job pipeline (build → pypi-publish → attach-github-release) triggered on `release: published`. Uses `pypa/gh-action-pypi-publish@release/v1` with OIDC; environment `pypi`.
+- `.github/workflows/release-drafter.yml` + `.github/release-drafter.yml`: maintains a Draft GitHub Release by accumulating PR titles + autolabels; resolves version from `major`/`minor`/`patch` labels.
+- `.github/workflows/release.yml`: three-job pipeline (build → pypi-publish → attach-github-release) triggered on `release: published`. Uses `pypa/gh-action-pypi-publish@release/v1` with OIDC; environment `pypi`. Build version comes from the git tag via `hatch-vcs`.
 - `.github/workflows/check-pr-title.yml`: enforces Conventional Commits on PR titles.
+- `pyproject.toml`: `dynamic = ["version"]`, `[tool.hatch.version] source = "vcs"` with `fallback-version = "0.1.0"` and `local_scheme = "no-local-version"`; `_version.py` written to `src/olink/` at build time and gitignored.
 
 **Docs**
 - README: `[tui]` install hint, `--version` line, CPAN multi-signal note.
@@ -73,11 +73,12 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 - Trusted publishing wired and tagged-release-driven.
 
 ### Release ritual (going forward)
-- Land any number of Conventional-Commit PRs onto `main`.
-- `release-please` opens (or updates) a single "chore: release X.Y.Z" PR that bumps `pyproject.toml` `[project].version` and prepends a `CHANGELOG.md` entry. Reviewer's only job: merge.
-- Merging the release PR creates the GitHub Release + tag.
-- That fires `release.yml`: `uv build` → upload artifact → `pypa/gh-action-pypi-publish@release/v1` → attach dist files to the GitHub Release.
-- No tag is ever pushed by hand. `pyproject.toml` version is never edited by hand.
+- Land any number of Conventional-Commit PRs onto `main`. Autolabeler tags each PR (`enhancement`, `bug`, `dependencies`, …).
+- `release-drafter` keeps a single Draft GitHub Release in sync, with the next version resolved from the strongest label (major > minor > patch).
+- When ready to ship, edit the draft if needed and click **Publish**. That creates tag `vX.Y.Z` and the GitHub Release.
+- `release.yml` fires on `release: published`: `uv build` (hatch-vcs reads the tag) → `pypa/gh-action-pypi-publish@release/v1` via OIDC → attach dist files to the release.
+- The GitHub Releases page is the only changelog. No in-repo `CHANGELOG.md`.
+- No tag is ever pushed by hand. `pyproject.toml` carries `dynamic = ["version"]`; the version lives in the git tag.
 
 ---
 
