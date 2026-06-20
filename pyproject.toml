@@ -1,6 +1,6 @@
 [project]
 name = "olink"
-dynamic = ["version"]
+version = "0.0.0" # x-release-please-version
 description = "A CLI tool that opens external URLs related to your project."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -88,7 +88,6 @@ addopts = "-n auto --cov=olink --cov-report=term-missing"
 source_pkgs = ["olink"]
 branch = true
 parallel = true
-omit = ["src/olink/_version.py"]
 
 [tool.coverage.paths]
 olink = ["src/olink", "*/olink/src/olink"]
@@ -115,19 +114,8 @@ ignore = ["ANN401", "E501", "RUF012", "ANN204", "RUF022"]
 "tests/**" = ["ANN", "B", "RUF043", "I001", "E402"]
 
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.version]
-source = "vcs"
-fallback-version = "0.1.0"
-
-[tool.hatch.version.raw-options]
-version_scheme = "only-version"
-local_scheme = "no-local-version"
-
-[tool.hatch.build]
-hooks.vcs.version-file = "src/olink/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/olink"]
@@ -158,10 +146,6 @@ disallow_incomplete_defs = false
 [[tool.mypy.overrides]]
 module = ["pyperclip", "defusedxml.*"]
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "olink._version"
-ignore_errors = true
 
 [tool.pyright]
 include = ["src/olink", "tests"]
@@ -196,7 +180,7 @@ python-version = "3.14"
 project-includes = ["src", "tests"]
 
 [tool.pylint.MASTER]
-ignore-paths = ["^tests/.*$", "^src/olink/_version\\.py$"]
+ignore-paths = ["^tests/.*$"]
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
@@ -217,7 +201,6 @@ ignore_decorators = ["@app.command", "@app.callback"]
 ignore_names = ["return_value", "side_effect", "pytestmark"]
 min_confidence = 70
 paths = ["src", "tests"]
-exclude = ["src/olink/_version.py"]
 
 [tool.slotscheck]
 strict-imports = false

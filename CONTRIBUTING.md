@@ -169,7 +169,7 @@ Documentation lives in `README.md` and `JOURNAL.md`. PRs that clarify usage, fix
 
 ### Commit Messages
 
-Follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). The release flow uses [release-drafter](https://github.com/release-drafter/release-drafter) to accumulate notes from PR titles and labels into a draft GitHub release. The maintainer publishes the draft, which creates the git tag; [hatch-vcs](https://github.com/ofek/hatch-vcs) reads the tag at build time to set the package version.
+Follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). Commit messages are the source of truth for releases: [release-please](https://github.com/googleapis/release-please) parses them on every push to `main` and maintains a "Release PR" with the computed version bump and changelog. Merging that PR cuts the git tag and a draft GitHub release, after which CI builds, publishes to PyPI via Trusted Publishing, and un-drafts the release. release-please owns the version: it rewrites `version` in `pyproject.toml` (via the `x-release-please-version` marker) and `__version__` in `src/olink/__init__.py`, so the version is never hand-edited.
 
 Examples:
 

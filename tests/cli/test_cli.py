@@ -29,21 +29,21 @@ class TestCLIHelp:
         assert result.exit_code == 0
         assert result.stdout.startswith("olink ")
 
-    def test_version_fallback_when_package_not_installed(self, monkeypatch) -> None:
-        """`--version` must fall back to `0.0.0+unknown` when metadata is missing.
+    def test_version_renders_package_version(self, monkeypatch) -> None:
+        """`--version` must echo exactly the `__version__` it imported.
 
-        Guards the `PackageNotFoundError` branch in `olink.__init__` (e.g. running
-        from a source checkout without an installed dist). The dotted path
-        `olink.cli.app` is shadowed by the Typer instance re-exported from
-        `olink.cli`, so reach the module via `sys.modules`.
+        release-please owns `__version__` as a static literal in `olink.__init__`,
+        so the callback should print it verbatim. The dotted path `olink.cli.app`
+        is shadowed by the Typer instance re-exported from `olink.cli`, so reach
+        the module via `sys.modules`.
         """
         import sys
 
         cli_module = sys.modules["olink.cli.app"]
-        monkeypatch.setattr(cli_module, "__version__", "0.0.0+unknown")
+        monkeypatch.setattr(cli_module, "__version__", "9.9.9")
         result = runner.invoke(app, ["--version"])
         assert result.exit_code == 0
-        assert result.stdout.strip() == "olink 0.0.0+unknown"
+        assert result.stdout.strip() == "olink 9.9.9"
 
     def test_list_all_targets(self) -> None:
         result = runner.invoke(app, ["--list-all"])

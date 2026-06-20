@@ -4,6 +4,26 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-06-20 — Switch release pipeline to release-please (follow ocom)
+
+### Context
+Adopted the release pipeline shape from the sibling project [ocom](https://github.com/hasansezertasan/ocom), replacing the release-drafter + manual-publish flow. olink had not been published to PyPI yet and had no tags, so this was effectively first-time release setup — a clean moment to swap strategies.
+
+### Decisions
+
+- **release-drafter → release-please**: replaced `.github/workflows/release-drafter.yml`, `.github/workflows/release.yml`, and `.github/release-drafter.yml` with a single `.github/workflows/release-please.yml` plus `release-please-config.json` and `.release-please-manifest.json`. Releases are now driven by conventional commits: release-please maintains a Release PR; merging it tags, builds, publishes to PyPI, and un-drafts the GitHub release in one automated path. No more manual "publish the draft" step.
+- **Dropped hatch-vcs for ocom's static-version mechanism (`python` + `extra-files`)**: matched ocom exactly. The version is now a committed literal that release-please owns: `release-type: python` bumps `__version__` in `src/olink/__init__.py`, and `extra-files: [{ type: generic, path: pyproject.toml }]` rewrites the `version = "x.y.z" # x-release-please-version` line in `pyproject.toml`. Removed `[tool.hatch.version]`, the `hatch-vcs` build requirement, the `_version.py` file hook, and all the now-dead `_version.py` references in the mypy/pylint/vulture config. `src/olink/__init__.py` reduced to a plain `__version__ = "0.1.0"` (no more `importlib.metadata` lookup or `PackageNotFoundError` fallback).
+- **No `fetch-depth: 0` needed**: with the version baked into the source, the publish checkout no longer needs git history/tags — removed it to match ocom.
+- **Seeded at `0.0.0` so the first *published* release is `0.1.0`**: `pyproject.toml`, `src/olink/__init__.py`, and `.release-please-manifest.json` all start at `0.0.0`. No `bump-minor-pre-major` flag — matching [ocom PR #4](https://github.com/hasansezertasan/ocom/pull/4), which proved empirically that this release-please already bumps `feat` → minor (ocom's first Release PR proposed `0.2.0` from a `0.1.0` manifest). So `0.0.0` + a `feat` commit yields `0.1.0`. A `0.1.0` seed would have skipped straight to `0.2.0`.
+- **Environment `publish`**: the publish job runs in the GitHub Environment named `publish` (matching ocom), not `pypi`.
+- **Kept ocom's hardening verbatim**: pinned action SHAs and `uv publish --trusted-publishing always` (uv-native publish, no `pypa/gh-action-pypi-publish`).
+
+### Follow-ups (manual, outside the repo)
+- Configure the PyPI Trusted Publisher for `olink`: workflow `release-please.yml`, environment `pypi`.
+- Ensure a GitHub Environment named `pypi` exists (protection rules optional).
+
+---
+
 ## 2026-04-29 — Pre-PyPI release hardening
 
 ### Context
