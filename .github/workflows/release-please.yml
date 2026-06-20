@@ -32,7 +32,7 @@ jobs:
       id-token: write   # Mandatory for PyPI Trusted Publishing
       contents: write   # Mandatory to upload to and un-draft the release
     environment:
-      name: pypi
+      name: publish
       url: https://pypi.org/project/olink/${{ needs.release-please.outputs.version }}
     steps:
       - name: Checkout repository
