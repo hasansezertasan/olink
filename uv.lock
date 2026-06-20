@@ -319,6 +319,7 @@ wheels = [
 
 [[package]]
 name = "olink"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "defusedxml" },
