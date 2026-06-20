@@ -1,0 +1,67 @@
+name: Release
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions: {}
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    name: Release Please
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    name: Publish to PyPI
+    permissions:
+      id-token: write   # Mandatory for PyPI Trusted Publishing
+      contents: write   # Mandatory to upload to and un-draft the release
+    environment:
+      name: pypi
+      url: https://pypi.org/project/olink/${{ needs.release-please.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          # hatch-vcs derives the version from the tag release-please just created;
+          # full history + tags must be present for `git describe` to find it.
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version-file: .python-version
+      - name: Setup uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+      - name: Build the package
+        run: uv build --no-sources --quiet
+      - name: Attach build artifacts to the draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ needs.release-please.outputs.tag_name }}" ./dist/* --clobber
+      - name: Publish to PyPI
+        run: uv publish --quiet --trusted-publishing always
+      - name: Publish the GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ needs.release-please.outputs.tag_name }}" --draft=false

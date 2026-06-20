@@ -4,6 +4,25 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-06-20 — Switch release pipeline to release-please (follow ocom)
+
+### Context
+Adopted the release pipeline shape from the sibling project [ocom](https://github.com/hasansezertasan/ocom), replacing the release-drafter + manual-publish flow. olink had not been published to PyPI yet and had no tags, so this was effectively first-time release setup — a clean moment to swap strategies.
+
+### Decisions
+
+- **release-drafter → release-please**: replaced `.github/workflows/release-drafter.yml`, `.github/workflows/release.yml`, and `.github/release-drafter.yml` with a single `.github/workflows/release-please.yml` plus `release-please-config.json` and `.release-please-manifest.json`. Releases are now driven by conventional commits: release-please maintains a Release PR; merging it tags, builds, publishes to PyPI, and un-drafts the GitHub release in one automated path. No more manual "publish the draft" step.
+- **Kept hatch-vcs (tag-only), did not copy ocom's static version**: ocom uses `release-type: python` + `extra-files: pyproject.toml` to rewrite a literal `version = "x.y.z"`. olink keeps `dynamic = ["version"]` via hatch-vcs, so we used `release-type: simple` instead — release-please only manages the changelog + tag and never touches `pyproject.toml`. The version stays derived from the tag at build time.
+- **`fetch-depth: 0` in the publish job**: critical deviation from ocom. Because the version comes from the tag (not a committed file), the publish checkout must fetch full history + tags or `git describe` (hatch-vcs) can't see the tag release-please just created. ocom doesn't need this since its version is static.
+- **`bump-minor-pre-major: true`**: makes the first `feat:`-containing Release PR land on `0.1.0` (matching `fallback-version` and Beta status) rather than pre-1.0 patch semantics (`0.0.1`). Manifest seeded at `0.0.0`.
+- **Kept ocom's hardening verbatim**: pinned action SHAs and `uv publish --trusted-publishing always` (uv-native publish, no `pypa/gh-action-pypi-publish`). Kept the GitHub environment name `pypi` (olink's existing one) rather than ocom's `publish`.
+
+### Follow-ups (manual, outside the repo)
+- Configure the PyPI Trusted Publisher for `olink`: workflow `release-please.yml`, environment `pypi`.
+- Ensure a GitHub Environment named `pypi` exists (protection rules optional).
+
+---
+
 ## 2026-04-29 — Pre-PyPI release hardening
 
 ### Context
