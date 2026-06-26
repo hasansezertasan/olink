@@ -50,12 +50,16 @@ repos:
     rev: v0.9.3
     hooks:
       - id: taplo-format
+        args: [--config, .config/.taplo.toml]
       - id: taplo-lint
+        args: [--config, .config/.taplo.toml]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.18.1
     hooks:
       - id: markdownlint-cli2
+        args: [--config, .config/.markdownlint.yml]
   - repo: https://github.com/google/yamlfmt
     rev: v0.17.2
     hooks:
       - id: yamlfmt
+        args: [-conf, .config/.yamlfmt.yml]
