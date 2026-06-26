@@ -72,10 +72,10 @@ jobs:
         run: uv run validate-pyproject pyproject.toml
 
       - name: taplo lint
-        run: uv run taplo lint
+        run: uv run taplo lint --config .config/.taplo.toml
 
       - name: taplo format check
-        run: uv run taplo format --check
+        run: uv run taplo format --check --config .config/.taplo.toml
 
   typecheck:
     name: Type check (${{ matrix.tool }})
