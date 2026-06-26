@@ -32,7 +32,7 @@ classifiers = [
   "Topic :: Utilities",
   "Typing :: Typed",
 ]
-dependencies = ["typer==0.26.7", "defusedxml>=0.7.1"]
+dependencies = ["typer==0.26.8", "defusedxml>=0.7.1"]
 
 [project.urls]
 Homepage = "https://github.com/hasansezertasan/olink"
