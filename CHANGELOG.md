@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/hasansezertasan/olink/compare/v0.1.0...v0.1.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* **deps:** update dependency typer to v0.26.8 ([#26](https://github.com/hasansezertasan/olink/issues/26)) ([fc8bafa](https://github.com/hasansezertasan/olink/commit/fc8bafa2a54ee1835582cf85b396877d6eea4f87))
+
 ## 0.1.0 (2026-06-20)
 
 
