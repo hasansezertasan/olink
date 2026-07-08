@@ -220,8 +220,8 @@ sequence = [
   { cmd = "ruff format --check ." },
   { cmd = "typos" },
   { cmd = "validate-pyproject pyproject.toml" },
-  { cmd = "taplo lint" },
-  { cmd = "taplo format --check" },
+  { cmd = "taplo lint --config .config/.taplo.toml" },
+  { cmd = "taplo format --check --config .config/.taplo.toml" },
 ]
 
 [tool.poe.tasks.typecheck]
@@ -241,5 +241,5 @@ help = "Auto-fix style issues"
 sequence = [
   { cmd = "ruff check --fix ." },
   { cmd = "ruff format ." },
-  { cmd = "taplo format" },
+  { cmd = "taplo format --config .config/.taplo.toml" },
 ]
