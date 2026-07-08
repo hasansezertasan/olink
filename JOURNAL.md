@@ -12,8 +12,10 @@ Follow-up to the pre-commit→prek runner swap below. That change intentionally 
 ### Decisions
 
 - **Replaced `.pre-commit-config.yaml` with `prek.toml`**: same config model (`repos` → `rev` → `hooks`), so the conversion is purely syntactic. Chose the expanded `[[repos.hooks]]` table form over inline `hooks = [{...}]` for readability now that several hooks carry `args`.
+- **Used prek's `repo = "builtin"` for the `pre-commit-hooks` checks**: prek ships native Rust reimplementations of most `pre-commit/pre-commit-hooks`, so those hooks need no repo clone or `rev` and run without network setup. Moved `check-added-large-files`, `check-toml`, `check-yaml`, `check-json`, `check-merge-conflict`, `end-of-file-fixer`, and `trailing-whitespace` to `builtin`. `debug-statements` has no builtin (prek rejects it at parse time), so it stays sourced from the upstream repo. Dropped `--unsafe` from `check-yaml` — the builtin's parser is already permissive and passes all files without it.
+- **Switched the `ruff` hook id to `ruff-check`**: `ruff` is now a legacy alias (prek labeled it as such), so the current id drops the warning.
 - **Kept the verbose `(?x)` exclude regex** as a TOML multi-line literal string (`'''…'''`) to avoid backslash double-escaping.
-- **Dropped the vanilla-pre-commit fallback**: the earlier entry kept the YAML so plain `pre-commit` still worked. That fallback is gone now — prek is the only supported runner, which matches how it's already pinned as the sole hook-runner dev dependency.
+- **Dropped the vanilla-pre-commit fallback**: the earlier entry kept the YAML so plain `pre-commit` still worked. That fallback is gone now — prek is the only supported runner, which matches how it's already pinned as the sole hook-runner dev dependency. (The `builtin` repo is prek-only, so this also makes the config non-portable to vanilla pre-commit by design.)
 
 ### Outcome
 - `prek.toml` added, `.pre-commit-config.yaml` removed. `uv run prek validate-config prek.toml` passes; `uv run prek run --all-files` auto-discovers `prek.toml` and executes every hook with identical args.

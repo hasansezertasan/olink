@@ -1,4 +1,5 @@
 # See https://prek.j178.dev for more information
+#:schema https://www.schemastore.org/prek.json
 exclude = '''(?x)^(
   \.git
   |\.mypy_cache
@@ -12,9 +13,9 @@ exclude = '''(?x)^(
 default_language_version.python = "python3.14"
 default_stages = ["pre-commit", "pre-push"]
 
+# Native Rust reimplementations shipped with prek — no repo clone or rev needed.
 [[repos]]
-repo = "https://github.com/pre-commit/pre-commit-hooks"
-rev = "v6.0.0"
+repo = "builtin"
 
 [[repos.hooks]]
 id = "check-added-large-files"
@@ -25,7 +26,6 @@ id = "check-toml"
 
 [[repos.hooks]]
 id = "check-yaml"
-args = ["--unsafe"]
 
 [[repos.hooks]]
 id = "check-json"
@@ -38,6 +38,11 @@ id = "end-of-file-fixer"
 
 [[repos.hooks]]
 id = "trailing-whitespace"
+
+# debug-statements has no builtin, so it stays sourced from the upstream repo.
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
 
 [[repos.hooks]]
 id = "debug-statements"
@@ -54,7 +59,7 @@ repo = "https://github.com/astral-sh/ruff-pre-commit"
 rev = "v0.15.11"
 
 [[repos.hooks]]
-id = "ruff"
+id = "ruff-check"
 args = ["--fix"]
 
 [[repos.hooks]]
