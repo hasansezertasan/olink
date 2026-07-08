@@ -52,7 +52,7 @@ repos:
       - id: taplo-format
         args: [--config, .config/.taplo.toml]
       - id: taplo-lint
-        args: [--config, .config/.taplo.toml]
+        args: [--config, .config/.taplo.toml, --default-schema-catalogs]
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.18.1
     hooks:
