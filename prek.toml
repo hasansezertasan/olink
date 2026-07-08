@@ -1,0 +1,103 @@
+# See https://prek.j178.dev for more information
+exclude = '''(?x)^(
+  \.git
+  |\.mypy_cache
+  |\.pytest_cache
+  |\.ruff_cache
+  |\.venv
+  |build
+  |dist
+  |tests/fixtures
+)$'''
+default_language_version.python = "python3.14"
+default_stages = ["pre-commit", "pre-push"]
+
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+
+[[repos.hooks]]
+id = "check-added-large-files"
+args = ["--maxkb=1000"]
+
+[[repos.hooks]]
+id = "check-toml"
+
+[[repos.hooks]]
+id = "check-yaml"
+args = ["--unsafe"]
+
+[[repos.hooks]]
+id = "check-json"
+
+[[repos.hooks]]
+id = "check-merge-conflict"
+
+[[repos.hooks]]
+id = "end-of-file-fixer"
+
+[[repos.hooks]]
+id = "trailing-whitespace"
+
+[[repos.hooks]]
+id = "debug-statements"
+
+[[repos]]
+repo = "https://github.com/astral-sh/uv-pre-commit"
+rev = "0.11.7"
+
+[[repos.hooks]]
+id = "uv-lock"
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.15.11"
+
+[[repos.hooks]]
+id = "ruff"
+args = ["--fix"]
+
+[[repos.hooks]]
+id = "ruff-format"
+
+[[repos]]
+repo = "https://github.com/crate-ci/typos"
+rev = "v1.29.4"
+
+[[repos.hooks]]
+id = "typos"
+
+[[repos]]
+repo = "https://github.com/abravalheri/validate-pyproject"
+rev = "v0.24.1"
+
+[[repos.hooks]]
+id = "validate-pyproject"
+
+[[repos]]
+repo = "https://github.com/ComPWA/taplo-pre-commit"
+rev = "v0.9.3"
+
+[[repos.hooks]]
+id = "taplo-format"
+args = ["--config", ".config/.taplo.toml"]
+
+[[repos.hooks]]
+id = "taplo-lint"
+args = ["--config", ".config/.taplo.toml", "--default-schema-catalogs"]
+
+[[repos]]
+repo = "https://github.com/DavidAnson/markdownlint-cli2"
+rev = "v0.18.1"
+
+[[repos.hooks]]
+id = "markdownlint-cli2"
+args = ["--config", ".config/.markdownlint.yml"]
+
+[[repos]]
+repo = "https://github.com/google/yamlfmt"
+rev = "v0.17.2"
+
+[[repos.hooks]]
+id = "yamlfmt"
+args = ["-conf", ".config/.yamlfmt.yml"]

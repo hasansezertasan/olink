@@ -4,6 +4,23 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-07-08 — Convert config to native prek.toml
+
+### Context
+Follow-up to the pre-commit→prek runner swap below. That change intentionally left `.pre-commit-config.yaml` in place; this one completes the migration by converting to prek's native [`prek.toml`](https://prek.j178.dev/configuration/) format.
+
+### Decisions
+
+- **Replaced `.pre-commit-config.yaml` with `prek.toml`**: same config model (`repos` → `rev` → `hooks`), so the conversion is purely syntactic. Chose the expanded `[[repos.hooks]]` table form over inline `hooks = [{...}]` for readability now that several hooks carry `args`.
+- **Kept the verbose `(?x)` exclude regex** as a TOML multi-line literal string (`'''…'''`) to avoid backslash double-escaping.
+- **Dropped the vanilla-pre-commit fallback**: the earlier entry kept the YAML so plain `pre-commit` still worked. That fallback is gone now — prek is the only supported runner, which matches how it's already pinned as the sole hook-runner dev dependency.
+
+### Outcome
+- `prek.toml` added, `.pre-commit-config.yaml` removed. `uv run prek validate-config prek.toml` passes; `uv run prek run --all-files` auto-discovers `prek.toml` and executes every hook with identical args.
+- The taplo-lint / markdownlint / yamlfmt failures are the same pre-existing debt noted below — unaffected by the format conversion.
+
+---
+
 ## 2026-07-08 — Migrate from pre-commit to prek
 
 ### Context

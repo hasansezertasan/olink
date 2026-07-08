@@ -1,8 +1,8 @@
+---
 name: Lint PR
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened]
-
 jobs:
   main:
     name: Validate PR title
@@ -15,7 +15,6 @@ jobs:
         id: lint_pr_title
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: marocchino/sticky-pull-request-comment@v3.0.5
         if: always() && (steps.lint_pr_title.outputs.error_message != null)
         with:
@@ -32,7 +31,6 @@ jobs:
             ```
             ${{ steps.lint_pr_title.outputs.error_message }}
             ```
-
       - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
         uses: marocchino/sticky-pull-request-comment@v3.0.5
         with:
