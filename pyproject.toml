@@ -75,7 +75,7 @@ test = [
   "coverage[toml]>=7.6",
   "coverage-enable-subprocess==1.0",
 ]
-tool = ["pre-commit>=4.0", "poethepoet>=0.30.0"]
+tool = ["poethepoet>=0.30.0", "prek>=0.4.8"]
 
 [tool.uv]
 trusted-publishing = "always"

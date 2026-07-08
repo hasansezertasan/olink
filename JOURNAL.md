@@ -4,6 +4,23 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-07-08 — Migrate from pre-commit to prek
+
+### Context
+Swapped the git-hook runner from [pre-commit](https://pre-commit.com) to [prek](https://prek.j178.dev) — a drop-in Rust reimplementation that is a single dependency-free binary and runs the same hooks faster.
+
+### Decisions
+
+- **Kept `.pre-commit-config.yaml` unchanged**: prek is fully compatible with the existing config and hooks, so the hook definitions were left untouched rather than converting to prek's native `prek.toml`. Zero churn to the contract, and the config still works with vanilla pre-commit as a fallback.
+- **Distributed as a uv dev dependency**: replaced `pre-commit>=4.0` with `prek>=0.4.8` in the `tool` dependency group (`uv remove --group tool pre-commit` + `uv add --group tool prek`), consistent with how every other dev tool is pinned via uv. Developers now run `uv run prek install` / `uv run prek run`.
+
+### Outcome
+- `pyproject.toml` + `uv.lock` are the only changed files. `pre-commit` is fully gone from the lockfile; `prek==0.4.8` resolved in.
+- Verified `uv run prek run --all-files` reads the unchanged config and executes every hook. Pre-existing hook failures (taplo-lint schema-catalog fetch, markdownlint, yamlfmt drift) are untouched debt unrelated to this migration — the incidental reformatting prek produced on already-committed files was reverted to keep the change scoped.
+- CI (`ci.yml`) never invoked pre-commit — it runs each linter directly via `uv run` — so no workflow changes were needed.
+
+---
+
 ## 2026-06-20 — Switch release pipeline to release-please (follow ocom)
 
 ### Context
