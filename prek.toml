@@ -49,7 +49,7 @@ id = "debug-statements"
 
 [[repos]]
 repo = "https://github.com/astral-sh/uv-pre-commit"
-rev = "0.11.7"
+rev = "0.11.30"
 
 [[repos.hooks]]
 id = "uv-lock"
