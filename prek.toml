@@ -74,7 +74,7 @@ id = "typos"
 
 [[repos]]
 repo = "https://github.com/abravalheri/validate-pyproject"
-rev = "v0.24.1"
+rev = "v0.25"
 
 [[repos.hooks]]
 id = "validate-pyproject"
