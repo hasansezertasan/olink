@@ -93,7 +93,7 @@ args = ["--config", ".config/.taplo.toml", "--default-schema-catalogs"]
 
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
-rev = "v0.23.1"
+rev = "v0.23.2"
 
 [[repos.hooks]]
 id = "markdownlint-cli2"
