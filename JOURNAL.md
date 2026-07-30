@@ -4,6 +4,30 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-07-31 — Adopt keycast-style tooling; migrate versioning to hatch-vcs
+
+### Context
+
+Broad tooling-migration branch that ported config and CI conventions from the sibling project [keycast](https://github.com/hasansezertasan/keycast) into olink, and replaced the release-please static-version mechanism (adopted in the 2026-06-20 entry below) with hatch-vcs.
+
+### Decisions
+
+- **Versioning: git tag as single source of truth (hatch-vcs)**: reversed the earlier "dropped hatch-vcs" decision. `pyproject.toml` now declares `dynamic = ["version"]` and `[tool.hatch.version] source = "vcs"`; the version is derived from the git tag and written to a generated, git-ignored `src/olink/_version.py`, re-exported as `olink.__version__`. Removed the `x-release-please-version` marker literal and the release-please `extra-files` entry that used to rewrite `pyproject.toml`. release-please now only manages `CHANGELOG.md` and the release PR, plus creates the `vX.Y.Z` tag via `force-tag-creation`. Added `fetch-depth: 0` to the publish workflow checkout so hatch-vcs can see tags when it computes the version.
+- **Dev dependency pinning tightened**: dev/tool dependency groups are now exact-pinned; added `[tool.uv] add-bounds = "exact"` so future `uv add` calls default to exact pins, plus git cache-keys for reproducible resolution. Added a typos CHANGELOG-hash ignore rule, `[tool.coverage.report] exclude_also` entries, explicit pytest `testpaths`, and mypy `pretty` + `show_error_codes` for clearer local output.
+- **Added `.gitattributes`** (`* text=auto eol=lf`) and a `.vscode/launch.json` for consistent line endings and one-click debugging, matching keycast.
+- **Cleared pre-existing lint debt** that earlier journal entries had flagged as "unrelated to this migration": fixed the markdownlint and taplo findings across the repo (auto-fix plus targeted rule relaxation in `.config/.markdownlint.yml`), dropped taplo's `--default-schema-catalogs` flag (was causing network-dependent schema fetches), and added `[tool.ruff] extend-exclude = ["*.md"]` so ruff stops linting fenced code samples in docs.
+- **CI restructured into three jobs**: `hooks` (prek, single run), `test` (pytest matrix + Codecov upload), and `typecheck` (mypy/ty matrix) — replacing a flatter single-job layout. All GitHub Actions are now SHA-pinned rather than tag-pinned, and `uv` invocations use `--frozen`/`--locked` to fail fast on lockfile drift. Added `.github/codecov.yml` to configure coverage reporting thresholds.
+- **Kept poethepoet, did not switch to tox**: considered tox for the matrix runner but decided the existing `poe` task definitions were simpler to maintain for a project this size; tox would have added a second task-runner abstraction for no clear benefit.
+- **Committed the design spec and implementation plan** for this migration under `docs/superpowers/` so the rationale and planned steps are preserved alongside the code, not just in PR description.
+- **Left the pre-existing `GEMINI.md` deletion as-is**: that file was already deleted and unstaged going into this branch; out of scope here, so it was not touched or restored.
+
+### Outcome
+
+- `pyproject.toml`, CI workflows, `.config/.markdownlint.yml`, `.gitattributes`, `.vscode/launch.json`, and `docs/superpowers/` all changed; release-please config simplified to drop the version-rewrite `extra-files` entry.
+- `CONTRIBUTING.md`'s release section, which still described the old release-please-rewrites-the-version mechanism, was corrected in a follow-up fix to match the hatch-vcs behavior above.
+
+---
+
 ## 2026-07-08 — Convert config to native prek.toml
 
 ### Context
