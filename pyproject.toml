@@ -1,6 +1,6 @@
 [project]
 name = "olink"
-version = "0.1.0" # x-release-please-version
+dynamic = ["version"]
 description = "A CLI tool that opens external URLs related to your project."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -114,7 +114,7 @@ ignore = ["ANN401", "E501", "RUF012", "ANN204", "RUF022"]
 "tests/**" = ["ANN", "B", "RUF043", "I001", "E402"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.31.0", "hatch-vcs==0.5.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
@@ -125,6 +125,22 @@ packages = ["src/olink"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/olink", "README.md", "LICENSE", "pyproject.toml"]
+
+[tool.hatch.version]
+# Single source of truth is the git tag. On a release tag this resolves to the exact
+# X.Y.Z; with no tag it falls back to fallback-version below.
+source = "vcs"
+fallback-version = "0.0.0"
+
+[tool.hatch.version.raw-options]
+# Use the tag exactly (don't guess the next release) and drop the PEP 440 local
+# segment (+g<hash>) so non-tag builds stay PyPI-uploadable.
+version_scheme = "only-version"
+local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+# Write the computed version to a generated, git-ignored module.
+version-file = "src/olink/_version.py"
 
 [tool.mypy]
 python_version = "3.14"

@@ -4,10 +4,9 @@
     ".": {
       "release-type": "python",
       "draft": true,
+      "force-tag-creation": true,
       "include-component-in-tag": false,
-      "extra-files": [
-        { "type": "generic", "path": "pyproject.toml" }
-      ]
+      "bump-minor-pre-major": true
     }
   }
 }
