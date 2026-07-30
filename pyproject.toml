@@ -94,6 +94,9 @@ testpaths = ["tests"]
 source_pkgs = ["olink"]
 branch = true
 parallel = true
+omit = [
+  "*/olink/__main__.py", # entry-point shim, exercised by running the module
+]
 
 [tool.coverage.paths]
 olink = ["src/olink", "*/olink/src/olink"]

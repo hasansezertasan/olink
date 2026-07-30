@@ -182,18 +182,17 @@ Run:
 uv sync --all-extras
 test -f src/olink/_version.py && echo "_version.py generated"
 uv run olink --version
-uv run pytest "tests/cli/test_cli.py::TestCLIVersion::test_version_renders_package_version" -v || uv run pytest -k version -v
+uv run pytest "tests/cli/test_cli.py::TestCLIHelp::test_version_renders_package_version" -v || uv run pytest -k version -v
 uv build --no-sources --quiet && ls dist/
-grep -rn "x-release-please-version" . --exclude-dir=.git && echo "STILL PRESENT (bad)" || echo "marker gone (good)"
+grep -rn "x-release-please-version" . --exclude-dir=.git --exclude-dir=docs && echo "STILL PRESENT (bad)" || echo "marker gone (good)"
 ```
 
 Expected: `_version.py generated`; `olink --version` prints a version (tag-derived, or
 `0.0.0` on a tagless checkout); version test PASSES; `dist/` holds a wheel + sdist; the
 grep prints "marker gone (good)".
 
-> Note: if `uv run pytest -k version` matches more than the one test, run the full class
-> path shown; the class name in `tests/cli/test_cli.py` is whatever wraps
-> `test_version_renders_package_version` — read the file to confirm before running.
+> Note: `test_version_renders_package_version` lives in class `TestCLIHelp` in
+> `tests/cli/test_cli.py`; the `|| uv run pytest -k version -v` fallback covers a rename.
 
 - [ ] **Step 9: Commit**
 

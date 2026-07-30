@@ -1,6 +1,8 @@
 {
-    // Launch the olink CLI under the debugger via uv. The prompt supplies args
-    // (default `--version`); e.g. enter `pypi` or `--help` to debug other paths.
+    // Debug the olink CLI directly as a module (python -m olink) using the
+    // workspace's selected interpreter — no `uv run`, so debugpy attaches to
+    // the actual process. The prompt supplies args (default `--version`);
+    // e.g. enter `pypi` or `--help` to debug other paths.
     "version": "0.2.0",
     "configurations": [
         {
@@ -8,10 +10,8 @@
             "type": "debugpy",
             "request": "launch",
             "justMyCode": true,
-            "module": "uv",
+            "module": "olink",
             "args": [
-                "run",
-                "olink",
                 "${input:args}"
             ]
         }

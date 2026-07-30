@@ -40,6 +40,9 @@ jobs:
         with:
           # hatch-vcs derives the version from the release tag, so uv build needs full history.
           fetch-depth: 0
+          # This job builds/publishes from the checked-out tree; it needs no git
+          # push, so don't leave the workflow token persisted in .git (artipacked).
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
