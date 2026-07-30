@@ -1,0 +1,27 @@
+{
+    // Launch the olink CLI under the debugger via uv. The prompt supplies args
+    // (default `--version`); e.g. enter `pypi` or `--help` to debug other paths.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: olink",
+            "type": "debugpy",
+            "request": "launch",
+            "justMyCode": true,
+            "module": "uv",
+            "args": [
+                "run",
+                "olink",
+                "${input:args}"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "args",
+            "type": "promptString",
+            "default": "--version",
+            "description": "Arguments passed to olink"
+        }
+    ]
+}
