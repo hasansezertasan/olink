@@ -52,16 +52,17 @@ uv run pytest tests/test_cli.py::TestCLIDryRun::test_dry_run_pypi
 
 ## Architecture Patterns
 
-1.  **Data Over Classes**: If it's just mapping inputs to outputs, use a `dict`.
+1. **Data Over Classes**: If it's just mapping inputs to outputs, use a `dict`.
 
     ```python
     # Good
     PLATFORM_URLS = {"github": "/issues", "gitlab": "/-/issues"}
     ```
 
-2.  **Target Pattern**: All targets inherit from `Target` and implement `get_url(cwd)`.
+2. **Target Pattern**: All targets inherit from `Target` and implement `get_url(cwd)`.
 
-3.  **File I/O Over Subprocess**: Read config files directly instead of spawning git/npm commands.
+3. **File I/O Over Subprocess**: Read config files directly instead of spawning git/npm commands.
+
     ```python
     # Good: config.read("git/config")
     # Bad: subprocess.run(["git", "config", ...])
@@ -69,11 +70,11 @@ uv run pytest tests/test_cli.py::TestCLIDryRun::test_dry_run_pypi
 
 ## Agent Principles
 
-1.  **Regenerability**: Write code so files can be rewritten from scratch without breaking the system. Minimize coupling.
-2.  **Structure**: Group code by feature. Avoid shared utilities unless absolutely necessary.
-3.  **Simplicity**: Prefer flat, explicit code over abstractions. No metaprogramming.
-4.  **Journal**: Update `JOURNAL.md` chronologically with decisions and outcomes.
-5.  **Proactiveness**: Fix implied issues, but confirm ambiguity.
+1. **Regenerability**: Write code so files can be rewritten from scratch without breaking the system. Minimize coupling.
+2. **Structure**: Group code by feature. Avoid shared utilities unless absolutely necessary.
+3. **Simplicity**: Prefer flat, explicit code over abstractions. No metaprogramming.
+4. **Journal**: Update `JOURNAL.md` chronologically with decisions and outcomes.
+5. **Proactiveness**: Fix implied issues, but confirm ambiguity.
 
 ## Project Structure
 

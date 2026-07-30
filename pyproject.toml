@@ -118,6 +118,7 @@ extend-ignore-re = ["\\[[0-9a-f]{7,40}\\]"]
 [tool.ruff]
 line-length = 100
 target-version = "py314"
+extend-exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "ANN", "RUF"]

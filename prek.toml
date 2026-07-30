@@ -90,7 +90,7 @@ args = ["--config", ".config/.taplo.toml"]
 
 [[repos.hooks]]
 id = "taplo-lint"
-args = ["--config", ".config/.taplo.toml", "--default-schema-catalogs"]
+args = ["--config", ".config/.taplo.toml"]
 
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
@@ -99,6 +99,7 @@ rev = "v0.23.2"
 [[repos.hooks]]
 id = "markdownlint-cli2"
 args = ["--config", ".config/.markdownlint.yml"]
+exclude = '^docs/superpowers/'
 
 [[repos]]
 repo = "https://github.com/google/yamlfmt"

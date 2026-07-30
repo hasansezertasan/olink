@@ -128,25 +128,25 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 
 ### Go Targets
 
-| Target   | Description                 | Config File |
-| -------- | --------------------------- | ----------- |
-| `pkg-go` | Open pkg.go.dev module page | `go.mod`    |
-| `go-docs` | Open pkg.go.dev documentation | `go.mod`  |
+| Target    | Description                   | Config File |
+| --------- | ----------------------------- | ----------- |
+| `pkg-go`  | Open pkg.go.dev module page   | `go.mod`    |
+| `go-docs` | Open pkg.go.dev documentation | `go.mod`    |
 
 ### Other Ecosystem Targets
 
-| Target      | Description          | Config File      |
-| ----------- | -------------------- | ---------------- |
-| `packagist` | Open Packagist (PHP) | `composer.json`  |
-| `pub`       | Open pub.dev (Dart)  | `pubspec.yaml`   |
-| `gems`      | Open RubyGems                    | `*.gemspec`    |
-| `rubygems-stats` | Open RubyGems download stats | `*.gemspec`    |
-| `open-vsx`  | Open the Open VSX extension page | `package.json` |
-| `maven`     | Open Maven Central artifact page | `pom.xml`      |
-| `hackage`   | Open Hackage package page        | `*.cabal`      |
-| `cpan`      | Open MetaCPAN module page        | `Makefile.PL`, `dist.ini`, or `lib/*.pm` |
-| `hex`       | Open hex.pm (Elixir)             | `mix.exs`      |
-| `nuget`     | Open NuGet (.NET)                | `*.csproj`     |
+| Target           | Description                      | Config File                              |
+| ---------------- | -------------------------------- | ---------------------------------------- |
+| `packagist`      | Open Packagist (PHP)             | `composer.json`                          |
+| `pub`            | Open pub.dev (Dart)              | `pubspec.yaml`                           |
+| `gems`           | Open RubyGems                    | `*.gemspec`                              |
+| `rubygems-stats` | Open RubyGems download stats     | `*.gemspec`                              |
+| `open-vsx`       | Open the Open VSX extension page | `package.json`                           |
+| `maven`          | Open Maven Central artifact page | `pom.xml`                                |
+| `hackage`        | Open Hackage package page        | `*.cabal`                                |
+| `cpan`           | Open MetaCPAN module page        | `Makefile.PL`, `dist.ini`, or `lib/*.pm` |
+| `hex`            | Open hex.pm (Elixir)             | `mix.exs`                                |
+| `nuget`          | Open NuGet (.NET)                | `*.csproj`                               |
 
 ### Service Targets
 

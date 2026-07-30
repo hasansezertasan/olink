@@ -2,7 +2,6 @@
 
 ## 0.1.0 (2026-06-20)
 
-
 ### Features
 
 * add gitea/forgejo, insteadOf rewrites, harden extractors ([#8](https://github.com/hasansezertasan/olink/issues/8)) ([9ae107a](https://github.com/hasansezertasan/olink/commit/9ae107a26877f7eb0119b7882dbb657c5bcc8218))
@@ -11,7 +10,6 @@
 * pre-PyPI release hardening ([#10](https://github.com/hasansezertasan/olink/issues/10)) ([7914bab](https://github.com/hasansezertasan/olink/commit/7914baba12dd28bbfd69a991e13a5f592fef9e8c))
 * **targets:** add docsrs and pkg-go targets ([#5](https://github.com/hasansezertasan/olink/issues/5)) ([33e9aba](https://github.com/hasansezertasan/olink/commit/33e9aba03c825b9aa3c581d08e73e7ae0fbf4694))
 * **targets:** add expanded target set (go-docs, jsdelivr, unpkg, skypack, socket, open-vsx, maven, hackage, cpan, rubygems-stats) ([#6](https://github.com/hasansezertasan/olink/issues/6)) ([1629ae4](https://github.com/hasansezertasan/olink/commit/1629ae47c9b27bf72184cd16bf1ab81b9d9b6c9b))
-
 
 ### Bug Fixes
 

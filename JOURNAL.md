@@ -7,6 +7,7 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 ## 2026-07-08 — Convert config to native prek.toml
 
 ### Context
+
 Follow-up to the pre-commit→prek runner swap below. That change intentionally left `.pre-commit-config.yaml` in place; this one completes the migration by converting to prek's native [`prek.toml`](https://prek.j178.dev/configuration/) format.
 
 ### Decisions
@@ -18,6 +19,7 @@ Follow-up to the pre-commit→prek runner swap below. That change intentionally 
 - **Dropped the vanilla-pre-commit fallback**: the earlier entry kept the YAML so plain `pre-commit` still worked. That fallback is gone now — prek is the only supported runner, which matches how it's already pinned as the sole hook-runner dev dependency. (The `builtin` repo is prek-only, so this also makes the config non-portable to vanilla pre-commit by design.)
 
 ### Outcome
+
 - `prek.toml` added, `.pre-commit-config.yaml` removed. `uv run prek validate-config prek.toml` passes; `uv run prek run --all-files` auto-discovers `prek.toml` and executes every hook with identical args.
 - The taplo-lint / markdownlint / yamlfmt failures are the same pre-existing debt noted below — unaffected by the format conversion.
 
@@ -26,6 +28,7 @@ Follow-up to the pre-commit→prek runner swap below. That change intentionally 
 ## 2026-07-08 — Migrate from pre-commit to prek
 
 ### Context
+
 Swapped the git-hook runner from [pre-commit](https://pre-commit.com) to [prek](https://prek.j178.dev) — a drop-in Rust reimplementation that is a single dependency-free binary and runs the same hooks faster.
 
 ### Decisions
@@ -34,6 +37,7 @@ Swapped the git-hook runner from [pre-commit](https://pre-commit.com) to [prek](
 - **Distributed as a uv dev dependency**: replaced `pre-commit>=4.0` with `prek>=0.4.8` in the `tool` dependency group (`uv remove --group tool pre-commit` + `uv add --group tool prek`), consistent with how every other dev tool is pinned via uv. Developers now run `uv run prek install` / `uv run prek run`.
 
 ### Outcome
+
 - `pyproject.toml` + `uv.lock` are the only changed files. `pre-commit` is fully gone from the lockfile; `prek==0.4.8` resolved in.
 - Verified `uv run prek run --all-files` reads the unchanged config and executes every hook. Pre-existing hook failures (taplo-lint schema-catalog fetch, markdownlint, yamlfmt drift) are untouched debt unrelated to this migration — the incidental reformatting prek produced on already-committed files was reverted to keep the change scoped.
 - CI (`ci.yml`) never invoked pre-commit — it runs each linter directly via `uv run` — so no workflow changes were needed.
@@ -43,6 +47,7 @@ Swapped the git-hook runner from [pre-commit](https://pre-commit.com) to [prek](
 ## 2026-06-20 — Switch release pipeline to release-please (follow ocom)
 
 ### Context
+
 Adopted the release pipeline shape from the sibling project [ocom](https://github.com/hasansezertasan/ocom), replacing the release-drafter + manual-publish flow. olink had not been published to PyPI yet and had no tags, so this was effectively first-time release setup — a clean moment to swap strategies.
 
 ### Decisions
@@ -55,6 +60,7 @@ Adopted the release pipeline shape from the sibling project [ocom](https://githu
 - **Kept ocom's hardening verbatim**: pinned action SHAs and `uv publish --trusted-publishing always` (uv-native publish, no `pypa/gh-action-pypi-publish`).
 
 ### Follow-ups (manual, outside the repo)
+
 - Configure the PyPI Trusted Publisher for `olink`: workflow `release-please.yml`, environment `pypi`.
 - Ensure a GitHub Environment named `pypi` exists (protection rules optional).
 
@@ -63,6 +69,7 @@ Adopted the release pipeline shape from the sibling project [ocom](https://githu
 ## 2026-04-29 — Pre-PyPI release hardening
 
 ### Context
+
 Preparing initial PyPI release. Ran a harsh review against the codebase, README, and tests. Acted on every actionable finding to make 0.1.0 publishable.
 
 ### Decisions
@@ -82,14 +89,16 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 ### Changes
 
 **Bugs fixed**
+
 - `CodecovTarget` / `CoverallsTarget`: raise `UnsupportedFeatureError` for non-supported platforms instead of building 404 URLs.
 - `parse_remote_url`: hostname-label matching prevents false-positive platform detection on substrings.
-- `_collect_insteadof_rewrites`: strips trailing ` # comment` / ` ; comment` from values.
+- `_collect_insteadof_rewrites`: strips trailing `# comment` / `; comment` from values.
 - `get_remote_url`: reads `.git/config` once per call (was twice).
 - `EcosystemConfig.exists`: `sorted()` glob results for deterministic detection across filesystems.
 - CPAN `lib/` walk: stable tiebreaker `(len(parts), as_posix())` for siblings.
 
 **Metadata / packaging**
+
 - `pyproject.toml`: full PyPI metadata — `license = "MIT"`, `LICENSE` file, `authors`, `keywords`, `classifiers`, `[project.urls]`, `description` from README first line.
 - `[project.optional-dependencies] tui = [textual, pyperclip]`.
 - `[tool.ruff]` (line-length 100, py314, E/F/I/B/UP/ANN/RUF rules).
@@ -98,12 +107,14 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 - `.gitkeep` removed.
 
 **CLI**
+
 - `__version__` exported via `importlib.metadata.version("olink")`.
 - `--version` / `-V` flag (eager callback).
 - TUI launch wrapped in `try/except ImportError` with actionable install hint.
 - `B904` fixed: `raise typer.Exit(1) from e`.
 
 **Tests**
+
 - 257 → 286 (+29 net).
 - New: `--version`/`-V` flag, codecov/coveralls gitea/forgejo unsupported, `ssh://` port form refusal, hostname false-positive guard, insteadOf trailing-comment strip, scoped npm-stat/packagephobia URL encoding, registry-drift guard, CPAN multi-signal detection.
 - `TestRegistryURLCoverage`: 16 missing-target URL assertions (inspector, pypi-json, pepy, pypistats, piptrends, clickpy, safety-db, bundlephobia, packagephobia, npm-stat, librs, packagist, pub, hex, nuget, …).
@@ -113,6 +124,7 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 - `conftest.copy_repo_fixture` now `shutil.copytree(..., dirs_exist_ok=True)` — subdir-safe.
 
 **CI / CD**
+
 - `.github/workflows/ci.yml`: pytest matrix (ubuntu+macos, py3.14), ruff check + format, mypy job.
 - `.github/workflows/release-drafter.yml` + `.github/release-drafter.yml`: maintains a Draft GitHub Release by accumulating PR titles + autolabels; resolves version from `major`/`minor`/`patch` labels.
 - `.github/workflows/release.yml`: three-job pipeline (build → pypi-publish → attach-github-release) triggered on `release: published`. Uses `pypa/gh-action-pypi-publish@release/v1` with OIDC; environment `pypi`. Build version comes from the git tag via `hatch-vcs`.
@@ -120,15 +132,18 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 - `pyproject.toml`: `dynamic = ["version"]`, `[tool.hatch.version] source = "vcs"` with `fallback-version = "0.1.0"` and `local_scheme = "no-local-version"`; `_version.py` written to `src/olink/` at build time and gitignored.
 
 **Docs**
+
 - README: `[tui]` install hint, `--version` line, CPAN multi-signal note.
 
 ### Outcome
+
 - 286/286 tests pass.
 - ruff clean.
 - mypy strict clean (13 source files).
 - Trusted publishing wired and tagged-release-driven.
 
 ### Release ritual (going forward)
+
 - Land any number of Conventional-Commit PRs onto `main`. Autolabeler tags each PR (`enhancement`, `bug`, `dependencies`, …).
 - `release-drafter` keeps a single Draft GitHub Release in sync, with the next version resolved from the strongest label (major > minor > patch).
 - When ready to ship, edit the draft if needed and click **Publish**. That creates tag `vX.Y.Z` and the GitHub Release.
@@ -141,24 +156,29 @@ Preparing initial PyPI release. Ran a harsh review against the codebase, README,
 ## 2026-04-29 — Codebase audit: bug fixes, new features, expanded test coverage
 
 ### Context
+
 Audit of README/code/docstring/test consistency. Found bugs (CPAN heuristic, Maven parent), missing features (Gitea/Forgejo, `insteadOf`), and test gaps (TUI rendering, edge cases). Worked through all in one pass.
 
 ### Changes
 
 **Bugs fixed**
+
 - CPAN: reordered fallback chain (Makefile.PL → lib/ → dist.ini). lib/ layout is more reliable than the dist.ini hyphen-to-colon heuristic which fails on names like `Foo-Bar` distributions whose actual module is `FooBar`.
 - Maven: parent groupId lookup now walks the full `<parent>` chain via `<relativePath>` (defaults to `../pom.xml`). Bounded at 8 levels. Earlier one-level lookup missed corporate parent → product parent → service artifact patterns.
 - GitLab subgroup warning was misleading — generated URLs are correct. Downgraded to `debug`.
 
 **Features added**
+
 - Gitea / Forgejo / Codeberg platform support. Hostname heuristic + GitHub-compatible PLATFORM_URLS entries.
 - `[url].insteadOf` rewrite support. Longest-prefix match wins, matching git's algorithm. Lets shorthand remotes like `github:owner/repo` resolve correctly.
 
 **Hardening**
+
 - Centralized `_read_text(path, label)` helper wraps `PermissionError` and `UnicodeDecodeError` to `ProjectMetadataError` across all 12 extractors. Same wrapping in `_read_git_config` for consistent CLI errors.
 - Added docstrings (contract, raises, edge cases) to all `_get_*_name()` functions and most Target subclasses, satisfying the project's "Required for public interfaces" rule.
 
 **Test coverage**
+
 - 211 → 244 tests.
 - Added: Maven grandparent + no-group-in-chain, CPAN lib-wins-over-dist.ini, empty config files (5), invalid TOML, invalid UTF-8, permission-denied (POSIX-only), symlinked dir, Gitea/Forgejo/Codeberg targets, `insteadOf` rewrite (3 cases incl. longest-match), TUI render via Pilot (StatusBar, TargetListWidget, search flow, toggle mode, action handlers).
 - Added `pytest-asyncio` (auto mode) for Textual `App.run_test()` Pilot tests.
@@ -244,12 +264,15 @@ Recorded a concrete shortlist that can be implemented without changing the archi
 ## 2026-02-22: New target expansion for Rust + Go discovery
 
 ### Decision
+
 Add dedicated `docsrs` and `pkg-go` targets so users can open the most common language-specific documentation hubs directly.
 
 ### Why
+
 The existing target set already supports Rust and Go package discovery via registry and multi-ecosystem services, but docs-focused entry points were missing. Adding these two targets keeps the CLI useful for the "I need API docs now" workflow without adding complexity.
 
 ### Outcome
+
 - Added `docsrs` target (`https://docs.rs/<crate>`).
 - Added `pkg-go` target (`https://pkg.go.dev/<module>`).
 - Updated registry, tests, and README target tables.
@@ -321,10 +344,10 @@ The project defines a custom exception hierarchy in `src/olink/exceptions.py` (`
 
 ### Rationale
 
-1.  **User Errors vs. Bugs**:
+1. **User Errors vs. Bugs**:
     In `cli.py`, we catch `OlinkError` to display clean error messages (exit code 1) while letting generic exceptions crash with a stack trace. This ensures programming bugs aren't accidentally swallowed as "user errors".
 
-2.  **Test Precision**:
+2. **Test Precision**:
     Tests can verify exact failure modes. `pytest.raises(NoRemoteError)` ensures the test passes only for the expected logic path, whereas `pytest.raises(Exception)` might mask unrelated bugs (e.g., a `KeyError` or `AttributeError`).
 
 ### Outcome
@@ -357,7 +380,7 @@ Refactored `registry_targets.py` to remove local helper functions and use the ce
 
 The `platforms/` directory contained 5 files with classes for GitHub, GitLab, and Bitbucket URL generation:
 
-```
+```text
 platforms/
 ├── __init__.py    # Registry + imports
 ├── base.py        # Abstract Platform class
