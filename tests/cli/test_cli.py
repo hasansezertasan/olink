@@ -32,10 +32,9 @@ class TestCLIHelp:
     def test_version_renders_package_version(self, monkeypatch) -> None:
         """`--version` must echo exactly the `__version__` it imported.
 
-        release-please owns `__version__` as a static literal in `olink.__init__`,
-        so the callback should print it verbatim. The dotted path `olink.cli.app`
-        is shadowed by the Typer instance re-exported from `olink.cli`, so reach
-        the module via `sys.modules`.
+        `__version__` now comes from the git tag via hatch-vcs (generated
+        `olink/_version.py`), so this pins the wiring, not a literal: monkeypatch the
+        symbol the CLI module imported and assert the flag prints it verbatim.
         """
         import sys
 

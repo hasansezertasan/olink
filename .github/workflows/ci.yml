@@ -1,6 +1,7 @@
 ---
 name: CI
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
@@ -8,6 +9,24 @@ on:
 permissions:
   contents: read
 jobs:
+  hooks:
+    name: Run prek hooks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+      - name: Set up Python
+        run: uv python install 3.14
+      - run: uv run --locked prek run --all-files --show-diff-on-failure
   test:
     name: Test (Python ${{ matrix.python-version }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -17,11 +36,16 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.14"]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
           enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
       - name: Set up Python
         run: uv python install ${{ matrix.python-version }}
       - name: Configure git identity (required by tests that init repos)
@@ -29,34 +53,15 @@ jobs:
           git config --global user.email "ci@example.com"
           git config --global user.name "CI"
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync --all-extras --frozen
       - name: Run tests
-        run: uv run pytest -v
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        run: uv run --locked pytest -v --cov-report=xml
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
         with:
-          enable-cache: true
-      - name: Set up Python
-        run: uv python install 3.14
-      - name: Install dev dependencies
-        run: uv sync --all-extras
-      - name: ruff check
-        run: uv run ruff check .
-      - name: ruff format check
-        run: uv run ruff format --check .
-      - name: typos
-        run: uv run typos
-      - name: validate-pyproject
-        run: uv run validate-pyproject pyproject.toml
-      - name: taplo lint
-        run: uv run taplo lint --config .config/.taplo.toml
-      - name: taplo format check
-        run: uv run taplo format --check --config .config/.taplo.toml
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
   typecheck:
     name: Type check (${{ matrix.tool }})
     runs-on: ubuntu-latest
@@ -65,23 +70,28 @@ jobs:
       matrix:
         tool: [mypy, pyright, ty, pyrefly, pylint, vulture, slotscheck]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
           enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
       - name: Set up Python
         run: uv python install 3.14
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync --all-extras --frozen
       - name: Run ${{ matrix.tool }}
         run: |
           case "${{ matrix.tool }}" in
-            mypy)       uv run mypy ;;
-            pyright)    uv run pyright ;;
-            ty)         uv run ty check ;;
-            pyrefly)    uv run pyrefly check ;;
-            pylint)     uv run pylint src ;;
-            vulture)    uv run vulture ;;
-            slotscheck) uv run slotscheck -m olink ;;
+            mypy)       uv run --locked mypy ;;
+            pyright)    uv run --locked pyright ;;
+            ty)         uv run --locked ty check ;;
+            pyrefly)    uv run --locked pyrefly check ;;
+            pylint)     uv run --locked pylint src ;;
+            vulture)    uv run --locked vulture ;;
+            slotscheck) uv run --locked slotscheck -m olink ;;
           esac

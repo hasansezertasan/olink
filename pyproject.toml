@@ -1,6 +1,6 @@
 [project]
 name = "olink"
-version = "0.1.0" # x-release-please-version
+dynamic = ["version"]
 description = "A CLI tool that opens external URLs related to your project."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -54,40 +54,49 @@ dev = [
   { include-group = "tool" },
 ]
 lint = [
-  "mypy>=1.11",
-  "pyright>=1.1.403",
+  "mypy==2.3.0",
+  "pyright==1.1.411",
   "ty==0.0.65",
   "pyrefly==1.1.1",
-  "pylint>=3.2.7",
-  "ruff>=0.7",
-  "taplo>=0.9.3",
-  "typos>=1.30",
-  "validate-pyproject[all]>=0.24",
-  "vulture>=2.14",
-  "slotscheck>=0.16.5",
+  "pylint==4.0.6",
+  "ruff==0.16.0",
+  "taplo==0.9.3",
+  "typos==1.48.0",
+  "validate-pyproject[all]==0.25",
+  "vulture==2.16",
+  "slotscheck==0.20.1",
 ]
 test = [
   "pytest==9.1.1",
-  "pytest-asyncio>=0.24",
-  "pytest-cov>=6.0",
-  "pytest-mock~=3.12",
-  "pytest-xdist>=3.6",
-  "coverage[toml]>=7.6",
+  "pytest-asyncio==1.4.0",
+  "pytest-cov==7.1.0",
+  "pytest-mock==3.15.1",
+  "pytest-xdist==3.8.0",
+  "coverage[toml]==7.15.2",
   "coverage-enable-subprocess==1.0",
 ]
-tool = ["poethepoet>=0.30.0", "prek>=0.4.8"]
+tool = ["poethepoet==0.48.0", "prek==0.4.11"]
 
 [tool.uv]
+add-bounds = "exact"
+cache-keys = [
+  { file = "pyproject.toml" },
+  { git = { commit = true, tags = true } },
+]
 trusted-publishing = "always"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 addopts = "-n auto --cov=olink --cov-report=term-missing"
+testpaths = ["tests"]
 
 [tool.coverage.run]
 source_pkgs = ["olink"]
 branch = true
 parallel = true
+omit = [
+  "*/olink/__main__.py", # entry-point shim, exercised by running the module
+]
 
 [tool.coverage.paths]
 olink = ["src/olink", "*/olink/src/olink"]
@@ -95,16 +104,24 @@ olink = ["src/olink", "*/olink/src/olink"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-exclude_lines = [
+exclude_also = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
   "raise NotImplementedError",
+  "\\.\\.\\.",
 ]
+
+[tool.typos.default]
+# release-please writes commit links like `[9ae107a]` into CHANGELOG.md; the abbreviated
+# SHA can read as a word fragment. Ignore the bracketed hash token wholesale ({7,40}
+# covers git extending the abbreviation up to the full 40-char hash).
+extend-ignore-re = ["\\[[0-9a-f]{7,40}\\]"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py314"
+extend-exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "ANN", "RUF"]
@@ -114,7 +131,7 @@ ignore = ["ANN401", "E501", "RUF012", "ANN204", "RUF022"]
 "tests/**" = ["ANN", "B", "RUF043", "I001", "E402"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.31.0", "hatch-vcs==0.5.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
@@ -126,9 +143,27 @@ packages = ["src/olink"]
 [tool.hatch.build.targets.sdist]
 include = ["src/olink", "README.md", "LICENSE", "pyproject.toml"]
 
+[tool.hatch.version]
+# Single source of truth is the git tag. On a release tag this resolves to the exact
+# X.Y.Z; with no tag it falls back to fallback-version below.
+source = "vcs"
+fallback-version = "0.0.0"
+
+[tool.hatch.version.raw-options]
+# Use the tag exactly (don't guess the next release) and drop the PEP 440 local
+# segment (+g<hash>) so non-tag builds stay PyPI-uploadable.
+version_scheme = "only-version"
+local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+# Write the computed version to a generated, git-ignored module.
+version-file = "src/olink/_version.py"
+
 [tool.mypy]
 python_version = "3.14"
 strict = true
+pretty = true
+show_error_codes = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 warn_unreachable = true
