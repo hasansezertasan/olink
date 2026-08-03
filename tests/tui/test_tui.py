@@ -338,3 +338,47 @@ class TestActionHandlers:
             await pilot.pause()
             assert search.display is False
             assert app.searching is False
+
+
+class TestOrderByPins:
+    """Tests for order_by_pins pinned-first ordering."""
+
+    def test_pins_float_to_top_in_pin_order(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()  # names: pypi, npm, origin, issues, pypistats
+        ordered = order_by_pins(items, ["origin", "pypi"])
+        assert [i.name for i in ordered[:2]] == ["origin", "pypi"]
+
+    def test_pinned_flag_is_set(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        ordered = order_by_pins(items, ["origin"])
+        by_name = {i.name: i.pinned for i in ordered}
+        assert by_name["origin"] is True
+        assert by_name["npm"] is False
+
+    def test_rest_keeps_original_order(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        original_rest = [i.name for i in items if i.name != "origin"]
+        ordered = order_by_pins(items, ["origin"])
+        assert [i.name for i in ordered[1:]] == original_rest
+
+    def test_absent_pins_are_ignored(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()  # no "crates" here
+        ordered = order_by_pins(items, ["crates", "npm"])
+        assert ordered[0].name == "npm"
+        assert len(ordered) == len(items)
+
+    def test_empty_pins_returns_same_names_unpinned(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        ordered = order_by_pins(items, [])
+        assert [i.name for i in ordered] == [i.name for i in items]
+        assert all(i.pinned is False for i in ordered)
