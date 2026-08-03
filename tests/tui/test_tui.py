@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pyperclip
 import pytest
+from textual.widgets import Static
 
 from olink.core.targets import Target
 from olink.tui.actions import copy_to_clipboard, open_in_browser
@@ -138,6 +139,13 @@ def _status_text(status: StatusBar) -> str:
     rendered = status.render()
     plain = getattr(rendered, "plain", None)
     return plain if isinstance(plain, str) else str(rendered)
+
+
+def _selected(target_list: TargetListWidget) -> TargetItem:
+    """Return the highlighted item, asserting one is selected (narrows Optional)."""
+    item = target_list.get_selected_item()
+    assert item is not None
+    return item
 
 
 class TestOpenInBrowser:
@@ -338,3 +346,207 @@ class TestActionHandlers:
             await pilot.pause()
             assert search.display is False
             assert app.searching is False
+
+
+class TestPinningInTUI:
+    """Tests for pin loading, ordering, marker, and the p toggle."""
+
+    def _app(self, pinned: list[str]) -> OlinkTUI:
+        items = _make_items()
+        with (
+            patch("olink.tui.app.build_all_targets", return_value=items),
+            patch("olink.tui.app.build_available_targets", return_value=items),
+            patch("olink.tui.app.load_pins", return_value=pinned),
+        ):
+            return OlinkTUI(cwd="/tmp")
+
+    @staticmethod
+    def _row_text(row: TargetRow) -> str:
+        rendered = row.query_one(Static).render()
+        return getattr(rendered, "plain", str(rendered))
+
+    @pytest.mark.asyncio
+    async def test_pinned_target_renders_first(self) -> None:
+        app = self._app(["origin"])
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            rows = list(app.query_one(TargetListWidget).query(TargetRow))
+            assert rows[0].item.name == "origin"
+            assert rows[0].item.pinned is True
+            # The pinned row renders with a leading ★ marker; others do not.
+            assert self._row_text(rows[0]).startswith("★ origin")
+            unpinned = next(r for r in rows if not r.item.pinned)
+            assert not self._row_text(unpinned).startswith("★")
+
+    @pytest.mark.asyncio
+    async def test_p_key_pins_selected_and_persists(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.save_pins") as save:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi" is first in _make_items()
+                await pilot.pause()
+                selected = target_list.get_selected_item()
+                assert selected is not None
+                await pilot.press("p")
+                await pilot.pause()
+                assert app.pinned == ["pypi"]
+                save.assert_called_once_with(["pypi"])
+
+    @pytest.mark.asyncio
+    async def test_p_key_unpins_selected_and_persists(self) -> None:
+        app = self._app(["pypi"])
+        with patch("olink.tui.app.save_pins") as save:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi" is pinned → floats to top
+                await pilot.pause()
+                assert _selected(target_list).name == "pypi"
+                await pilot.press("p")
+                await pilot.pause()
+                assert app.pinned == []
+                save.assert_called_once_with([])
+                # Selection follows the target as it drops back into the list.
+                selected = _selected(target_list)
+                assert selected.name == "pypi"
+                assert selected.pinned is False
+
+    @pytest.mark.asyncio
+    async def test_p_key_keeps_selection_on_same_target(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.save_pins"):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                # Select "issues" (not first), then pin it.
+                names = [r.item.name for r in target_list.query(TargetRow)]
+                target_list.index = names.index("issues")
+                await pilot.pause()
+                await pilot.press("p")
+                await pilot.pause()
+                assert _selected(target_list).name == "issues"
+
+    @pytest.mark.asyncio
+    async def test_save_failure_shows_error_but_toggles_memory(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.save_pins", side_effect=OSError("read-only")):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0
+                await pilot.pause()
+                name = _selected(target_list).name
+                await pilot.press("p")
+                await pilot.pause()
+                assert name in app.pinned
+                status = _status_text(app.query_one(StatusBar))
+                assert "Could not save pins" in status
+
+    @pytest.mark.asyncio
+    async def test_unpin_save_failure_removes_in_memory(self) -> None:
+        app = self._app(["pypi"])
+        with patch("olink.tui.app.save_pins", side_effect=OSError("read-only")):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi" is pinned → floats to top
+                await pilot.pause()
+                assert _selected(target_list).name == "pypi"
+                await pilot.press("p")
+                await pilot.pause()
+                assert "pypi" not in app.pinned
+                status = _status_text(app.query_one(StatusBar))
+                assert "Could not save pins" in status
+
+    @pytest.mark.asyncio
+    async def test_pin_shows_success_status(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.save_pins"):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi"
+                await pilot.pause()
+                await pilot.press("p")
+                await pilot.pause()
+                status = _status_text(app.query_one(StatusBar))
+                assert "Pinned pypi" in status
+
+    @pytest.mark.asyncio
+    async def test_pin_preserves_active_search_filter(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.save_pins"):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                await pilot.press("slash")  # open search
+                await pilot.pause()
+                app.query_one(SearchInput).value = "pypi"
+                await pilot.pause()
+                await pilot.press("enter")  # submit; filter stays applied
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                before = {r.item.name for r in target_list.query(TargetRow)}
+                assert before == {"pypi", "pypistats"}
+                target_list.index = 0
+                await pilot.pause()
+                await pilot.press("p")
+                await pilot.pause()
+                after = {r.item.name for r in target_list.query(TargetRow)}
+                assert after == {"pypi", "pypistats"}
+
+
+class TestOrderByPins:
+    """Tests for order_by_pins pinned-first ordering."""
+
+    def test_pins_float_to_top_in_pin_order(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()  # names: pypi, npm, origin, issues, pypistats
+        ordered = order_by_pins(items, ["origin", "pypi"])
+        assert [i.name for i in ordered[:2]] == ["origin", "pypi"]
+
+    def test_pinned_flag_is_set(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        ordered = order_by_pins(items, ["origin"])
+        by_name = {i.name: i.pinned for i in ordered}
+        assert by_name["origin"] is True
+        assert by_name["npm"] is False
+
+    def test_rest_keeps_original_order(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        original_rest = [i.name for i in items if i.name != "origin"]
+        ordered = order_by_pins(items, ["origin"])
+        assert [i.name for i in ordered[1:]] == original_rest
+
+    def test_absent_pins_are_ignored(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()  # no "crates" here
+        ordered = order_by_pins(items, ["crates", "npm"])
+        assert ordered[0].name == "npm"
+        assert len(ordered) == len(items)
+
+    def test_empty_pins_returns_same_names_unpinned(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        ordered = order_by_pins(items, [])
+        assert [i.name for i in ordered] == [i.name for i in items]
+        assert all(i.pinned is False for i in ordered)
+
+    def test_reordering_same_list_resets_flags(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        order_by_pins(items, ["origin"])
+        ordered = order_by_pins(items, ["npm"])
+        by_name = {i.name: i.pinned for i in ordered}
+        assert by_name["npm"] is True
+        assert by_name["origin"] is False
+        assert ordered[0].name == "npm"

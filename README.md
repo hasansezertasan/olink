@@ -200,6 +200,26 @@ olink -d ~/projects/other-project origin
 olink --list
 ```
 
+## Interactive TUI
+
+Launch the interactive target browser with:
+
+```bash
+olink                # Open TUI (requires [tui] extra)
+```
+
+The TUI lets you browse, search, open, and pin targets interactively. Keybindings:
+
+- `Tab` — toggle view (available/all)
+- `j`/`k` — navigate up/down
+- `/` — search targets
+- `o` — open the highlighted target
+- `c` — copy target URL
+- `p` — pin/unpin the highlighted target. Pinned targets are marked with `★`
+  and float to the top of the list in every project. Pins are stored in
+  `$XDG_CONFIG_HOME/olink/pins.json` (default `~/.config/olink/pins.json`).
+- `q` — quit
+
 ## Limitations
 
 - olink must be run from the project root directory. Running from a subdirectory (e.g. `src/`) is not supported.

@@ -14,6 +14,7 @@ class TargetItem:
     description: str
     target_cls: type[Target]
     ecosystem: str | None = None
+    pinned: bool = False
 
     def get_url(self, cwd: str) -> str:
         """Resolve the URL for this target."""
@@ -43,3 +44,22 @@ def build_available_targets(cwd: str) -> list[TargetItem]:
         TargetItem(name=name, description=desc, target_cls=cls, ecosystem=eco)
         for name, desc, cls, eco in list_available_targets(cwd)
     ]
+
+
+def order_by_pins(items: list[TargetItem], pinned: list[str]) -> list[TargetItem]:
+    """Return items pinned-first, marking each item's `pinned` flag.
+
+    Pinned items come first in the order they appear in `pinned`; the rest keep
+    their incoming order. Pin names absent from `items` are ignored, so in the
+    TUI's "available" mode a pin only surfaces when it applies to this project.
+    This function mutates each input item's `pinned` flag in place; it does not create copies.
+    """
+    rank = {name: index for index, name in enumerate(pinned)}
+    for item in items:
+        item.pinned = item.name in rank
+    pinned_items = sorted(
+        (item for item in items if item.pinned),
+        key=lambda item: rank[item.name],
+    )
+    rest = [item for item in items if not item.pinned]
+    return [*pinned_items, *rest]

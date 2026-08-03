@@ -5,18 +5,20 @@ from textual.binding import Binding
 from textual.widgets import Static
 
 from olink.core.exceptions import OlinkError
+from olink.core.pins import load_pins, save_pins
 from olink.tui.actions import copy_to_clipboard, open_in_browser
 from olink.tui.models import (
     FilterState,
     TargetItem,
     build_all_targets,
     build_available_targets,
+    order_by_pins,
 )
-from olink.tui.widgets import SearchInput, StatusBar, TargetListWidget
+from olink.tui.widgets import SearchInput, StatusBar, TargetListWidget, TargetRow
 
 HEADER_TEXT = (
     "olink — Interactive Target Browser\n"
-    "Tab: toggle view  j/k: navigate  /: search  o: open  c: copy  q: quit"
+    "Tab: toggle view  j/k: navigate  /: search  o: open  c: copy  p: pin  q: quit"
 )
 
 
@@ -28,6 +30,7 @@ class OlinkTUI(App[None]):
         Binding("tab", "toggle_mode", "Toggle view", priority=True),
         Binding("o", "open_target", "Open"),
         Binding("c", "copy_target", "Copy"),
+        Binding("p", "toggle_pin", "Pin"),
         Binding("slash", "start_search", "Search", show=False),
         Binding("escape", "cancel_search", "Cancel search", show=False),
     ]
@@ -39,6 +42,10 @@ class OlinkTUI(App[None]):
         self.all_targets = build_all_targets()
         self.available_targets = build_available_targets(cwd)
         self.searching = False
+        self.pinned = load_pins()
+        # Active search filter, kept after the search bar closes so a later
+        # refresh (e.g. toggling a pin) does not silently drop the filter.
+        self.active_query = ""
 
     def compose(self) -> ComposeResult:
         header = Static(HEADER_TEXT, id="header")
@@ -56,20 +63,24 @@ class OlinkTUI(App[None]):
         self._refresh_list()
 
     def _source(self) -> list[TargetItem]:
-        return self.available_targets if self.state.mode == "available" else self.all_targets
+        base = self.available_targets if self.state.mode == "available" else self.all_targets
+        return order_by_pins(base, self.pinned)
 
     def _refresh_list(self) -> None:
-        self.query_one(TargetListWidget).update_items(self._source())
-        self._refresh_status()
+        items = self._filter_items(self.active_query)
+        self.query_one(TargetListWidget).update_items(items)
+        self._refresh_status(len(items))
 
-    def _refresh_status(self) -> None:
-        count = len(self._source())
+    def _refresh_status(self, count: int | None = None) -> None:
+        if count is None:
+            count = len(self._filter_items(self.active_query))
         total = len(self.all_targets)
         self.query_one(StatusBar).status_update(self.state.mode, count, total)
 
     def action_toggle_mode(self) -> None:
         self.state.mode = "all" if self.state.mode == "available" else "available"
         self._end_search()
+        self.active_query = ""
         self._refresh_list()
 
     def _filter_items(self, query: str) -> list[TargetItem]:
@@ -105,6 +116,7 @@ class OlinkTUI(App[None]):
         if not self.searching:
             return
         self._end_search()
+        self.active_query = ""
         self._refresh_list()
         self.query_one(TargetListWidget).focus()
 
@@ -113,6 +125,7 @@ class OlinkTUI(App[None]):
         if not self.searching:
             return
         query = event.value
+        self.active_query = query
         filtered = self._filter_items(query)
         self.query_one(TargetListWidget).update_items(filtered)
         status = self.query_one(StatusBar)
@@ -159,6 +172,47 @@ class OlinkTUI(App[None]):
 
     def action_copy_target(self) -> None:
         self._action_on_selected("copy")
+
+    def action_toggle_pin(self) -> None:
+        """Pin/unpin the highlighted target, persist, and keep it selected.
+
+        The app's in-memory list is the session's source of truth: we toggle it
+        first, then try to persist. If the write fails the change still stands
+        (surfaced as an error), and a later successful toggle cannot silently
+        drop it by reloading a stale file from disk.
+        """
+        target_list = self.query_one(TargetListWidget)
+        item = target_list.get_selected_item()
+        if item is None:
+            return
+        name = item.name
+        if name in self.pinned:
+            self.pinned = [existing for existing in self.pinned if existing != name]
+        else:
+            self.pinned = [*self.pinned, name]
+        status = self.query_one(StatusBar)
+        error: OSError | None = None
+        try:
+            save_pins(self.pinned)
+        except OSError as exc:
+            error = exc
+        self._refresh_list()
+        # Rows are re-mounted by update_items; wait for that to settle before
+        # querying for the row to reselect.
+        self.call_after_refresh(self._reselect, name)
+        if error is not None:
+            status.set_error(f"Could not save pins: {error}")
+        else:
+            verb = "Pinned" if name in self.pinned else "Unpinned"
+            status.set_success(f"{verb} {name}")
+
+    def _reselect(self, name: str) -> None:
+        """Move the cursor back onto the row for `name` after a refresh."""
+        target_list = self.query_one(TargetListWidget)
+        for index, row in enumerate(target_list.query(TargetRow)):
+            if row.item.name == name:
+                target_list.index = index
+                return
 
 
 def launch_tui(cwd: str) -> None:

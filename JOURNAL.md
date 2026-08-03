@@ -4,6 +4,47 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-08-03 — Pinned Targets in TUI
+
+### Context
+
+Added a persistent pinning feature to the TUI, allowing users to mark frequently-accessed targets so they float to the top of the list across all projects.
+
+### Decisions
+
+- **Global pin storage**: Pins are persisted globally (not per-project) in `$XDG_CONFIG_HOME/olink/pins.json` (default `~/.config/olink/pins.json`) using stdlib `json` with no new dependencies. Matches user expectations for a machine-wide "bookmark" mechanism.
+- **TUI-only feature**: Pinning is wired only in the TUI (`action_toggle_pin` in `app.py`), not in the CLI. Users toggle pins via the `p` key.
+- **Visual marker**: Pinned targets are marked with `★` in the list widget to make their status obvious at a glance.
+- **Pinned-first ordering**: The `order_by_pins(items, pinned)` helper in `models.py` floats pinned targets to the top, preserving their relative order, then lists the rest alphabetically (or in original order in `all` mode).
+- **Graceful degradation**: Missing or corrupt pins file → empty pin set (no crash). Write failures → logged to status bar + in-memory toggle still applies (user sees the change until the next session).
+
+### Implementation
+
+- **`core/pins.py`**: New module with `load_pins()`, `toggle_pin()`, `save_pins()`, and helper functions for config dir/file management. Uses stdlib `json` and `pathlib`, respects `$XDG_CONFIG_HOME`.
+- **`models.py`**: Added `TargetItem.pinned` boolean field and `order_by_pins(items, pinned)` helper to reorder based on the pinned set.
+- **`app.py`**: Wired `load_pins()` at init, passed pinned set to `_source()`, added `action_toggle_pin()` action handler with OSError catch → status-bar error.
+- **`widgets.py`**: Updated `TargetRow` to prepend `★` when `item.pinned` is True.
+
+### Outcome
+
+- Users can now press `p` to pin/unpin targets, with the pinned state persisting across sessions and projects.
+- Pinned targets float to the top (marked with `★`) in both `available` and `all` modes.
+- Failures in reading/writing pins are handled gracefully — the user sees errors in the status bar but the toggle still takes effect in-memory.
+- In `available` mode the list shows every target available for the current project (pinned or not); a globally-pinned target that does not apply to this project simply stays hidden — pins reorder the available set, they do not add unavailable entries.
+
+### Follow-up (post-review polish)
+
+Addressed the review findings from PR #70 (self-review + Sourcery/CodeRabbit/Codex bots):
+
+- **Atomic writes**: `save_pins()` writes to a `pins.json.tmp` sibling and `os.replace()`s it into place, so a crash mid-write can no longer truncate `pins.json` into an empty (silent pin-loss) file.
+- **Corrupt-file robustness**: `load_pins()` now also catches `UnicodeDecodeError` (not an `OSError`), so a pins file with non-UTF-8 bytes degrades to empty instead of crashing the TUI at startup.
+- **In-memory list is the session source of truth**: `action_toggle_pin()` toggles `self.pinned` and persists via `save_pins()` rather than reloading from disk through the old `toggle_pin()` helper (removed). This fixes a case where a pin made while the config dir was read-only was dropped by the next successful toggle.
+- **Search filter preserved on pin**: added `active_query` state so toggling a pin while a submitted search filter is active re-applies the filter instead of resetting to the full list; `_refresh_list()` now computes the source once (was called twice per refresh).
+- **Success feedback**: pin/unpin now reports `Pinned <name>` / `Unpinned <name>` in the status bar, consistent with open/copy.
+- Added tests for invalid-UTF-8 handling, unpin success + write-failure paths, the `★` marker rendering, success status, filter preservation, and atomic overwrite.
+
+---
+
 ## 2026-07-31 — Adopt keycast-style tooling; migrate versioning to hatch-vcs
 
 ### Context
