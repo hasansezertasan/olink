@@ -626,9 +626,9 @@ runner = "uv-venv-runner"
 commands = [
   [
     "olink",
-    { replace = "posargs", default = [
-      "version",
-    ], extend = true },
+    # olink exposes version via the --version flag (not a `version` subcommand);
+    # bare args are treated as targets. Smoke-test with --version by default.
+    { replace = "posargs", default = ["--version"], extend = true },
   ],
 ]
 description = "Run the CLI application."
