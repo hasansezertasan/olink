@@ -141,6 +141,13 @@ def _status_text(status: StatusBar) -> str:
     return plain if isinstance(plain, str) else str(rendered)
 
 
+def _selected(target_list: TargetListWidget) -> TargetItem:
+    """Return the highlighted item, asserting one is selected (narrows Optional)."""
+    item = target_list.get_selected_item()
+    assert item is not None
+    return item
+
+
 class TestOpenInBrowser:
     """Tests for open_in_browser action."""
 
@@ -396,13 +403,13 @@ class TestPinningInTUI:
                 target_list = app.query_one(TargetListWidget)
                 target_list.index = 0  # "pypi" is pinned → floats to top
                 await pilot.pause()
-                assert target_list.get_selected_item().name == "pypi"
+                assert _selected(target_list).name == "pypi"
                 await pilot.press("p")
                 await pilot.pause()
                 assert app.pinned == []
                 save.assert_called_once_with([])
                 # Selection follows the target as it drops back into the list.
-                selected = target_list.get_selected_item()
+                selected = _selected(target_list)
                 assert selected.name == "pypi"
                 assert selected.pinned is False
 
@@ -419,7 +426,7 @@ class TestPinningInTUI:
                 await pilot.pause()
                 await pilot.press("p")
                 await pilot.pause()
-                assert target_list.get_selected_item().name == "issues"
+                assert _selected(target_list).name == "issues"
 
     @pytest.mark.asyncio
     async def test_save_failure_shows_error_but_toggles_memory(self) -> None:
@@ -430,7 +437,7 @@ class TestPinningInTUI:
                 target_list = app.query_one(TargetListWidget)
                 target_list.index = 0
                 await pilot.pause()
-                name = target_list.get_selected_item().name
+                name = _selected(target_list).name
                 await pilot.press("p")
                 await pilot.pause()
                 assert name in app.pinned
@@ -446,7 +453,7 @@ class TestPinningInTUI:
                 target_list = app.query_one(TargetListWidget)
                 target_list.index = 0  # "pypi" is pinned → floats to top
                 await pilot.pause()
-                assert target_list.get_selected_item().name == "pypi"
+                assert _selected(target_list).name == "pypi"
                 await pilot.press("p")
                 await pilot.pause()
                 assert "pypi" not in app.pinned

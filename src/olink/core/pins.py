@@ -10,6 +10,7 @@ import json
 import logging
 import os
 from pathlib import Path
+from typing import cast
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +47,14 @@ def load_pins() -> list[str]:
         logger.warning("Ignoring corrupt pins file %s: %s", path, exc)
         return []
 
-    pins = data.get("pins") if isinstance(data, dict) else None
+    # json.loads returns Any; cast the validated shapes to concrete types so
+    # strict type checkers see known types instead of "partially unknown".
+    if not isinstance(data, dict):
+        return []
+    pins = cast("dict[str, object]", data).get("pins")
     if not isinstance(pins, list):
         return []
-    return [name for name in pins if isinstance(name, str)]
+    return [name for name in cast("list[object]", pins) if isinstance(name, str)]
 
 
 def save_pins(pins: list[str]) -> None:
