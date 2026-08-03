@@ -340,6 +340,75 @@ class TestActionHandlers:
             assert app.searching is False
 
 
+class TestPinningInTUI:
+    """Tests for pin loading, ordering, marker, and the p toggle."""
+
+    def _app(self, pinned: list[str]) -> OlinkTUI:
+        items = _make_items()
+        with (
+            patch("olink.tui.app.build_all_targets", return_value=items),
+            patch("olink.tui.app.build_available_targets", return_value=items),
+            patch("olink.tui.app.load_pins", return_value=pinned),
+        ):
+            return OlinkTUI(cwd="/tmp")
+
+    @pytest.mark.asyncio
+    async def test_pinned_target_renders_first(self) -> None:
+        app = self._app(["origin"])
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            rows = list(app.query_one(TargetListWidget).query(TargetRow))
+            assert rows[0].item.name == "origin"
+            assert rows[0].item.pinned is True
+
+    @pytest.mark.asyncio
+    async def test_p_key_pins_selected_and_persists(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.toggle_pin", return_value=["pypi"]) as toggle:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi" is first in _make_items()
+                await pilot.pause()
+                selected = target_list.get_selected_item()
+                assert selected is not None
+                await pilot.press("p")
+                await pilot.pause()
+                toggle.assert_called_once_with(selected.name)
+                assert app.pinned == ["pypi"]
+
+    @pytest.mark.asyncio
+    async def test_p_key_keeps_selection_on_same_target(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.toggle_pin", return_value=["issues"]):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                # Select "issues" (not first), then pin it.
+                names = [r.item.name for r in target_list.query(TargetRow)]
+                target_list.index = names.index("issues")
+                await pilot.pause()
+                await pilot.press("p")
+                await pilot.pause()
+                assert target_list.get_selected_item().name == "issues"
+
+    @pytest.mark.asyncio
+    async def test_save_failure_shows_error_but_toggles_memory(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.toggle_pin", side_effect=OSError("read-only")):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0
+                await pilot.pause()
+                name = target_list.get_selected_item().name
+                await pilot.press("p")
+                await pilot.pause()
+                assert name in app.pinned
+                status = _status_text(app.query_one(StatusBar))
+                assert "Could not save pins" in status
+
+
 class TestOrderByPins:
     """Tests for order_by_pins pinned-first ordering."""
 

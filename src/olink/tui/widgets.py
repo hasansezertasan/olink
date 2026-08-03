@@ -17,7 +17,9 @@ class TargetRow(ListItem):
 
     def compose(self) -> ComposeResult:
         label = Text()
-        label.append(f" {self.item.name:20s}", style="cyan")
+        marker = "★ " if self.item.pinned else "  "
+        label.append(marker, style="yellow")
+        label.append(f"{self.item.name:20s}", style="cyan")
         label.append(f" {self.item.description}")
         yield Static(label)
 
