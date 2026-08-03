@@ -5,12 +5,12 @@ See https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # -- Project information -----------------------------------------------------
 project = "olink"
 author = "Hasan Sezer Taşan"
-copyright = f"{datetime.now(tz=timezone.utc):%Y}, Hasan Sezer Taşan"  # noqa: A001
+copyright = f"{datetime.now(tz=UTC):%Y}, Hasan Sezer Taşan"  # noqa: A001
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -41,11 +41,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "superpowers/**"]
 autosectionlabel_prefix_document = True
 
 # -- Autodoc / Napoleon ------------------------------------------------------
-autodoc_default_options = {
-    "members": True,
-    "show-inheritance": True,
-    "member-order": "bysource",
-}
+autodoc_default_options = {"members": True, "show-inheritance": True, "member-order": "bysource"}
 autodoc_typehints = "description"
 autoclass_content = "both"
 napoleon_google_docstring = True

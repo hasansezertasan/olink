@@ -5,7 +5,8 @@
     "\\.rst$",
     "\\.md$",
     "\\.markdown$",
-    "\\.py$"
+    "\\.py$",
+    "tests/fixtures/"
   ],
   "//Exclude": "reStructuredText (Sphinx docs), Markdown, and Python are excluded from the indentation check because their indentation is semantic, not a fixed multiple: rst directive bodies align under `.. ` (3 cols); markdown ordered-list continuations align under `N. `; Python docstring prose (e.g. bulleted-list continuations) aligns under its marker. ruff is the single authority for Python formatting, and Sphinx/markdownlint-cli2 for the docs — so ec only owns indent style/size and charset on the config/markup file types (JSON(C), CFF, JS, CSS, HTML, shell, Makefile) that no other tool checks.",
   "Disable": {

@@ -323,10 +323,7 @@ class TestParsedRemote:
 
     def test_base_url_property(self) -> None:
         remote = ParsedRemote(
-            platform="github",
-            host="github.com",
-            owner="testowner",
-            repo="testrepo",
+            platform="github", host="github.com", owner="testowner", repo="testrepo"
         )
         assert remote.base_url == "https://github.com/testowner/testrepo"
 
@@ -366,7 +363,9 @@ class TestDetectEcosystems:
 
         caplog.set_level(logging.WARNING)
         # pyproject.toml without [project].name
-        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
+        Path(temp_dir, "pyproject.toml").write_text(
+            "[project]\nversion = '1.0'\n", encoding="utf-8"
+        )
         ecosystems = detect_ecosystems(temp_dir)
         assert "pypi" not in ecosystems
         assert any("skipped" in r.message.lower() for r in caplog.records)
@@ -404,42 +403,44 @@ class TestGetPackageName:
             get_package_name(temp_dir, "cargo")
 
     def test_malformed_pyproject_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
+        Path(temp_dir, "pyproject.toml").write_text(
+            "[project]\nversion = '1.0'\n", encoding="utf-8"
+        )
         with pytest.raises(ProjectMetadataError):
             get_package_name(temp_dir, "pypi")
 
     def test_malformed_package_json_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "package.json").write_text(json.dumps({"version": "1.0"}))
+        Path(temp_dir, "package.json").write_text(json.dumps({"version": "1.0"}), encoding="utf-8")
         with pytest.raises(ProjectMetadataError):
             get_package_name(temp_dir, "npm")
 
     def test_invalid_toml_pyproject_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "pyproject.toml").write_text("this is not [valid toml !!!")
+        Path(temp_dir, "pyproject.toml").write_text("this is not [valid toml !!!", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="Invalid pyproject.toml"):
             get_package_name(temp_dir, "pypi")
 
     def test_empty_pyproject_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "pyproject.toml").write_text("")
+        Path(temp_dir, "pyproject.toml").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="No 'project.name'"):
             get_package_name(temp_dir, "pypi")
 
     def test_empty_package_json_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "package.json").write_text("")
+        Path(temp_dir, "package.json").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="Invalid package.json"):
             get_package_name(temp_dir, "npm")
 
     def test_empty_cargo_toml_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "Cargo.toml").write_text("")
+        Path(temp_dir, "Cargo.toml").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="No 'package.name'"):
             get_package_name(temp_dir, "cargo")
 
     def test_empty_go_mod_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "go.mod").write_text("")
+        Path(temp_dir, "go.mod").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="No 'module' declaration"):
             get_package_name(temp_dir, "go")
 
     def test_empty_composer_json_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "composer.json").write_text("")
+        Path(temp_dir, "composer.json").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="Invalid composer.json"):
             get_package_name(temp_dir, "packagist")
 

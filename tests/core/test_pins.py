@@ -5,15 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from olink.core.pins import (
-    config_dir,
-    load_pins,
-    pins_file,
-    save_pins,
-)
+from olink.core.pins import config_dir, load_pins, pins_file, save_pins
 
 
-@pytest.fixture()
+@pytest.fixture
 def xdg(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Point the config dir at a temp location via XDG_CONFIG_HOME."""
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))

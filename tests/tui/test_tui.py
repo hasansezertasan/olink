@@ -22,7 +22,8 @@ class TestCopyToClipboard:
 
     def test_copy_failure_returns_false(self, monkeypatch: pytest.MonkeyPatch) -> None:
         def failing_copy(text: str) -> None:
-            raise pyperclip.PyperclipException("no clipboard")
+            msg = "no clipboard"
+            raise pyperclip.PyperclipException(msg)
 
         monkeypatch.setattr(pyperclip, "copy", failing_copy)
         assert copy_to_clipboard("https://example.com") is False
@@ -92,15 +93,14 @@ def _make_items() -> list[TargetItem]:
 class TestSearchFiltering:
     """Tests for the _filter_items search logic."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def tui(self) -> OlinkTUI:
         items = _make_items()
         with (
             patch("olink.tui.app.build_all_targets", return_value=items),
             patch("olink.tui.app.build_available_targets", return_value=items),
         ):
-            app = OlinkTUI(cwd="/tmp")
-        return app
+            return OlinkTUI(cwd="/tmp")
 
     def test_empty_query_returns_all(self, tui: OlinkTUI) -> None:
         result = tui._filter_items("")
@@ -199,7 +199,8 @@ class TestStatusBarRendering:
             assert color is not None
             # "Red-like": red channel dominates green and blue. Avoids
             # coupling the test to a specific theme RGB.
-            assert color.r > color.g and color.r > color.b
+            assert color.r > color.g
+            assert color.r > color.b
 
 
 class TestTargetListRendering:
@@ -269,8 +270,7 @@ class TestActionHandlers:
         items = _make_items()
         copied: list[str] = []
         monkeypatch.setattr(
-            "olink.tui.app.copy_to_clipboard",
-            lambda url: copied.append(url) or True,
+            "olink.tui.app.copy_to_clipboard", lambda url: copied.append(url) or True
         )
         with (
             patch("olink.tui.app.build_all_targets", return_value=items),

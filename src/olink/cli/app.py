@@ -1,5 +1,6 @@
 """CLI interface for olink."""
 
+import contextlib
 import logging
 from pathlib import Path
 
@@ -14,9 +15,7 @@ logger = logging.getLogger(__name__)
 _TUI_OPTIONAL_DEPS = frozenset({"olink.tui", "textual", "pyperclip"})
 
 app = typer.Typer(
-    name="olink",
-    help="Open external URLs related to your project.",
-    no_args_is_help=False,
+    name="olink", help="Open external URLs related to your project.", no_args_is_help=False
 )
 
 
@@ -33,29 +32,13 @@ def main_callback(
         help="Target to open (e.g. origin, issues, pypi, npm, crates, and more — use --list-all to see all)",
     ),
     directory: str | None = typer.Option(
-        None,
-        "--directory",
-        "-d",
-        help="Project directory (defaults to current directory)",
+        None, "--directory", "-d", help="Project directory (defaults to current directory)"
     ),
-    dry_run: bool = typer.Option(
-        False,
-        "--dry-run",
-        "-n",
-        help="Print URL without opening it",
-    ),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Print URL without opening it"),
     list_available_flag: bool = typer.Option(
-        False,
-        "--list",
-        "-l",
-        help="List targets available for current project",
+        False, "--list", "-l", help="List targets available for current project"
     ),
-    list_all_flag: bool = typer.Option(
-        False,
-        "--list-all",
-        "-a",
-        help="List all targets",
-    ),
+    list_all_flag: bool = typer.Option(False, "--list-all", "-a", help="List all targets"),
     _version: bool = typer.Option(
         False,
         "--version",
@@ -107,10 +90,8 @@ def main_callback(
             )
             raise typer.Exit(1) from None
 
-        try:
+        with contextlib.suppress(KeyboardInterrupt, SystemExit):
             launch_tui(cwd)
-        except KeyboardInterrupt, SystemExit:
-            pass
         raise typer.Exit(0)
 
     try:

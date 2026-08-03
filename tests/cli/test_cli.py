@@ -1,5 +1,6 @@
 """Tests for CLI interface."""
 
+import pathlib
 import subprocess
 from unittest.mock import MagicMock, patch
 
@@ -131,8 +132,7 @@ class TestCLIErrors:
         import os
 
         filepath = os.path.join(temp_dir, "afile.txt")
-        with open(filepath, "w") as f:
-            f.write("hello")
+        pathlib.Path(filepath).write_text("hello", encoding="utf-8")
         result = runner.invoke(app, ["-d", filepath, "origin"])
         assert result.exit_code == 1
         assert "Not a directory" in result.output
@@ -178,7 +178,7 @@ class TestCLIErrors:
         import os
 
         subdir = os.path.join(temp_pyproject, "src")
-        os.makedirs(subdir)
+        pathlib.Path(subdir).mkdir(parents=True)
         result = runner.invoke(app, ["-n", "-d", subdir, "pypi"])
         assert result.exit_code == 1
         assert "No pyproject.toml found" in result.output

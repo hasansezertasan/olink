@@ -149,22 +149,25 @@ def get_target(name: str) -> Target:
 
     if base_name not in REGISTRY:
         available = ", ".join(sorted(REGISTRY.keys()))
-        raise UnknownTargetError(f"Unknown target: '{base_name}'. Available targets: {available}")
+        msg = f"Unknown target: '{base_name}'. Available targets: {available}"
+        raise UnknownTargetError(msg)
 
     target_cls = REGISTRY[base_name]
 
     if ecosystem is not None:
         if not issubclass(target_cls, MultiEcosystemTarget):
-            raise UnknownTargetError(
+            msg = (
                 f"Target '{base_name}' doesn't support ecosystem suffix. "
                 f"Use '{base_name}' without suffix."
             )
+            raise UnknownTargetError(msg)
         supported = sorted(target_cls.ecosystem_url_map.keys())
         if ecosystem not in target_cls.ecosystem_url_map:
-            raise UnknownTargetError(
+            msg = (
                 f"Target '{base_name}' doesn't support ecosystem '{ecosystem}'. "
                 f"Supported: {', '.join(supported)}"
             )
+            raise UnknownTargetError(msg)
         return target_cls(ecosystem=ecosystem)
 
     return target_cls()
@@ -173,12 +176,7 @@ def get_target(name: str) -> Target:
 logger = logging.getLogger(__name__)
 
 # Exceptions that mean "this target doesn't apply here" — expected and safe to skip.
-UNAVAILABLE_ERRORS = (
-    NoRemoteError,
-    NotGitRepoError,
-    ProjectMetadataError,
-    UnsupportedFeatureError,
-)
+UNAVAILABLE_ERRORS = (NoRemoteError, NotGitRepoError, ProjectMetadataError, UnsupportedFeatureError)
 
 
 def list_targets() -> list[tuple[str, str]]:
@@ -186,9 +184,7 @@ def list_targets() -> list[tuple[str, str]]:
     return [(name, target_cls.description) for name, target_cls in sorted(REGISTRY.items())]
 
 
-def list_available_targets(
-    cwd: str,
-) -> list[tuple[str, str, type[Target], str | None]]:
+def list_available_targets(cwd: str) -> list[tuple[str, str, type[Target], str | None]]:
     """List targets available for the current project.
 
     Returns (name, description, target_cls, ecosystem) tuples.

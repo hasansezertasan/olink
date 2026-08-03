@@ -1,17 +1,17 @@
 """Tests for targets.py - Target URL generation."""
 
 import subprocess
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
+from olink.core.catalog import REGISTRY, get_target, list_targets
 from olink.core.exceptions import (
     NoRemoteError,
     ProjectMetadataError,
     UnknownTargetError,
     UnsupportedFeatureError,
 )
-from olink.core.catalog import REGISTRY, get_target, list_targets
 from olink.core.targets import (
     ActionsTarget,
     BranchesTarget,
@@ -34,8 +34,8 @@ from olink.core.targets import (
     InspectorTarget,
     IssuesTarget,
     JsDelivrTarget,
-    LibRsTarget,
     LibrariesIOTarget,
+    LibRsTarget,
     MavenTarget,
     MultiEcosystemTarget,
     NPMStatTarget,
@@ -64,6 +64,9 @@ from olink.core.targets import (
     UpstreamTarget,
     WikiTarget,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestRegistry:
@@ -563,7 +566,7 @@ class TestRegistryTargets:
         assert url == "https://central.sonatype.com/artifact/com.parent/child-app"
 
     def test_maven_target_grandparent_group_id(self, tmp_path: Path) -> None:
-        """groupId resolved via two-level parent chain (parent has no groupId either)."""
+        """GroupId resolved via two-level parent chain (parent has no groupId either)."""
         grandparent = tmp_path / "grandparent"
         parent = tmp_path / "parent"
         child = tmp_path / "child"
@@ -636,8 +639,7 @@ class TestRegistryTargets:
     def test_hackage_target_missing_name(self, tmp_path: Path) -> None:
         cabal = tmp_path / "test-package.cabal"
         cabal.write_text(
-            "cabal-version: >=1.10\nversion: 0.1.0.0\nbuild-type: Simple\n",
-            encoding="utf-8",
+            "cabal-version: >=1.10\nversion: 0.1.0.0\nbuild-type: Simple\n", encoding="utf-8"
         )
         target = HackageTarget()
         with pytest.raises(ProjectMetadataError, match="No 'name' in .cabal file"):
@@ -853,8 +855,7 @@ class TestMultiEcosystemTargets:
         assert "test-go-module" in url
 
     @pytest.mark.parametrize(
-        "raw_target",
-        ["libraries-io:foo", "deps:foo", "ecosystems:foo", "socket:foo"],
+        "raw_target", ["libraries-io:foo", "deps:foo", "ecosystems:foo", "socket:foo"]
     )
     def test_multi_ecosystem_invalid_suffix_raises(self, raw_target: str) -> None:
         with pytest.raises(UnknownTargetError) as exc_info:
@@ -1013,7 +1014,7 @@ class TestRegistryDriftGuard:
 
         target_subclasses = {
             cls
-            for _, cls in vars(targets_mod).items()
+            for cls in vars(targets_mod).values()
             if isinstance(cls, type) and issubclass(cls, Target) and cls is not Target
         }
         # Skip abstract bases (no `name` ClassVar set on the class itself).

@@ -57,9 +57,6 @@ def order_by_pins(items: list[TargetItem], pinned: list[str]) -> list[TargetItem
     rank = {name: index for index, name in enumerate(pinned)}
     for item in items:
         item.pinned = item.name in rank
-    pinned_items = sorted(
-        (item for item in items if item.pinned),
-        key=lambda item: rank[item.name],
-    )
+    pinned_items = sorted((item for item in items if item.pinned), key=lambda item: rank[item.name])
     rest = [item for item in items if not item.pinned]
     return [*pinned_items, *rest]

@@ -68,4 +68,4 @@ def save_pins(pins: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.parent / (path.name + ".tmp")
     tmp.write_text(json.dumps({"pins": pins}, indent=2) + "\n", encoding="utf-8")
-    os.replace(tmp, path)
+    Path(tmp).replace(path)

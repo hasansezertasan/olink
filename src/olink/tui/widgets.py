@@ -1,11 +1,15 @@
 """Custom Textual widgets for the TUI."""
 
+from typing import TYPE_CHECKING
+
 from rich.text import Text
-from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.widgets import Input, ListItem, ListView, Static
 
-from olink.tui.models import TargetItem
+if TYPE_CHECKING:
+    from textual.app import ComposeResult
+
+    from olink.tui.models import TargetItem
 
 
 class TargetRow(ListItem):
@@ -37,8 +41,7 @@ class TargetListWidget(ListView):
 
     def get_selected_item(self) -> TargetItem | None:
         """Get the currently highlighted target item."""
-        if self.highlighted_child is not None:
-            assert isinstance(self.highlighted_child, TargetRow)
+        if isinstance(self.highlighted_child, TargetRow):
             return self.highlighted_child.item
         return None
 

@@ -492,6 +492,7 @@ PLATFORM_URLS = {
     "bitbucket": {"issues": "/issues", "pulls": "/pull-requests", "actions": "/pipelines"},
 }
 
+
 def get_platform_url(base_url: str, platform: str, page: str) -> str:
     """Get URL for a specific page on a platform."""
     if platform not in PLATFORM_URLS:
@@ -595,6 +596,7 @@ def _get_git_dir(cwd: str) -> Path | None:
             return Path(gitdir) if Path(gitdir).is_absolute() else (Path(cwd) / gitdir).resolve()
 
     return None
+
 
 def _read_git_config(cwd: str) -> configparser.ConfigParser:
     """Read and parse .git/config file."""

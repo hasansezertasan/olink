@@ -3,10 +3,13 @@
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 REPOS_DIR = FIXTURES_DIR / "repos"
@@ -25,7 +28,7 @@ def init_git_with_config(config_name: str, dest: str) -> None:
     git_config = Path(dest) / ".git" / "config"
     template = GIT_CONFIGS_DIR / config_name
     # Append remote sections to the git-init-generated config
-    with open(git_config, "a") as f:
+    with Path(git_config).open("a", encoding="utf-8") as f:
         f.write(template.read_text())
 
 
@@ -47,102 +50,102 @@ def temp_dir() -> Iterator[str]:
 
 
 @pytest.fixture
-def temp_git_repo(temp_dir: str) -> Iterator[str]:
+def temp_git_repo(temp_dir: str) -> str:
     """Create a temporary git repository with a GitHub SSH origin remote."""
     init_git_with_config("github_ssh", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_https(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_https(temp_dir: str) -> str:
     """Create a temporary git repository with a GitHub HTTPS origin remote."""
     init_git_with_config("github_https", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_gitlab(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_gitlab(temp_dir: str) -> str:
     """Create a temporary git repository with a GitLab SSH origin remote."""
     init_git_with_config("gitlab_ssh", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_bitbucket(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_bitbucket(temp_dir: str) -> str:
     """Create a temporary git repository with a Bitbucket SSH origin remote."""
     init_git_with_config("bitbucket_ssh", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_bitbucket_https(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_bitbucket_https(temp_dir: str) -> str:
     """Create a temporary git repository with a Bitbucket HTTPS origin remote."""
     init_git_with_config("bitbucket_https", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_duplicate_keys(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_duplicate_keys(temp_dir: str) -> str:
     """Create a temporary git repository with duplicate keys in config (e.g. VS Code)."""
     init_git_with_config("github_ssh_duplicate_keys", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_with_upstream(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_with_upstream(temp_dir: str) -> str:
     """Create a temporary git repository with both origin and upstream remotes."""
     init_git_with_config("with_upstream", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 def _init_repo_with_origin(dest: str, origin_url: str) -> None:
     """Init a git repo with a single origin remote URL (inline, no fixture file needed)."""
     subprocess.run(["git", "init"], cwd=dest, capture_output=True, check=True)
     config = Path(dest) / ".git" / "config"
-    with open(config, "a") as f:
+    with Path(config).open("a", encoding="utf-8") as f:
         f.write(f'\n[remote "origin"]\n\turl = {origin_url}\n')
 
 
 @pytest.fixture
-def temp_git_repo_gitea(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_gitea(temp_dir: str) -> str:
     """Self-hosted Gitea origin via SSH."""
     _init_repo_with_origin(temp_dir, "git@gitea.example.com:testuser/testrepo.git")
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_gitea_https(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_gitea_https(temp_dir: str) -> str:
     """Self-hosted Gitea origin via HTTPS."""
     _init_repo_with_origin(temp_dir, "https://gitea.example.com/testuser/testrepo.git")
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_forgejo(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_forgejo(temp_dir: str) -> str:
     """Self-hosted Forgejo origin via SSH."""
     _init_repo_with_origin(temp_dir, "git@forgejo.example.com:testuser/testrepo.git")
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_forgejo_https(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_forgejo_https(temp_dir: str) -> str:
     """Self-hosted Forgejo origin via HTTPS."""
     _init_repo_with_origin(temp_dir, "https://forgejo.example.com/testuser/testrepo.git")
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_codeberg(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_codeberg(temp_dir: str) -> str:
     """Codeberg (Forgejo) origin via SSH."""
     _init_repo_with_origin(temp_dir, "git@codeberg.org:testuser/testrepo.git")
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_git_repo_codeberg_https(temp_dir: str) -> Iterator[str]:
+def temp_git_repo_codeberg_https(temp_dir: str) -> str:
     """Codeberg (Forgejo) origin via HTTPS."""
     _init_repo_with_origin(temp_dir, "https://codeberg.org/testuser/testrepo.git")
-    yield temp_dir
+    return temp_dir
 
 
 # =============================================================================
@@ -151,77 +154,77 @@ def temp_git_repo_codeberg_https(temp_dir: str) -> Iterator[str]:
 
 
 @pytest.fixture
-def temp_pyproject(temp_dir: str) -> Iterator[str]:
+def temp_pyproject(temp_dir: str) -> str:
     """Create a temporary directory with a pyproject.toml."""
     copy_repo_fixture("python_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_package_json(temp_dir: str) -> Iterator[str]:
+def temp_package_json(temp_dir: str) -> str:
     """Create a temporary directory with a package.json."""
     copy_repo_fixture("npm_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_package_json_scoped(temp_dir: str) -> Iterator[str]:
+def temp_package_json_scoped(temp_dir: str) -> str:
     """Create a temporary directory with a scoped npm package.json."""
     copy_repo_fixture("npm_scoped", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_cargo_toml(temp_dir: str) -> Iterator[str]:
+def temp_cargo_toml(temp_dir: str) -> str:
     """Create a temporary directory with a Cargo.toml."""
     copy_repo_fixture("rust_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_go_mod(temp_dir: str) -> Iterator[str]:
+def temp_go_mod(temp_dir: str) -> str:
     """Create a temporary directory with a go.mod."""
     copy_repo_fixture("go_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_gemspec(temp_dir: str) -> Iterator[str]:
+def temp_gemspec(temp_dir: str) -> str:
     """Create a temporary directory with a .gemspec file."""
     copy_repo_fixture("ruby_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_multi_ecosystem(temp_dir: str) -> Iterator[str]:
+def temp_multi_ecosystem(temp_dir: str) -> str:
     """Create a temporary directory with both pyproject.toml and package.json."""
     copy_repo_fixture("multi_ecosystem", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_open_vsx_package_json(temp_dir: str) -> Iterator[str]:
+def temp_open_vsx_package_json(temp_dir: str) -> str:
     """Provide extension metadata fixture to validate Open VSX target composition."""
     copy_repo_fixture("open_vsx_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_maven_pom(temp_dir: str) -> Iterator[str]:
+def temp_maven_pom(temp_dir: str) -> str:
     """Provide Maven coordinates fixture to exercise artifact URL generation paths."""
     copy_repo_fixture("maven_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_hackage_cabal(temp_dir: str) -> Iterator[str]:
+def temp_hackage_cabal(temp_dir: str) -> str:
     """Provide Cabal metadata fixture so Hackage target parsing stays deterministic."""
     copy_repo_fixture("haskell_project", temp_dir)
-    yield temp_dir
+    return temp_dir
 
 
 @pytest.fixture
-def temp_cpanfile(temp_dir: str) -> Iterator[str]:
+def temp_cpanfile(temp_dir: str) -> str:
     """Provide Perl dependency metadata fixture for MetaCPAN URL generation coverage."""
     copy_repo_fixture("perl_project", temp_dir)
-    yield temp_dir
+    return temp_dir
