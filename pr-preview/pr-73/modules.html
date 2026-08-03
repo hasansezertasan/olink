@@ -80,6 +80,10 @@ data-aria-dark="Switch to auto color mode">
     </button>
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#core-olink-core">Core (<code class="docutils literal notranslate">core</span></code>)</a><ul>
+<li><a class="reference internal" href="#olink.core.project.EcosystemConfig"><code class="docutils literal notranslate"><span class="pre">EcosystemConfig</span></code></a><ul>
+<li><a class="reference internal" href="#olink.core.project.EcosystemConfig.exists"><code class="docutils literal notranslate">exists()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#olink.core.project.ParsedRemote"><code class="docutils literal notranslate"><span class="pre">ParsedRemote</span></code></a><ul>
 <li><a class="reference internal" href="#olink.core.project.ParsedRemote.base_url"><code class="docutils literal notranslate">base_url</span></code></a></li>
 </ul>
@@ -315,8 +319,16 @@ data-aria-dark="Switch to auto color mode">
 </li>
 <li><a class="reference internal" href="#olink.tui.widgets.TargetListWidget"><code class="docutils literal notranslate"><span class="pre">TargetListWidget</span></code></a><ul>
 <li><a class="reference internal" href="#olink.tui.widgets.TargetListWidget.BINDINGS"><code class="docutils literal notranslate">BINDINGS</span></code></a></li>
+<li><a class="reference internal" href="#olink.tui.widgets.TargetListWidget.get_selected_item"><code class="docutils literal notranslate">get_selected_item()</span></code></a></li>
+<li><a class="reference internal" href="#olink.tui.widgets.TargetListWidget.update_items"><code class="docutils literal notranslate">update_items()</span></code></a></li>
 <li><a class="reference internal" href="#olink.tui.widgets.TargetListWidget.can_focus"><code class="docutils literal notranslate">can_focus</span></code></a></li>
 <li><a class="reference internal" href="#olink.tui.widgets.TargetListWidget.can_focus_children"><code class="docutils literal notranslate">can_focus_children</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#olink.tui.widgets.TargetRow"><code class="docutils literal notranslate"><span class="pre">TargetRow</span></code></a><ul>
+<li><a class="reference internal" href="#olink.tui.widgets.TargetRow.compose"><code class="docutils literal notranslate">compose()</span></code></a></li>
+<li><a class="reference internal" href="#olink.tui.widgets.TargetRow.can_focus"><code class="docutils literal notranslate">can_focus</span></code></a></li>
+<li><a class="reference internal" href="#olink.tui.widgets.TargetRow.can_focus_children"><code class="docutils literal notranslate">can_focus_children</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -374,6 +386,43 @@ This is faster but has limitations:
 and repo=”subgroup/repo”. The generated URL <a class="reference external" href="https://host/group/subgroup/repo">https://host/group/subgroup/repo</a>
 is correct for GitLab, but may not work for other platforms with nested paths.</p></li>
 </ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="olink.core.project.EcosystemConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">olink.core.project.</span></span><span class="sig-name descname"><span class="pre">EcosystemConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_package_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_signals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/core/project.html#EcosystemConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.project.EcosystemConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Configuration for an ecosystem.</p>
+<p><cite>config_file</cite> is the canonical filename (or glob) used by the simple existence
+check. <cite>extra_signals</cite> lists additional filename globs that also count as
+“ecosystem present” — used for ecosystems where multiple, equally-valid
+metadata layouts exist (e.g. CPAN’s Makefile.PL / dist.ini / lib/<a href="#id1"><span class="problematic" id="id2">*</span></a>.pm).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>display_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>config_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>get_package_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>)</p></li>
+<li><p><strong>extra_signals</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>...</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="olink.core.project.EcosystemConfig.exists">
+<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/core/project.html#EcosystemConfig.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.project.EcosystemConfig.exists" title="Link to this definition">¶</a></dt>
+<dd><p>Check if this ecosystem’s config file (or any extra signal) exists.</p>
+<p>Glob results are sorted so detection is deterministic across filesystems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cwd</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="olink.core.project.ParsedRemote">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">olink.core.project.</span></span><span class="sig-name descname"><span class="pre">ParsedRemote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/core/project.html#ParsedRemote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.project.ParsedRemote" title="Link to this definition">¶</a></dt>
@@ -721,7 +770,7 @@ emit a 404 URL.</p>
 <dt class="sig sig-object py" id="olink.core.targets.GemsTarget">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">olink.core.targets.</span></span><span class="sig-name descname"><span class="pre">GemsTarget</span></span><a class="reference internal" href="_modules/olink/core/targets.html#GemsTarget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.GemsTarget" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#olink.core.targets.Target" title="olink.core.targets.Target"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a></p>
-<p>Open rubygems.org gem page. Requires <a href="#id1"><span class="problematic" id="id2">*</span></a>.gemspec with <cite>spec.name = “…”</cite>.</p>
+<p>Open rubygems.org gem page. Requires <a href="#id3"><span class="problematic" id="id4">*</span></a>.gemspec with <cite>spec.name = “…”</cite>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="olink.core.targets.GemsTarget.get_url">
 <span class="sig-name descname"><span class="pre">get_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/core/targets.html#GemsTarget.get_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.GemsTarget.get_url" title="Link to this definition">¶</a></dt>
@@ -1072,7 +1121,7 @@ e.g., snyk:pypi, deps:npm, libraries-io:cargo</p>
 <dt class="sig sig-object py" id="olink.core.targets.NuGetTarget">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">olink.core.targets.</span></span><span class="sig-name descname"><span class="pre">NuGetTarget</span></span><a class="reference internal" href="_modules/olink/core/targets.html#NuGetTarget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.NuGetTarget" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#olink.core.targets.Target" title="olink.core.targets.Target"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a></p>
-<p>Open NuGet (.NET) package page. Falls back to <a href="#id3"><span class="problematic" id="id4">*</span></a>.csproj filename when &lt;PackageId&gt; absent.</p>
+<p>Open NuGet (.NET) package page. Falls back to <a href="#id5"><span class="problematic" id="id6">*</span></a>.csproj filename when &lt;PackageId&gt; absent.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="olink.core.targets.NuGetTarget.get_url">
 <span class="sig-name descname"><span class="pre">get_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/core/targets.html#NuGetTarget.get_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.NuGetTarget.get_url" title="Link to this definition">¶</a></dt>
@@ -2219,6 +2268,31 @@ validation for all messages.</p></li>
 </div>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="olink.tui.widgets.TargetListWidget.get_selected_item">
+<span class="sig-name descname"><span class="pre">get_selected_item</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/tui/widgets.html#TargetListWidget.get_selected_item"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.tui.widgets.TargetListWidget.get_selected_item" title="Link to this definition">¶</a></dt>
+<dd><p>Get the currently highlighted target item.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#olink.tui.models.TargetItem" title="olink.tui.models.TargetItem"><em>TargetItem</em></a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="olink.tui.widgets.TargetListWidget.update_items">
+<span class="sig-name descname"><span class="pre">update_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/tui/widgets.html#TargetListWidget.update_items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.tui.widgets.TargetListWidget.update_items" title="Link to this definition">¶</a></dt>
+<dd><p>Replace the list contents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference internal" href="#olink.tui.models.TargetItem" title="olink.tui.models.TargetItem"><em>TargetItem</em></a><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="olink.tui.widgets.TargetListWidget.can_focus">
 <span class="sig-name descname"><span class="pre">can_focus</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#olink.tui.widgets.TargetListWidget.can_focus" title="Link to this definition">¶</a></dt>
@@ -2228,6 +2302,63 @@ validation for all messages.</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="olink.tui.widgets.TargetListWidget.can_focus_children">
 <span class="sig-name descname"><span class="pre">can_focus_children</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#olink.tui.widgets.TargetListWidget.can_focus_children" title="Link to this definition">¶</a></dt>
+<dd><p>Widget’s children may receive focus.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="olink.tui.widgets.TargetRow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">olink.tui.widgets.</span></span><span class="sig-name descname"><span class="pre">TargetRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/tui/widgets.html#TargetRow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.tui.widgets.TargetRow" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ListItem</span></code></p>
+<p>A single target row in the list.</p>
+<p>Initialize a Widget.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><span class="target" id="olink.tui.widgets.TargetRow.params.*children"></span><strong>*children</strong><a class="paramlink headerlink reference internal" href="#olink.tui.widgets.TargetRow.params.*children">¶</a> – Child widgets.</p></li>
+<li><p><span class="target" id="olink.tui.widgets.TargetRow.params.name"></span><strong>name</strong><a class="paramlink headerlink reference internal" href="#olink.tui.widgets.TargetRow.params.name">¶</a> – The name of the widget.</p></li>
+<li><p><span class="target" id="olink.tui.widgets.TargetRow.params.id"></span><strong>id</strong><a class="paramlink headerlink reference internal" href="#olink.tui.widgets.TargetRow.params.id">¶</a> – The ID of the widget in the DOM.</p></li>
+<li><p><span class="target" id="olink.tui.widgets.TargetRow.params.classes"></span><strong>classes</strong><a class="paramlink headerlink reference internal" href="#olink.tui.widgets.TargetRow.params.classes">¶</a> – The CSS classes for the widget.</p></li>
+<li><p><span class="target" id="olink.tui.widgets.TargetRow.params.disabled"></span><strong>disabled</strong><a class="paramlink headerlink reference internal" href="#olink.tui.widgets.TargetRow.params.disabled">¶</a> – Whether the widget is disabled or not.</p></li>
+<li><p><span class="target" id="olink.tui.widgets.TargetRow.params.markup"></span><strong>markup</strong><a class="paramlink headerlink reference internal" href="#olink.tui.widgets.TargetRow.params.markup">¶</a> – Enable content markup?</p></li>
+<li><p><strong>item</strong> (<a class="reference internal" href="#olink.tui.models.TargetItem" title="olink.tui.models.TargetItem"><em>TargetItem</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="olink.tui.widgets.TargetRow.compose">
+<span class="sig-name descname"><span class="pre">compose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/tui/widgets.html#TargetRow.compose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.tui.widgets.TargetRow.compose" title="Link to this definition">¶</a></dt>
+<dd><p>Called by Textual to create child widgets.</p>
+<p>This method is called when a widget is mounted or by setting <cite>recompose=True</cite> when
+calling [<cite>refresh()</cite>][textual.widget.Widget.refresh].</p>
+<p>Note that you don’t typically need to explicitly call this method.</p>
+<p class="rubric">Example</p>
+<p><a href="#id7"><span class="problematic" id="id8">``</span></a><a href="#id9"><span class="problematic" id="id10">`</span></a>python
+def compose(self) -&gt; ComposeResult:</p>
+<blockquote>
+<div><p>yield Header()
+yield Label(“Press the button below:”)
+yield Button()
+yield Footer()</p>
+</div></blockquote>
+<p><a href="#id11"><span class="problematic" id="id12">``</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>[<em>Widget</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="olink.tui.widgets.TargetRow.can_focus">
+<span class="sig-name descname"><span class="pre">can_focus</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#olink.tui.widgets.TargetRow.can_focus" title="Link to this definition">¶</a></dt>
+<dd><p>Widget may receive focus.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="olink.tui.widgets.TargetRow.can_focus_children">
+<span class="sig-name descname"><span class="pre">can_focus_children</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#olink.tui.widgets.TargetRow.can_focus_children" title="Link to this definition">¶</a></dt>
 <dd><p>Widget’s children may receive focus.</p>
 </dd></dl>
 
