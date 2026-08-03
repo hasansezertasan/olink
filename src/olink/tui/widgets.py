@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
     from olink.tui.models import TargetItem
 
+__all__ = ["SearchInput", "StatusBar", "TargetListWidget", "TargetRow"]
+
 
 class TargetRow(ListItem):
     """A single target row in the list."""

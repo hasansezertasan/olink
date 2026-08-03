@@ -12,6 +12,9 @@ import os
 from pathlib import Path
 from typing import cast
 
+__all__ = ["config_dir", "load_pins", "pins_file", "save_pins"]
+
+
 logger = logging.getLogger(__name__)
 
 

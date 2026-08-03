@@ -19,6 +19,10 @@ MD025:
 # MD033/no-inline-html - Inline HTML
 MD033:
   allowed_elements: ["br", "details", "summary"]
+# MD036/no-emphasis-as-heading - the development JOURNAL uses emphasized inline
+# labels (**Bugs fixed**, **CLI**, ...) as lightweight section markers by
+# long-standing convention; they are deliberate, not misused headings.
+MD036: false
 # MD046/code-block-style - Code block style
 MD046:
   style: fenced

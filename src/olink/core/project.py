@@ -30,6 +30,17 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
+__all__ = [
+    "EcosystemConfig",
+    "ParsedRemote",
+    "detect_ecosystems",
+    "get_open_vsx_name",
+    "get_package_name",
+    "get_remote_url",
+    "parse_remote_url",
+]
+
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================

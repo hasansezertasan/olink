@@ -5,6 +5,14 @@ from dataclasses import dataclass
 from olink.core.catalog import REGISTRY, list_available_targets
 from olink.core.targets import MultiEcosystemTarget, Target
 
+__all__ = [
+    "FilterState",
+    "TargetItem",
+    "build_all_targets",
+    "build_available_targets",
+    "order_by_pins",
+]
+
 
 @dataclass
 class TargetItem:

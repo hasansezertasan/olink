@@ -38,7 +38,7 @@ Answers: CLI + TUI; no web/gui/mcp/worker, no pydantic-settings, no MegaLinter.
 - **Maximalist lint gates: fix real issues, justify every ignore.** ruff
   `select=ALL` — auto-fixed the mechanical majority and really fixed genuine
   issues (9 class docstrings, an abstract-class marker, a dropped type-narrowing
-  `assert`, 24 mis-annotated conftest fixtures). Rules that fight the project's
+  `assert`, 24 wrongly annotated conftest fixtures). Rules that fight the project's
   documented style were ignored with a per-rule rationale rather than churning
   hundreds of methods (docstring-per-method, `PLR6301`, lazy-import `PLC0415`,
   Textual `RUF012`, Typer bool-signature in `cli/app.py`).

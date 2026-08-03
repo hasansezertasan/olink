@@ -3,6 +3,8 @@
     "extends": ".github/linters/.markdownlint.yml",
   },
   "fix": true,
-  "globs": ["**/*.md", "**/*.markdown", "!CHANGELOG.md"],
+  // docs/superpowers holds internal design specs/plans (also excluded from the
+  // Sphinx build); they are not published prose, so keep them out of the lint set.
+  "globs": ["**/*.md", "**/*.markdown", "!CHANGELOG.md", "!docs/superpowers/**"],
   "gitignore": true,
 }

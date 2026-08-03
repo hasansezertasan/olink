@@ -72,6 +72,9 @@ from olink.core.targets import (
     WikiTarget,
 )
 
+__all__ = ["get_target", "list_available_targets", "list_targets"]
+
+
 # Explicit registry of all available targets
 REGISTRY: dict[str, type[Target]] = {
     # Git targets

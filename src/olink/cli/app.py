@@ -10,6 +10,9 @@ from olink import __version__
 from olink.core.catalog import get_target, list_available_targets, list_targets
 from olink.core.exceptions import OlinkError
 
+__all__ = ["main", "main_callback"]
+
+
 logger = logging.getLogger(__name__)
 
 _TUI_OPTIONAL_DEPS = frozenset({"olink.tui", "textual", "pyperclip"})
