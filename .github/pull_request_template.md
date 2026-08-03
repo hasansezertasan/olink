@@ -1,3 +1,6 @@
+<!-- omit in toc -->
+# Pull Request
+
 ## Description
 
 <!--- Describe your changes in detail -->
@@ -10,21 +13,17 @@
 ## Types of changes
 
 <!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
+<!--- This list is categorical, not a completion checklist, so it is excluded from the Task Completed Check. -->
 
+<!-- ignore-task-list-start -->
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] Documentation update
-- [ ] CI / build / tooling change
+<!-- ignore-task-list-end -->
 
 ## Usage examples
 
-<!--- Provide example commands or output of intended usage, e.g.:
-
-```sh
-$ olink <target>
-```
--->
+<!--- Provide examples of intended usage -->
 
 ## How Has This Been Tested?
 
@@ -36,9 +35,8 @@ $ olink <target>
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
 
 - [ ] I have performed a self-review of my code
-- [ ] I have updated the documentation accordingly
-- [ ] I have added tests to cover my changes
-- [ ] My PR title follows [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+- [ ] I have updated the documentation accordingly.
+- [ ] I have added tests to cover my changes.
 
 ## Which issue(s) this PR fixes
 

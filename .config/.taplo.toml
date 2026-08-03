@@ -1,1 +1,0 @@
-exclude = [".venv/**", "**/.venv/**", "**/node_modules/**", ".git/**"]
