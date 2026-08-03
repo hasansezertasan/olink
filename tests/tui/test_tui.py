@@ -382,3 +382,14 @@ class TestOrderByPins:
         ordered = order_by_pins(items, [])
         assert [i.name for i in ordered] == [i.name for i in items]
         assert all(i.pinned is False for i in ordered)
+
+    def test_reordering_same_list_resets_flags(self) -> None:
+        from olink.tui.models import order_by_pins
+
+        items = _make_items()
+        order_by_pins(items, ["origin"])
+        ordered = order_by_pins(items, ["npm"])
+        by_name = {i.name: i.pinned for i in ordered}
+        assert by_name["npm"] is True
+        assert by_name["origin"] is False
+        assert ordered[0].name == "npm"

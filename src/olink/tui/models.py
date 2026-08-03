@@ -52,6 +52,7 @@ def order_by_pins(items: list[TargetItem], pinned: list[str]) -> list[TargetItem
     Pinned items come first in the order they appear in `pinned`; the rest keep
     their incoming order. Pin names absent from `items` are ignored, so in the
     TUI's "available" mode a pin only surfaces when it applies to this project.
+    This function mutates each input item's `pinned` flag in place; it does not create copies.
     """
     rank = {name: index for index, name in enumerate(pinned)}
     for item in items:
