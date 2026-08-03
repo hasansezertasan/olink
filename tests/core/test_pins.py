@@ -58,6 +58,12 @@ class TestPinsPersistence:
         pins_file().write_text(json.dumps(["origin"]), encoding="utf-8")
         assert load_pins() == []
 
+    def test_load_pins_key_not_a_list_returns_empty(self, xdg: Path) -> None:
+        """A `pins` key that is not a list is treated as corrupt, degrading to []."""
+        pins_file().parent.mkdir(parents=True)
+        pins_file().write_text(json.dumps({"pins": "origin"}), encoding="utf-8")
+        assert load_pins() == []
+
     def test_save_overwrites_and_leaves_no_temp_file(self, xdg: Path) -> None:
         save_pins(["origin"])
         save_pins(["pypi"])

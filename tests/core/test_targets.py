@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from olink.core.catalog import REGISTRY, get_target, list_targets
+from olink.core.catalog import REGISTRY, get_target, list_available_targets, list_targets
 from olink.core.exceptions import (
     NoRemoteError,
     ProjectMetadataError,
+    UnknownPlatformError,
     UnknownTargetError,
     UnsupportedFeatureError,
 )
@@ -63,6 +64,7 @@ from olink.core.targets import (
     UnpkgTarget,
     UpstreamTarget,
     WikiTarget,
+    get_platform_url,
 )
 
 if TYPE_CHECKING:
@@ -1002,6 +1004,61 @@ class TestRegistryURLCoverage:
     def test_nuget_target_no_config(self, temp_dir: str) -> None:
         with pytest.raises(ProjectMetadataError, match="No .csproj file found"):
             NuGetTarget().get_url(temp_dir)
+
+
+class TestGetPlatformUrl:
+    """Tests for the get_platform_url helper's error branches."""
+
+    def test_unknown_platform_raises(self) -> None:
+        with pytest.raises(UnknownPlatformError, match="Unknown platform"):
+            get_platform_url("https://example.com/o/r", "nosuchforge", "issues")
+
+    def test_unknown_page_raises(self) -> None:
+        with pytest.raises(UnsupportedFeatureError, match="Unknown page 'nosuchpage'"):
+            get_platform_url("https://github.com/o/r", "github", "nosuchpage")
+
+
+class TestTargetGuardsOnMalformedMetadata:
+    """Targets must reject malformed upstream identifiers rather than emit bad URLs."""
+
+    def test_open_vsx_identifier_without_dot_raises(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        monkeypatch.setattr("olink.core.targets.get_open_vsx_name", lambda _cwd: "nodothere")
+        with pytest.raises(ProjectMetadataError, match="Invalid Open VSX identifier"):
+            OpenVSXTarget().get_url(temp_dir)
+
+    def test_maven_coordinates_without_colon_raises(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        monkeypatch.setattr("olink.core.targets.get_package_name", lambda _cwd, _eco: "nocolon")
+        with pytest.raises(ProjectMetadataError, match="Invalid Maven coordinates"):
+            MavenTarget().get_url(temp_dir)
+
+
+class TestListAvailableTargetsSkips:
+    """list_available_targets must silently skip targets whose URL resolution fails."""
+
+    def test_multi_ecosystem_single_supported_but_unresolvable_is_skipped(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """Detection claims 'pypi', but the dir has no pyproject.toml, so multi targets drop out."""
+        monkeypatch.setattr("olink.core.catalog.detect_ecosystems", lambda _cwd: ["pypi"])
+        results = list_available_targets(temp_dir)
+        names = {name for name, *_ in results}
+        # snyk/deps/etc. supported pypi per detection but get_url raises → excluded.
+        assert "snyk" not in names
+        assert "deps" not in names
+
+    def test_multi_ecosystem_multiple_supported_but_unresolvable_is_skipped(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """Two ecosystems 'detected' with no real metadata: every expanded variant is skipped."""
+        monkeypatch.setattr("olink.core.catalog.detect_ecosystems", lambda _cwd: ["pypi", "npm"])
+        results = list_available_targets(temp_dir)
+        names = {name for name, *_ in results}
+        assert not any(name.startswith("snyk") for name in names)
+        assert not any(name.startswith("deps") for name in names)
 
 
 class TestRegistryDriftGuard:

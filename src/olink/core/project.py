@@ -631,7 +631,7 @@ def _get_cpan_name(cwd: str) -> str:
         for pm in pm_files:
             try:
                 rel = pm.relative_to(lib_dir)
-            except ValueError:
+            except ValueError:  # pragma: no cover - rglob only yields paths under lib_dir; defensive
                 continue
             module = rel.with_suffix("").as_posix().replace("/", "::")
             if module:

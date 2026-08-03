@@ -2,11 +2,15 @@
 
 import pathlib
 import subprocess
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
 from olink.cli.app import app
+
+if TYPE_CHECKING:
+    import pytest
 
 runner = CliRunner()
 
@@ -213,3 +217,53 @@ class TestCLITUILaunch:
     def test_tui_keyboard_interrupt_handled(self, mock_tui: MagicMock, temp_dir: str) -> None:
         result = runner.invoke(app, ["-d", temp_dir])
         assert result.exit_code == 0
+
+    def test_tui_missing_optional_deps_shows_hint(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """When a TUI optional dep is missing, the CLI prints an install hint and exits 1."""
+        import builtins
+
+        real_import = builtins.__import__
+
+        def fake_import(name: str, *args: object, **kwargs: object) -> object:
+            if name == "olink.tui":
+                msg = "No module named 'textual'"
+                raise ImportError(msg, name="textual")
+            return real_import(name, *args, **kwargs)  # type: ignore[arg-type]
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        result = runner.invoke(app, ["-d", temp_dir])
+        assert result.exit_code == 1
+        assert "requires extra dependencies" in result.output
+
+    def test_tui_unrelated_import_error_propagates(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """An ImportError unrelated to the TUI optional deps must not be swallowed."""
+        import builtins
+
+        real_import = builtins.__import__
+
+        def fake_import(name: str, *args: object, **kwargs: object) -> object:
+            if name == "olink.tui":
+                msg = "boom"
+                raise ImportError(msg, name="some_unrelated_module")
+            return real_import(name, *args, **kwargs)  # type: ignore[arg-type]
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        result = runner.invoke(app, ["-d", temp_dir])
+        assert isinstance(result.exception, ImportError)
+
+
+class TestCLIEntryPoint:
+    """Tests for the module entry point."""
+
+    def test_main_invokes_app(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sys
+
+        app_module = sys.modules["olink.cli.app"]
+        called: list[bool] = []
+        monkeypatch.setattr(app_module, "app", lambda: called.append(True))
+        app_module.main()
+        assert called == [True]

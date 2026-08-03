@@ -1,14 +1,14 @@
 """Tests for TUI actions, models, and widgets."""
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pyperclip
 import pytest
 from textual.widgets import Static
 
-from olink.core.targets import Target
+from olink.core.targets import OriginTarget, SnykTarget, Target
 from olink.tui.actions import copy_to_clipboard, open_in_browser
-from olink.tui.app import OlinkTUI
+from olink.tui.app import OlinkTUI, launch_tui
 from olink.tui.models import TargetItem, build_all_targets, build_available_targets
 from olink.tui.widgets import SearchInput, StatusBar, TargetListWidget, TargetRow
 
@@ -495,6 +495,167 @@ class TestPinningInTUI:
                 await pilot.pause()
                 after = {r.item.name for r in target_list.query(TargetRow)}
                 assert after == {"pypi", "pypistats"}
+
+
+class TestTargetItemGetUrl:
+    """Tests for TargetItem.get_url ecosystem dispatch."""
+
+    def test_multi_ecosystem_item_uses_ecosystem(self, temp_pyproject: str) -> None:
+        """An item carrying an ecosystem instantiates the multi-ecosystem target with it."""
+        item = TargetItem(name="snyk", description="Snyk", target_cls=SnykTarget, ecosystem="pypi")
+        assert item.get_url(temp_pyproject) == "https://snyk.io/advisor/python/test-project"
+
+
+class TestWidgetSelectionEdge:
+    """Edge behavior of TargetListWidget.get_selected_item."""
+
+    @pytest.mark.asyncio
+    async def test_get_selected_item_none_when_empty(self) -> None:
+        with (
+            patch("olink.tui.app.build_all_targets", return_value=[]),
+            patch("olink.tui.app.build_available_targets", return_value=[]),
+        ):
+            app = OlinkTUI(cwd="/tmp")
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            target_list = app.query_one(TargetListWidget)
+            assert target_list.get_selected_item() is None
+
+
+class TestTUIControlFlowEdges:
+    """Cover early-return guards and rarely-hit branches in OlinkTUI."""
+
+    def _app(self, items: list[TargetItem], cwd: str = "/tmp") -> OlinkTUI:
+        with (
+            patch("olink.tui.app.build_all_targets", return_value=items),
+            patch("olink.tui.app.build_available_targets", return_value=items),
+        ):
+            return OlinkTUI(cwd=cwd)
+
+    @pytest.mark.asyncio
+    async def test_start_search_twice_is_noop(self) -> None:
+        app = self._app(_make_items())
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.action_start_search()
+            await pilot.pause()
+            assert app.searching is True
+            # Second call must return early without side effects.
+            app.action_start_search()
+            await pilot.pause()
+            assert app.searching is True
+
+    @pytest.mark.asyncio
+    async def test_cancel_search_when_not_searching_is_noop(self) -> None:
+        app = self._app(_make_items())
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            assert app.searching is False
+            app.action_cancel_search()  # must return early
+            await pilot.pause()
+            assert app.searching is False
+
+    @pytest.mark.asyncio
+    async def test_clearing_search_query_restores_status(self) -> None:
+        app = self._app(_make_items())
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.action_start_search()
+            await pilot.pause()
+            search = app.query_one(SearchInput)
+            search.value = "pypi"
+            await pilot.pause()
+            # Emptying the query takes the else branch: status is refreshed with count.
+            search.value = ""
+            await pilot.pause()
+            text = _status_text(app.query_one(StatusBar))
+            assert "5/5" in text
+
+    @pytest.mark.asyncio
+    async def test_input_submitted_when_not_searching_is_noop(self) -> None:
+        app = self._app(_make_items())
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            # searching is False; submitting must early-return without touching the list.
+            # The event object is unused on that early-return path.
+            app.on_input_submitted(MagicMock())
+            await pilot.pause()
+            rows = list(app.query_one(TargetListWidget).query(TargetRow))
+            assert len(rows) == 5
+
+    @pytest.mark.asyncio
+    async def test_action_open_with_no_selection_is_noop(self) -> None:
+        opened: list[str] = []
+        app = self._app([])  # empty list -> nothing selected
+        with patch("olink.tui.app.open_in_browser", lambda url: opened.append(url) or True):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                app.action_open_target()
+                await pilot.pause()
+                assert opened == []
+
+    @pytest.mark.asyncio
+    async def test_action_on_selected_reports_olink_error(self, temp_dir: str) -> None:
+        """A target whose get_url raises OlinkError surfaces as an error in the status bar."""
+        items = [TargetItem(name="origin", description="Origin", target_cls=OriginTarget)]
+        # temp_dir is not a git repo, so OriginTarget.get_url raises NotGitRepoError.
+        app = self._app(items, cwd=temp_dir)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(TargetListWidget).index = 0
+            await pilot.pause()
+            app.action_open_target()
+            await pilot.pause()
+            text = _status_text(app.query_one(StatusBar))
+            assert "✗" in text  # error marker
+
+    @pytest.mark.asyncio
+    async def test_action_on_selected_unknown_action_is_noop(self) -> None:
+        opened: list[str] = []
+        app = self._app(_make_items())
+        with patch("olink.tui.app.open_in_browser", lambda url: opened.append(url) or True):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                app.query_one(TargetListWidget).index = 0
+                await pilot.pause()
+                # Neither "open" nor "copy": guard falls through without acting.
+                app._action_on_selected("bogus")
+                await pilot.pause()
+                assert opened == []
+
+    @pytest.mark.asyncio
+    async def test_toggle_pin_with_no_selection_is_noop(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.save_pins") as save:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                app.action_toggle_pin()
+                await pilot.pause()
+                save.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_reselect_missing_name_does_not_crash(self) -> None:
+        app = self._app(_make_items())
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            target_list = app.query_one(TargetListWidget)
+            before = target_list.index
+            # Name absent from every row: loop scans all and exits without reselecting.
+            app._reselect("no-such-target")
+            await pilot.pause()
+            assert target_list.index == before
+
+
+class TestLaunchTUI:
+    """Tests for the launch_tui entry point."""
+
+    def test_launch_tui_constructs_and_runs(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        ran: list[bool] = []
+        monkeypatch.setattr(OlinkTUI, "run", lambda self: ran.append(True))
+        launch_tui(temp_dir)
+        assert ran == [True]
 
 
 class TestOrderByPins:
