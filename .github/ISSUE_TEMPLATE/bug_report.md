@@ -20,10 +20,12 @@ Replace this comment with a clear description of what the bug is.
 Provide a minimal reproducible example that developers can run to investigate.
 See https://stackoverflow.com/help/minimal-reproducible-example for guidance.
 
-As a CLI, include the exact command you ran, for example:
+As a CLI, include the exact command you ran and the contents of the relevant
+project files olink reads (e.g. `.git/config`, `pyproject.toml`,
+`package.json`), for example:
 
 ```shell
-olink --help
+olink pypi
 ```
 
 Include the full traceback if an exception was raised:
@@ -36,15 +38,16 @@ Traceback (most recent call last):
 
 ## Expected Behavior
 
-<!-- Describe the behavior you expected but did not get. -->
+<!-- Describe the behavior you expected but did not get. Which URL did you expect olink to open? -->
 
 ## Environment
 
 <!-- Please complete the following: -->
 
-- olink version: <!-- e.g. 0.1.0 -->
-- Python version: <!-- e.g. 3.12 -->
+- olink version: <!-- e.g. 0.1.0 — `olink --version` -->
+- Python version: <!-- e.g. 3.14 -->
 - OS and version: <!-- e.g. Windows 11, macOS 14, Ubuntu 24.04 -->
+- Shell: <!-- e.g. zsh, bash, PowerShell -->
 - Installation method: <!-- e.g. pip, uv, uvx, from source -->
 
 ### Additional Context

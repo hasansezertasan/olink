@@ -163,11 +163,24 @@ Common tasks are exposed as mise tasks (`mise run test`, `mise run style`,
 lint/type-check suite is `uv run --locked tox run -e style`, and the fast git
 hook gate is `uv run --locked tox run -e prek`.
 
-<!-- TODO @hasansezertasan: add any project-specific setup (IDE, services, env vars) -->
+A few project-specific notes:
+
+- olink targets **Python 3.14+** — make sure a 3.14 interpreter is available
+  (`mise install` provisions the pinned one from `.python-version`).
+- `uv sync` installs the optional `tui` extra (Textual + pyperclip) via the dev
+  group, so the terminal UI is exercised locally and by the test suite.
+- There are **no external services, databases, or environment variables** to
+  configure — olink reads local project files (`.git/config`, `pyproject.toml`,
+  `package.json`, …) directly.
 
 ### Improving The Documentation
 
-<!-- TODO @hasansezertasan: Updating, improving and correcting the documentation -->
+The documentation lives under `docs/` (Sphinx, reStructuredText). Build it
+locally with `uv run --locked tox run -e docs-build`, preview with live reload
+via `uv run --locked tox run -e docs-server`, and check external links with
+`uv run --locked tox run -e docs-linkcheck`. The API reference in
+`docs/modules.rst` is generated from module docstrings, so improving a
+docstring improves the published docs.
 
 ## Styleguides
 
@@ -388,7 +401,11 @@ merging: keep your project identity, adopt the template's tooling/config changes
 
 ## Join The Project Team
 
-<!-- TODO @hasansezertasan: Work in progress. -->
+olink is currently maintained by [@hasansezertasan](https://github.com/hasansezertasan).
+If you would like to take on a larger role — triaging issues, reviewing pull
+requests, or co-maintaining — start a thread on
+[Discussions](https://github.com/hasansezertasan/olink/discussions). Sustained,
+high-quality contributions are the surest path to a maintainer invitation.
 
 <!-- omit in toc -->
 ## Attribution
