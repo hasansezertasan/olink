@@ -130,231 +130,234 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="16"><span class="p">)</span>
 </span><span data-line="17"><span class="kn">from</span><span class="w"> </span><span class="nn">olink.tui.widgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">SearchInput</span><span class="p">,</span> <span class="n">StatusBar</span><span class="p">,</span> <span class="n">TargetListWidget</span><span class="p">,</span> <span class="n">TargetRow</span>
 </span><span data-line="18">
-</span><span data-line="19"><span class="n">HEADER_TEXT</span> <span class="o">=</span> <span class="p">(</span>
-</span><span data-line="20">    <span class="s2">&quot;olink — Interactive Target Browser</span><span class="se">\n</span><span class="s2">&quot;</span>
-</span><span data-line="21">    <span class="s2">&quot;Tab: toggle view  j/k: navigate  /: search  o: open  c: copy  p: pin  q: quit&quot;</span>
-</span><span data-line="22"><span class="p">)</span>
-</span><span data-line="23">
-</span><span data-line="24">
+</span><span data-line="19"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;OlinkTUI&quot;</span><span class="p">,</span> <span class="s2">&quot;launch_tui&quot;</span><span class="p">]</span>
+</span><span data-line="20">
+</span><span data-line="21">
+</span><span data-line="22"><span class="n">HEADER_TEXT</span> <span class="o">=</span> <span class="p">(</span>
+</span><span data-line="23">    <span class="s2">&quot;olink — Interactive Target Browser</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span data-line="24">    <span class="s2">&quot;Tab: toggle view  j/k: navigate  /: search  o: open  c: copy  p: pin  q: quit&quot;</span>
+</span><span data-line="25"><span class="p">)</span>
+</span><span data-line="26">
+</span><span data-line="27">
 <div class="viewcode-block" id="OlinkTUI">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.OlinkTUI">[docs]</a>
-</span><span data-line="25"><span class="k">class</span><span class="w"> </span><span class="nc">OlinkTUI</span><span class="p">(</span><span class="n">App</span><span class="p">[</span><span class="kc">None</span><span class="p">]):</span>
-</span><span data-line="26"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Main TUI application managing state and widget composition.&quot;&quot;&quot;</span>
-</span><span data-line="27">
-</span><span data-line="28">    <span class="n">BINDINGS</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="29">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;quit&quot;</span><span class="p">,</span> <span class="s2">&quot;Quit&quot;</span><span class="p">),</span>
-</span><span data-line="30">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;tab&quot;</span><span class="p">,</span> <span class="s2">&quot;toggle_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;Toggle view&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-</span><span data-line="31">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="s2">&quot;open_target&quot;</span><span class="p">,</span> <span class="s2">&quot;Open&quot;</span><span class="p">),</span>
-</span><span data-line="32">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;copy_target&quot;</span><span class="p">,</span> <span class="s2">&quot;Copy&quot;</span><span class="p">),</span>
-</span><span data-line="33">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;toggle_pin&quot;</span><span class="p">,</span> <span class="s2">&quot;Pin&quot;</span><span class="p">),</span>
-</span><span data-line="34">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;slash&quot;</span><span class="p">,</span> <span class="s2">&quot;start_search&quot;</span><span class="p">,</span> <span class="s2">&quot;Search&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-</span><span data-line="35">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;cancel_search&quot;</span><span class="p">,</span> <span class="s2">&quot;Cancel search&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-</span><span data-line="36">    <span class="p">]</span>
-</span><span data-line="37">
-</span><span data-line="38">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="39">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span data-line="40">        <span class="bp">self</span><span class="o">.</span><span class="n">cwd</span> <span class="o">=</span> <span class="n">cwd</span>
-</span><span data-line="41">        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">FilterState</span><span class="p">()</span>
-</span><span data-line="42">        <span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span> <span class="o">=</span> <span class="n">build_all_targets</span><span class="p">()</span>
-</span><span data-line="43">        <span class="bp">self</span><span class="o">.</span><span class="n">available_targets</span> <span class="o">=</span> <span class="n">build_available_targets</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
-</span><span data-line="44">        <span class="bp">self</span><span class="o">.</span><span class="n">searching</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span data-line="45">        <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="o">=</span> <span class="n">load_pins</span><span class="p">()</span>
-</span><span data-line="46">        <span class="c1"># Active search filter, kept after the search bar closes so a later</span>
-</span><span data-line="47">        <span class="c1"># refresh (e.g. toggling a pin) does not silently drop the filter.</span>
-</span><span data-line="48">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span data-line="49">
+</span><span data-line="28"><span class="k">class</span><span class="w"> </span><span class="nc">OlinkTUI</span><span class="p">(</span><span class="n">App</span><span class="p">[</span><span class="kc">None</span><span class="p">]):</span>
+</span><span data-line="29"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Main TUI application managing state and widget composition.&quot;&quot;&quot;</span>
+</span><span data-line="30">
+</span><span data-line="31">    <span class="n">BINDINGS</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="32">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="s2">&quot;quit&quot;</span><span class="p">,</span> <span class="s2">&quot;Quit&quot;</span><span class="p">),</span>
+</span><span data-line="33">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;tab&quot;</span><span class="p">,</span> <span class="s2">&quot;toggle_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;Toggle view&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span data-line="34">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="s2">&quot;open_target&quot;</span><span class="p">,</span> <span class="s2">&quot;Open&quot;</span><span class="p">),</span>
+</span><span data-line="35">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;copy_target&quot;</span><span class="p">,</span> <span class="s2">&quot;Copy&quot;</span><span class="p">),</span>
+</span><span data-line="36">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;toggle_pin&quot;</span><span class="p">,</span> <span class="s2">&quot;Pin&quot;</span><span class="p">),</span>
+</span><span data-line="37">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;slash&quot;</span><span class="p">,</span> <span class="s2">&quot;start_search&quot;</span><span class="p">,</span> <span class="s2">&quot;Search&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+</span><span data-line="38">        <span class="n">Binding</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">,</span> <span class="s2">&quot;cancel_search&quot;</span><span class="p">,</span> <span class="s2">&quot;Cancel search&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+</span><span data-line="39">    <span class="p">]</span>
+</span><span data-line="40">
+</span><span data-line="41">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="42">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="43">        <span class="bp">self</span><span class="o">.</span><span class="n">cwd</span> <span class="o">=</span> <span class="n">cwd</span>
+</span><span data-line="44">        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">FilterState</span><span class="p">()</span>
+</span><span data-line="45">        <span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span> <span class="o">=</span> <span class="n">build_all_targets</span><span class="p">()</span>
+</span><span data-line="46">        <span class="bp">self</span><span class="o">.</span><span class="n">available_targets</span> <span class="o">=</span> <span class="n">build_available_targets</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+</span><span data-line="47">        <span class="bp">self</span><span class="o">.</span><span class="n">searching</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span data-line="48">        <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="o">=</span> <span class="n">load_pins</span><span class="p">()</span>
+</span><span data-line="49">        <span class="c1"># Active search filter, kept after the search bar closes so a later</span>
+</span><span data-line="50">        <span class="c1"># refresh (e.g. toggling a pin) does not silently drop the filter.</span>
+</span><span data-line="51">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span data-line="52">
 <div class="viewcode-block" id="OlinkTUI.compose">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.OlinkTUI.compose">[docs]</a>
-</span><span data-line="50">    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComposeResult</span><span class="p">:</span>
-</span><span data-line="51">        <span class="n">header</span> <span class="o">=</span> <span class="n">Static</span><span class="p">(</span><span class="n">HEADER_TEXT</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;header&quot;</span><span class="p">)</span>
-</span><span data-line="52">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="s2">&quot;darkblue&quot;</span>
-</span><span data-line="53">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span>
-</span><span data-line="54">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">text_style</span> <span class="o">=</span> <span class="s2">&quot;bold&quot;</span>
-</span><span data-line="55">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">dock</span> <span class="o">=</span> <span class="s2">&quot;top&quot;</span>
-</span><span data-line="56">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">2</span>
-</span><span data-line="57">        <span class="k">yield</span> <span class="n">header</span>
-</span><span data-line="58">        <span class="k">yield</span> <span class="n">TargetListWidget</span><span class="p">()</span>
-</span><span data-line="59">        <span class="k">yield</span> <span class="n">SearchInput</span><span class="p">()</span>
-</span><span data-line="60">        <span class="k">yield</span> <span class="n">StatusBar</span><span class="p">()</span></div>
+</span><span data-line="53">    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComposeResult</span><span class="p">:</span>
+</span><span data-line="54">        <span class="n">header</span> <span class="o">=</span> <span class="n">Static</span><span class="p">(</span><span class="n">HEADER_TEXT</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;header&quot;</span><span class="p">)</span>
+</span><span data-line="55">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="s2">&quot;darkblue&quot;</span>
+</span><span data-line="56">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span>
+</span><span data-line="57">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">text_style</span> <span class="o">=</span> <span class="s2">&quot;bold&quot;</span>
+</span><span data-line="58">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">dock</span> <span class="o">=</span> <span class="s2">&quot;top&quot;</span>
+</span><span data-line="59">        <span class="n">header</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span data-line="60">        <span class="k">yield</span> <span class="n">header</span>
+</span><span data-line="61">        <span class="k">yield</span> <span class="n">TargetListWidget</span><span class="p">()</span>
+</span><span data-line="62">        <span class="k">yield</span> <span class="n">SearchInput</span><span class="p">()</span>
+</span><span data-line="63">        <span class="k">yield</span> <span class="n">StatusBar</span><span class="p">()</span></div>
 
-</span><span data-line="61">
-</span><span data-line="62">    <span class="k">def</span><span class="w"> </span><span class="nf">on_mount</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="63">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
 </span><span data-line="64">
-</span><span data-line="65">    <span class="k">def</span><span class="w"> </span><span class="nf">_source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TargetItem</span><span class="p">]:</span>
-</span><span data-line="66">        <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_targets</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;available&quot;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span>
-</span><span data-line="67">        <span class="k">return</span> <span class="n">order_by_pins</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">)</span>
-</span><span data-line="68">
-</span><span data-line="69">    <span class="k">def</span><span class="w"> </span><span class="nf">_refresh_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="70">        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_items</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_query</span><span class="p">)</span>
-</span><span data-line="71">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">update_items</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
-</span><span data-line="72">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_status</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">))</span>
-</span><span data-line="73">
-</span><span data-line="74">    <span class="k">def</span><span class="w"> </span><span class="nf">_refresh_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="75">        <span class="k">if</span> <span class="n">count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="76">            <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filter_items</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_query</span><span class="p">))</span>
-</span><span data-line="77">        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span><span class="p">)</span>
-</span><span data-line="78">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span><span class="o">.</span><span class="n">status_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
-</span><span data-line="79">
-</span><span data-line="80">    <span class="k">def</span><span class="w"> </span><span class="nf">action_toggle_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="81">        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;available&quot;</span> <span class="k">else</span> <span class="s2">&quot;available&quot;</span>
-</span><span data-line="82">        <span class="bp">self</span><span class="o">.</span><span class="n">_end_search</span><span class="p">()</span>
-</span><span data-line="83">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span data-line="84">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
-</span><span data-line="85">
-</span><span data-line="86">    <span class="k">def</span><span class="w"> </span><span class="nf">_filter_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TargetItem</span><span class="p">]:</span>
-</span><span data-line="87"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter current source items by substring match on name/description.&quot;&quot;&quot;</span>
-</span><span data-line="88">        <span class="k">if</span> <span class="ow">not</span> <span class="n">query</span><span class="p">:</span>
-</span><span data-line="89">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">()</span>
-</span><span data-line="90">        <span class="n">q</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-</span><span data-line="91">        <span class="k">return</span> <span class="p">[</span>
-</span><span data-line="92">            <span class="n">item</span>
-</span><span data-line="93">            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">()</span>
-</span><span data-line="94">            <span class="k">if</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-</span><span data-line="95">        <span class="p">]</span>
-</span><span data-line="96">
-</span><span data-line="97">    <span class="k">def</span><span class="w"> </span><span class="nf">_end_search</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="98"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Hide search input and reset search state.&quot;&quot;&quot;</span>
-</span><span data-line="99">        <span class="n">search_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">SearchInput</span><span class="p">)</span>
-</span><span data-line="100">        <span class="n">search_input</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span data-line="101">        <span class="n">search_input</span><span class="o">.</span><span class="n">display</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span data-line="102">        <span class="bp">self</span><span class="o">.</span><span class="n">searching</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span data-line="103">
+</span><span data-line="65">    <span class="k">def</span><span class="w"> </span><span class="nf">on_mount</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="66">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
+</span><span data-line="67">
+</span><span data-line="68">    <span class="k">def</span><span class="w"> </span><span class="nf">_source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TargetItem</span><span class="p">]:</span>
+</span><span data-line="69">        <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_targets</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;available&quot;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span>
+</span><span data-line="70">        <span class="k">return</span> <span class="n">order_by_pins</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">)</span>
+</span><span data-line="71">
+</span><span data-line="72">    <span class="k">def</span><span class="w"> </span><span class="nf">_refresh_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="73">        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_items</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_query</span><span class="p">)</span>
+</span><span data-line="74">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">update_items</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+</span><span data-line="75">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_status</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">))</span>
+</span><span data-line="76">
+</span><span data-line="77">    <span class="k">def</span><span class="w"> </span><span class="nf">_refresh_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="78">        <span class="k">if</span> <span class="n">count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="79">            <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filter_items</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_query</span><span class="p">))</span>
+</span><span data-line="80">        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span><span class="p">)</span>
+</span><span data-line="81">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span><span class="o">.</span><span class="n">status_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+</span><span data-line="82">
+</span><span data-line="83">    <span class="k">def</span><span class="w"> </span><span class="nf">action_toggle_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="84">        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;available&quot;</span> <span class="k">else</span> <span class="s2">&quot;available&quot;</span>
+</span><span data-line="85">        <span class="bp">self</span><span class="o">.</span><span class="n">_end_search</span><span class="p">()</span>
+</span><span data-line="86">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span data-line="87">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
+</span><span data-line="88">
+</span><span data-line="89">    <span class="k">def</span><span class="w"> </span><span class="nf">_filter_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TargetItem</span><span class="p">]:</span>
+</span><span data-line="90"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter current source items by substring match on name/description.&quot;&quot;&quot;</span>
+</span><span data-line="91">        <span class="k">if</span> <span class="ow">not</span> <span class="n">query</span><span class="p">:</span>
+</span><span data-line="92">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">()</span>
+</span><span data-line="93">        <span class="n">q</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+</span><span data-line="94">        <span class="k">return</span> <span class="p">[</span>
+</span><span data-line="95">            <span class="n">item</span>
+</span><span data-line="96">            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">()</span>
+</span><span data-line="97">            <span class="k">if</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">description</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+</span><span data-line="98">        <span class="p">]</span>
+</span><span data-line="99">
+</span><span data-line="100">    <span class="k">def</span><span class="w"> </span><span class="nf">_end_search</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="101"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Hide search input and reset search state.&quot;&quot;&quot;</span>
+</span><span data-line="102">        <span class="n">search_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">SearchInput</span><span class="p">)</span>
+</span><span data-line="103">        <span class="n">search_input</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span data-line="104">        <span class="n">search_input</span><span class="o">.</span><span class="n">display</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span data-line="105">        <span class="bp">self</span><span class="o">.</span><span class="n">searching</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span data-line="106">
 <div class="viewcode-block" id="OlinkTUI.action_start_search">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.OlinkTUI.action_start_search">[docs]</a>
-</span><span data-line="104">    <span class="k">def</span><span class="w"> </span><span class="nf">action_start_search</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="105"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Show search input and focus it.&quot;&quot;&quot;</span>
-</span><span data-line="106">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
-</span><span data-line="107">            <span class="k">return</span>
-</span><span data-line="108">        <span class="bp">self</span><span class="o">.</span><span class="n">searching</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span data-line="109">        <span class="n">search_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">SearchInput</span><span class="p">)</span>
-</span><span data-line="110">        <span class="n">search_input</span><span class="o">.</span><span class="n">display</span> <span class="o">=</span> <span class="kc">True</span>
-</span><span data-line="111">        <span class="n">search_input</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span data-line="112">        <span class="n">search_input</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
+</span><span data-line="107">    <span class="k">def</span><span class="w"> </span><span class="nf">action_start_search</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="108"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Show search input and focus it.&quot;&quot;&quot;</span>
+</span><span data-line="109">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
+</span><span data-line="110">            <span class="k">return</span>
+</span><span data-line="111">        <span class="bp">self</span><span class="o">.</span><span class="n">searching</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span data-line="112">        <span class="n">search_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">SearchInput</span><span class="p">)</span>
+</span><span data-line="113">        <span class="n">search_input</span><span class="o">.</span><span class="n">display</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span data-line="114">        <span class="n">search_input</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span data-line="115">        <span class="n">search_input</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
 
-</span><span data-line="113">
+</span><span data-line="116">
 <div class="viewcode-block" id="OlinkTUI.action_cancel_search">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.OlinkTUI.action_cancel_search">[docs]</a>
-</span><span data-line="114">    <span class="k">def</span><span class="w"> </span><span class="nf">action_cancel_search</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="115"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cancel search, restore full list, refocus target list.&quot;&quot;&quot;</span>
-</span><span data-line="116">        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
-</span><span data-line="117">            <span class="k">return</span>
-</span><span data-line="118">        <span class="bp">self</span><span class="o">.</span><span class="n">_end_search</span><span class="p">()</span>
-</span><span data-line="119">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span data-line="120">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
-</span><span data-line="121">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
+</span><span data-line="117">    <span class="k">def</span><span class="w"> </span><span class="nf">action_cancel_search</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="118"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Cancel search, restore full list, refocus target list.&quot;&quot;&quot;</span>
+</span><span data-line="119">        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
+</span><span data-line="120">            <span class="k">return</span>
+</span><span data-line="121">        <span class="bp">self</span><span class="o">.</span><span class="n">_end_search</span><span class="p">()</span>
+</span><span data-line="122">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span data-line="123">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
+</span><span data-line="124">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
 
-</span><span data-line="122">
+</span><span data-line="125">
 <div class="viewcode-block" id="OlinkTUI.on_input_changed">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.OlinkTUI.on_input_changed">[docs]</a>
-</span><span data-line="123">    <span class="k">def</span><span class="w"> </span><span class="nf">on_input_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">SearchInput</span><span class="o">.</span><span class="n">Changed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="124"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the target list as the user types in the search bar.&quot;&quot;&quot;</span>
-</span><span data-line="125">        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
-</span><span data-line="126">            <span class="k">return</span>
-</span><span data-line="127">        <span class="n">query</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">value</span>
-</span><span data-line="128">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="n">query</span>
-</span><span data-line="129">        <span class="n">filtered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_items</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span data-line="130">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">update_items</span><span class="p">(</span><span class="n">filtered</span><span class="p">)</span>
-</span><span data-line="131">        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span>
-</span><span data-line="132">        <span class="k">if</span> <span class="n">query</span><span class="p">:</span>
-</span><span data-line="133">            <span class="n">status</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Search: &#39;</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&#39; — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filtered</span><span class="p">)</span><span class="si">}</span><span class="s2"> matches&quot;</span><span class="p">)</span>
-</span><span data-line="134">            <span class="n">status</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span>
-</span><span data-line="135">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="136">            <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_status</span><span class="p">()</span></div>
+</span><span data-line="126">    <span class="k">def</span><span class="w"> </span><span class="nf">on_input_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">SearchInput</span><span class="o">.</span><span class="n">Changed</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="127"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter the target list as the user types in the search bar.&quot;&quot;&quot;</span>
+</span><span data-line="128">        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
+</span><span data-line="129">            <span class="k">return</span>
+</span><span data-line="130">        <span class="n">query</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">value</span>
+</span><span data-line="131">        <span class="bp">self</span><span class="o">.</span><span class="n">active_query</span> <span class="o">=</span> <span class="n">query</span>
+</span><span data-line="132">        <span class="n">filtered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_items</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span data-line="133">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">update_items</span><span class="p">(</span><span class="n">filtered</span><span class="p">)</span>
+</span><span data-line="134">        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span>
+</span><span data-line="135">        <span class="k">if</span> <span class="n">query</span><span class="p">:</span>
+</span><span data-line="136">            <span class="n">status</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Search: &#39;</span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&#39; — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filtered</span><span class="p">)</span><span class="si">}</span><span class="s2"> matches&quot;</span><span class="p">)</span>
+</span><span data-line="137">            <span class="n">status</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;white&quot;</span>
+</span><span data-line="138">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="139">            <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_status</span><span class="p">()</span></div>
 
-</span><span data-line="137">
+</span><span data-line="140">
 <div class="viewcode-block" id="OlinkTUI.on_input_submitted">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.OlinkTUI.on_input_submitted">[docs]</a>
-</span><span data-line="138">    <span class="k">def</span><span class="w"> </span><span class="nf">on_input_submitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_event</span><span class="p">:</span> <span class="n">SearchInput</span><span class="o">.</span><span class="n">Submitted</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="139"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Confirm search: hide input, keep filtered list, refocus list.&quot;&quot;&quot;</span>
-</span><span data-line="140">        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
-</span><span data-line="141">            <span class="k">return</span>
-</span><span data-line="142">        <span class="c1"># List is already filtered by on_input_changed; just close search UI</span>
-</span><span data-line="143">        <span class="bp">self</span><span class="o">.</span><span class="n">_end_search</span><span class="p">()</span>
-</span><span data-line="144">        <span class="n">target_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span>
-</span><span data-line="145">        <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_list</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
-</span><span data-line="146">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span><span class="o">.</span><span class="n">status_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span><span class="p">))</span>
-</span><span data-line="147">        <span class="n">target_list</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
+</span><span data-line="141">    <span class="k">def</span><span class="w"> </span><span class="nf">on_input_submitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_event</span><span class="p">:</span> <span class="n">SearchInput</span><span class="o">.</span><span class="n">Submitted</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="142"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Confirm search: hide input, keep filtered list, refocus list.&quot;&quot;&quot;</span>
+</span><span data-line="143">        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">searching</span><span class="p">:</span>
+</span><span data-line="144">            <span class="k">return</span>
+</span><span data-line="145">        <span class="c1"># List is already filtered by on_input_changed; just close search UI</span>
+</span><span data-line="146">        <span class="bp">self</span><span class="o">.</span><span class="n">_end_search</span><span class="p">()</span>
+</span><span data-line="147">        <span class="n">target_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span>
+</span><span data-line="148">        <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_list</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
+</span><span data-line="149">        <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span><span class="o">.</span><span class="n">status_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_targets</span><span class="p">))</span>
+</span><span data-line="150">        <span class="n">target_list</span><span class="o">.</span><span class="n">focus</span><span class="p">()</span></div>
 
-</span><span data-line="148">
-</span><span data-line="149">    <span class="k">def</span><span class="w"> </span><span class="nf">_action_on_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="150">        <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">get_selected_item</span><span class="p">()</span>
-</span><span data-line="151">        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="152">            <span class="k">return</span>
-</span><span data-line="153">
-</span><span data-line="154">        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span>
-</span><span data-line="155">        <span class="k">try</span><span class="p">:</span>
-</span><span data-line="156">            <span class="n">url</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cwd</span><span class="p">)</span>
-</span><span data-line="157">        <span class="k">except</span> <span class="n">OlinkError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span data-line="158">            <span class="n">status</span><span class="o">.</span><span class="n">set_error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-</span><span data-line="159">            <span class="k">return</span>
-</span><span data-line="160">
-</span><span data-line="161">        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;open&quot;</span><span class="p">:</span>
-</span><span data-line="162">            <span class="n">open_in_browser</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-</span><span data-line="163">            <span class="n">status</span><span class="o">.</span><span class="n">set_success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Opened: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="164">        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;copy&quot;</span><span class="p">:</span>
-</span><span data-line="165">            <span class="k">if</span> <span class="n">copy_to_clipboard</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
-</span><span data-line="166">                <span class="n">status</span><span class="o">.</span><span class="n">set_success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Copied: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="167">            <span class="k">else</span><span class="p">:</span>
-</span><span data-line="168">                <span class="n">status</span><span class="o">.</span><span class="n">set_error</span><span class="p">(</span><span class="s2">&quot;Clipboard not available&quot;</span><span class="p">)</span>
-</span><span data-line="169">
-</span><span data-line="170">    <span class="k">def</span><span class="w"> </span><span class="nf">action_open_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="171">        <span class="bp">self</span><span class="o">.</span><span class="n">_action_on_selected</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+</span><span data-line="151">
+</span><span data-line="152">    <span class="k">def</span><span class="w"> </span><span class="nf">_action_on_selected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="153">        <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span><span class="o">.</span><span class="n">get_selected_item</span><span class="p">()</span>
+</span><span data-line="154">        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="155">            <span class="k">return</span>
+</span><span data-line="156">
+</span><span data-line="157">        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span>
+</span><span data-line="158">        <span class="k">try</span><span class="p">:</span>
+</span><span data-line="159">            <span class="n">url</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get_url</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cwd</span><span class="p">)</span>
+</span><span data-line="160">        <span class="k">except</span> <span class="n">OlinkError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span data-line="161">            <span class="n">status</span><span class="o">.</span><span class="n">set_error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+</span><span data-line="162">            <span class="k">return</span>
+</span><span data-line="163">
+</span><span data-line="164">        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;open&quot;</span><span class="p">:</span>
+</span><span data-line="165">            <span class="n">open_in_browser</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</span><span data-line="166">            <span class="n">status</span><span class="o">.</span><span class="n">set_success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Opened: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="167">        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;copy&quot;</span><span class="p">:</span>
+</span><span data-line="168">            <span class="k">if</span> <span class="n">copy_to_clipboard</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+</span><span data-line="169">                <span class="n">status</span><span class="o">.</span><span class="n">set_success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Copied: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="170">            <span class="k">else</span><span class="p">:</span>
+</span><span data-line="171">                <span class="n">status</span><span class="o">.</span><span class="n">set_error</span><span class="p">(</span><span class="s2">&quot;Clipboard not available&quot;</span><span class="p">)</span>
 </span><span data-line="172">
-</span><span data-line="173">    <span class="k">def</span><span class="w"> </span><span class="nf">action_copy_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="174">        <span class="bp">self</span><span class="o">.</span><span class="n">_action_on_selected</span><span class="p">(</span><span class="s2">&quot;copy&quot;</span><span class="p">)</span>
+</span><span data-line="173">    <span class="k">def</span><span class="w"> </span><span class="nf">action_open_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="174">        <span class="bp">self</span><span class="o">.</span><span class="n">_action_on_selected</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
 </span><span data-line="175">
+</span><span data-line="176">    <span class="k">def</span><span class="w"> </span><span class="nf">action_copy_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="177">        <span class="bp">self</span><span class="o">.</span><span class="n">_action_on_selected</span><span class="p">(</span><span class="s2">&quot;copy&quot;</span><span class="p">)</span>
+</span><span data-line="178">
 <div class="viewcode-block" id="OlinkTUI.action_toggle_pin">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.OlinkTUI.action_toggle_pin">[docs]</a>
-</span><span data-line="176">    <span class="k">def</span><span class="w"> </span><span class="nf">action_toggle_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="177"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Pin/unpin the highlighted target, persist, and keep it selected.</span>
-</span><span data-line="178">
-</span><span data-line="179"><span class="sd">        The app&#39;s in-memory list is the session&#39;s source of truth: we toggle it</span>
-</span><span data-line="180"><span class="sd">        first, then try to persist. If the write fails the change still stands</span>
-</span><span data-line="181"><span class="sd">        (surfaced as an error), and a later successful toggle cannot silently</span>
-</span><span data-line="182"><span class="sd">        drop it by reloading a stale file from disk.</span>
-</span><span data-line="183"><span class="sd">        &quot;&quot;&quot;</span>
-</span><span data-line="184">        <span class="n">target_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span>
-</span><span data-line="185">        <span class="n">item</span> <span class="o">=</span> <span class="n">target_list</span><span class="o">.</span><span class="n">get_selected_item</span><span class="p">()</span>
-</span><span data-line="186">        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="187">            <span class="k">return</span>
-</span><span data-line="188">        <span class="n">name</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span>
-</span><span data-line="189">        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">:</span>
-</span><span data-line="190">            <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="o">=</span> <span class="p">[</span><span class="n">existing</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="k">if</span> <span class="n">existing</span> <span class="o">!=</span> <span class="n">name</span><span class="p">]</span>
-</span><span data-line="191">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="192">            <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">,</span> <span class="n">name</span><span class="p">]</span>
-</span><span data-line="193">        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span>
-</span><span data-line="194">        <span class="n">error</span><span class="p">:</span> <span class="ne">OSError</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span data-line="195">        <span class="k">try</span><span class="p">:</span>
-</span><span data-line="196">            <span class="n">save_pins</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">)</span>
-</span><span data-line="197">        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-</span><span data-line="198">            <span class="n">error</span> <span class="o">=</span> <span class="n">exc</span>
-</span><span data-line="199">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
-</span><span data-line="200">        <span class="c1"># Rows are re-mounted by update_items; wait for that to settle before</span>
-</span><span data-line="201">        <span class="c1"># querying for the row to reselect.</span>
-</span><span data-line="202">        <span class="bp">self</span><span class="o">.</span><span class="n">call_after_refresh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reselect</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-</span><span data-line="203">        <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="204">            <span class="n">status</span><span class="o">.</span><span class="n">set_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not save pins: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="205">        <span class="k">else</span><span class="p">:</span>
-</span><span data-line="206">            <span class="n">verb</span> <span class="o">=</span> <span class="s2">&quot;Pinned&quot;</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="k">else</span> <span class="s2">&quot;Unpinned&quot;</span>
-</span><span data-line="207">            <span class="n">status</span><span class="o">.</span><span class="n">set_success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">verb</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</span><span data-line="179">    <span class="k">def</span><span class="w"> </span><span class="nf">action_toggle_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="180"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Pin/unpin the highlighted target, persist, and keep it selected.</span>
+</span><span data-line="181">
+</span><span data-line="182"><span class="sd">        The app&#39;s in-memory list is the session&#39;s source of truth: we toggle it</span>
+</span><span data-line="183"><span class="sd">        first, then try to persist. If the write fails the change still stands</span>
+</span><span data-line="184"><span class="sd">        (surfaced as an error), and a later successful toggle cannot silently</span>
+</span><span data-line="185"><span class="sd">        drop it by reloading a stale file from disk.</span>
+</span><span data-line="186"><span class="sd">        &quot;&quot;&quot;</span>
+</span><span data-line="187">        <span class="n">target_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span>
+</span><span data-line="188">        <span class="n">item</span> <span class="o">=</span> <span class="n">target_list</span><span class="o">.</span><span class="n">get_selected_item</span><span class="p">()</span>
+</span><span data-line="189">        <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="190">            <span class="k">return</span>
+</span><span data-line="191">        <span class="n">name</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">name</span>
+</span><span data-line="192">        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">:</span>
+</span><span data-line="193">            <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="o">=</span> <span class="p">[</span><span class="n">existing</span> <span class="k">for</span> <span class="n">existing</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="k">if</span> <span class="n">existing</span> <span class="o">!=</span> <span class="n">name</span><span class="p">]</span>
+</span><span data-line="194">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="195">            <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">,</span> <span class="n">name</span><span class="p">]</span>
+</span><span data-line="196">        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">StatusBar</span><span class="p">)</span>
+</span><span data-line="197">        <span class="n">error</span><span class="p">:</span> <span class="ne">OSError</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span data-line="198">        <span class="k">try</span><span class="p">:</span>
+</span><span data-line="199">            <span class="n">save_pins</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pinned</span><span class="p">)</span>
+</span><span data-line="200">        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+</span><span data-line="201">            <span class="n">error</span> <span class="o">=</span> <span class="n">exc</span>
+</span><span data-line="202">        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_list</span><span class="p">()</span>
+</span><span data-line="203">        <span class="c1"># Rows are re-mounted by update_items; wait for that to settle before</span>
+</span><span data-line="204">        <span class="c1"># querying for the row to reselect.</span>
+</span><span data-line="205">        <span class="bp">self</span><span class="o">.</span><span class="n">call_after_refresh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reselect</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</span><span data-line="206">        <span class="k">if</span> <span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="207">            <span class="n">status</span><span class="o">.</span><span class="n">set_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not save pins: </span><span class="si">{</span><span class="n">error</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="208">        <span class="k">else</span><span class="p">:</span>
+</span><span data-line="209">            <span class="n">verb</span> <span class="o">=</span> <span class="s2">&quot;Pinned&quot;</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinned</span> <span class="k">else</span> <span class="s2">&quot;Unpinned&quot;</span>
+</span><span data-line="210">            <span class="n">status</span><span class="o">.</span><span class="n">set_success</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">verb</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
-</span><span data-line="208">
-</span><span data-line="209">    <span class="k">def</span><span class="w"> </span><span class="nf">_reselect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="210"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Move the cursor back onto the row for `name` after a refresh.&quot;&quot;&quot;</span>
-</span><span data-line="211">        <span class="n">target_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span>
-</span><span data-line="212">        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target_list</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TargetRow</span><span class="p">)):</span>
-</span><span data-line="213">            <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
-</span><span data-line="214">                <span class="n">target_list</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
-</span><span data-line="215">                <span class="k">return</span></div>
+</span><span data-line="211">
+</span><span data-line="212">    <span class="k">def</span><span class="w"> </span><span class="nf">_reselect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="213"><span class="w">        </span><span class="sd">&quot;&quot;&quot;Move the cursor back onto the row for `name` after a refresh.&quot;&quot;&quot;</span>
+</span><span data-line="214">        <span class="n">target_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_one</span><span class="p">(</span><span class="n">TargetListWidget</span><span class="p">)</span>
+</span><span data-line="215">        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target_list</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">TargetRow</span><span class="p">)):</span>
+</span><span data-line="216">            <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+</span><span data-line="217">                <span class="n">target_list</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+</span><span data-line="218">                <span class="k">return</span></div>
 
-</span><span data-line="216">
-</span><span data-line="217">
+</span><span data-line="219">
+</span><span data-line="220">
 <div class="viewcode-block" id="launch_tui">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.app.launch_tui">[docs]</a>
-</span><span data-line="218"><span class="k">def</span><span class="w"> </span><span class="nf">launch_tui</span><span class="p">(</span><span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="219"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Entry point for the TUI.&quot;&quot;&quot;</span>
-</span><span data-line="220">    <span class="n">OlinkTUI</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span></div>
+</span><span data-line="221"><span class="k">def</span><span class="w"> </span><span class="nf">launch_tui</span><span class="p">(</span><span class="n">cwd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="222"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Entry point for the TUI.&quot;&quot;&quot;</span>
+</span><span data-line="223">    <span class="n">OlinkTUI</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">

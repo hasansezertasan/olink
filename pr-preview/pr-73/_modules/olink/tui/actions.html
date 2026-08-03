@@ -118,24 +118,26 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="4">
 </span><span data-line="5"><span class="kn">import</span><span class="w"> </span><span class="nn">pyperclip</span>
 </span><span data-line="6">
-</span><span data-line="7">
+</span><span data-line="7"><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;copy_to_clipboard&quot;</span><span class="p">,</span> <span class="s2">&quot;open_in_browser&quot;</span><span class="p">]</span>
+</span><span data-line="8">
+</span><span data-line="9">
 <div class="viewcode-block" id="open_in_browser">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.actions.open_in_browser">[docs]</a>
-</span><span data-line="8"><span class="k">def</span><span class="w"> </span><span class="nf">open_in_browser</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span data-line="9"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a URL in the default browser.&quot;&quot;&quot;</span>
-</span><span data-line="10">    <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
+</span><span data-line="10"><span class="k">def</span><span class="w"> </span><span class="nf">open_in_browser</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span data-line="11"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a URL in the default browser.&quot;&quot;&quot;</span>
+</span><span data-line="12">    <span class="k">return</span> <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></div>
 
-</span><span data-line="11">
-</span><span data-line="12">
+</span><span data-line="13">
+</span><span data-line="14">
 <div class="viewcode-block" id="copy_to_clipboard">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.actions.copy_to_clipboard">[docs]</a>
-</span><span data-line="13"><span class="k">def</span><span class="w"> </span><span class="nf">copy_to_clipboard</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span data-line="14"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Copy text to the system clipboard.&quot;&quot;&quot;</span>
-</span><span data-line="15">    <span class="k">try</span><span class="p">:</span>
-</span><span data-line="16">        <span class="n">pyperclip</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-</span><span data-line="17">    <span class="k">except</span> <span class="n">pyperclip</span><span class="o">.</span><span class="n">PyperclipException</span><span class="p">:</span>
-</span><span data-line="18">        <span class="k">return</span> <span class="kc">False</span>
-</span><span data-line="19">    <span class="k">return</span> <span class="kc">True</span></div>
+</span><span data-line="15"><span class="k">def</span><span class="w"> </span><span class="nf">copy_to_clipboard</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span data-line="16"><span class="w">    </span><span class="sd">&quot;&quot;&quot;Copy text to the system clipboard.&quot;&quot;&quot;</span>
+</span><span data-line="17">    <span class="k">try</span><span class="p">:</span>
+</span><span data-line="18">        <span class="n">pyperclip</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+</span><span data-line="19">    <span class="k">except</span> <span class="n">pyperclip</span><span class="o">.</span><span class="n">PyperclipException</span><span class="p">:</span>
+</span><span data-line="20">        <span class="k">return</span> <span class="kc">False</span>
+</span><span data-line="21">    <span class="k">return</span> <span class="kc">True</span></div>
 
 </span></pre></div>
         </article><button class="back-to-top" type="button">
