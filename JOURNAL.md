@@ -4,6 +4,85 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-08-03 — Adopt copier-pyproject Template Tooling
+
+### Context
+
+Adopted the [`hasansezertasan/copier-pyproject`](https://github.com/hasansezertasan/copier-pyproject)
+template (v1.0.0) as the source of truth for tooling, CI, and project config, and
+recorded a `.copier-answers.yml` anchor so future template changes flow in via
+`copier update`. olink already carried a mature, hand-curated stack (poe/prek,
+seven type-checkers, release-please + hatch-vcs, renovate, codecov). The decision
+was a **full template takeover** of tooling, keeping olink's runtime source and
+identity.
+
+Answers: CLI + TUI; no web/gui/mcp/worker, no pydantic-settings, no MegaLinter.
+
+### Decisions
+
+- **Division of ownership.** The template owns tooling/CI/config; the project owns
+  its source and identity. Ran `copier copy --overwrite`, then restored
+  `src/olink/**`, tests, README, LICENSE, AGENTS.md, and the load-bearing
+  `pyproject` bits from git; deleted the template's app skeleton
+  (`core/{config,dirs,logging_setup}`, `utils/`, `__metadata__`).
+- **Python floor stays 3.14.** The template ships `>=3.10` with a 5-version tox
+  matrix; olink is 3.14-only, so every tooling config (mypy/ruff/ty/pyrefly/
+  basedpyright/tox) was pinned to 3.14 and the matrix collapsed to one env.
+- **CLI/TUI are core, not extras.** Kept `typer`/`defusedxml` as core deps, the
+  `tui` extra, and `olink = olink.cli:main` — not the template's extras-based
+  layout.
+- **Runner/docs/release takeover.** poe → tox (tox-uv); added Sphinx docs
+  (`docs/modules.rst` rewritten to real modules; `conf.py` excludes
+  `superpowers/**` so internal design specs are never published); release-please
+  via `release.yml`; manifest set to the real released version `0.1.0`.
+- **Maximalist lint gates: fix real issues, justify every ignore.** ruff
+  `select=ALL` — auto-fixed the mechanical majority and really fixed genuine
+  issues (9 class docstrings, an abstract-class marker, a dropped type-narrowing
+  `assert`, 24 mis-annotated conftest fixtures). Rules that fight the project's
+  documented style were ignored with a per-rule rationale rather than churning
+  hundreds of methods (docstring-per-method, `PLR6301`, lazy-import `PLC0415`,
+  Textual `RUF012`, Typer bool-signature in `cli/app.py`).
+- **Coverage to 99%.** Added 51 tests (314 → 365), overwhelmingly error/edge
+  paths in `core/project.py` (git-config parsing) plus CLI/TUI guards. One
+  genuinely-unreachable defensive branch got `# pragma: no cover`.
+
+### The zuban caveat
+
+The template's `style` env includes `zuban check src`. zuban 0.9.0 **hard-panics**
+(`RefCell already mutably borrowed`) while following the import into the untyped
+`pyperclip` dependency, and it does not honor mypy's `ignore_missing_imports`
+override. A tool that crashes cannot be a gate, so `zuban` was removed from the
+tox `style` env and the `style` dependency group, with a `NOTE` in `pyproject.toml`
+explaining why and pointing at re-enablement once the upstream panic is fixed.
+mypy (strict), basedpyright (strict), ty, and pyrefly already cover typing, so no
+real coverage was lost.
+
+### Outcome
+
+All isolated (CI-equivalent) gates pass: `tox -e style`, `tox -e 3.14` (365 tests,
+coverage 99%), `tox -e cli`, `tox -e docs-build`, `uv build`, and the
+`copier update --pretend --vcs-ref=v1.0.0` anchor gate ("Keeping template version
+1.0.0"). Also reconciled the template-planted prose (deduped issue templates,
+filled the `CONTRIBUTING.md` TODOs) — invisible to every gate, so done by hand.
+
+### Follow-ups (external, out of this branch)
+
+PyPI Trusted Publishing, `CODECOV_TOKEN`, enable GitHub Pages after the first
+`gh-pages` build, install Renovate, and add a `no-issue` label to the adoption PR
+so the linked-issue check passes.
+
+### Lesson Learned
+
+**Adopting a template into a mature project is reconciliation, not scaffolding.**
+`git diff` on a clean branch is the safety net: overwrite everything, then restore
+the project's side file by file. **A crashing tool is not a gate** — drop it with a
+documented reason rather than contort the code around a bug. And **green CI is not
+"done"**: the template plants valid-markdown prose (issue templates, CONTRIBUTING)
+that passes every linter while being wrong, so a human read is the only thing that
+catches it.
+
+---
+
 ## 2026-08-03 — Pinned Targets in TUI
 
 ### Context
