@@ -30,16 +30,18 @@ Added a persistent pinning feature to the TUI, allowing users to mark frequently
 - Users can now press `p` to pin/unpin targets, with the pinned state persisting across sessions and projects.
 - Pinned targets float to the top (marked with `★`) in both `available` and `all` modes.
 - Failures in reading/writing pins are handled gracefully — the user sees errors in the status bar but the toggle still takes effect in-memory.
-- Pins apply to the current project only when in `available` mode (unpinned targets never surface in `available` mode regardless of global pin state).
+- In `available` mode the list shows every target available for the current project (pinned or not); a globally-pinned target that does not apply to this project simply stays hidden — pins reorder the available set, they do not add unavailable entries.
 
 ### Follow-up (post-review polish)
 
-Addressed the minor findings from the PR #70 review:
+Addressed the review findings from PR #70 (self-review + Sourcery/CodeRabbit/Codex bots):
 
-- **Atomic writes**: `save_pins()` now writes to a `pins.json.tmp` sibling and `os.replace()`s it into place, so a crash mid-write can no longer truncate `pins.json` into an empty (silent pin-loss) file.
+- **Atomic writes**: `save_pins()` writes to a `pins.json.tmp` sibling and `os.replace()`s it into place, so a crash mid-write can no longer truncate `pins.json` into an empty (silent pin-loss) file.
+- **Corrupt-file robustness**: `load_pins()` now also catches `UnicodeDecodeError` (not an `OSError`), so a pins file with non-UTF-8 bytes degrades to empty instead of crashing the TUI at startup.
+- **In-memory list is the session source of truth**: `action_toggle_pin()` toggles `self.pinned` and persists via `save_pins()` rather than reloading from disk through the old `toggle_pin()` helper (removed). This fixes a case where a pin made while the config dir was read-only was dropped by the next successful toggle.
 - **Search filter preserved on pin**: added `active_query` state so toggling a pin while a submitted search filter is active re-applies the filter instead of resetting to the full list; `_refresh_list()` now computes the source once (was called twice per refresh).
 - **Success feedback**: pin/unpin now reports `Pinned <name>` / `Unpinned <name>` in the status bar, consistent with open/copy.
-- Added tests for the unpin write-failure branch, success status, filter preservation, and atomic overwrite (313 passing).
+- Added tests for invalid-UTF-8 handling, unpin success + write-failure paths, the `★` marker rendering, success status, filter preservation, and atomic overwrite.
 
 ---
 

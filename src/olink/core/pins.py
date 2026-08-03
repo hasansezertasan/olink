@@ -33,7 +33,10 @@ def load_pins() -> list[str]:
         raw = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return []
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
+        # UnicodeDecodeError is not an OSError; catch it too so a pins file
+        # with non-UTF-8 bytes is treated as corrupt instead of crashing the
+        # TUI at startup (load_pins runs in OlinkTUI.__init__).
         logger.warning("Could not read pins file %s: %s", path, exc)
         return []
 
@@ -61,18 +64,3 @@ def save_pins(pins: list[str]) -> None:
     tmp = path.parent / (path.name + ".tmp")
     tmp.write_text(json.dumps({"pins": pins}, indent=2) + "\n", encoding="utf-8")
     os.replace(tmp, path)
-
-
-def toggle_pin(name: str) -> list[str]:
-    """Toggle a target's pinned state and persist. Returns the new pin list.
-
-    Newly pinned names are appended so the pinned group stays in the order the
-    user pinned things.
-    """
-    pins = load_pins()
-    if name in pins:
-        pins = [existing for existing in pins if existing != name]
-    else:
-        pins = [*pins, name]
-    save_pins(pins)
-    return pins

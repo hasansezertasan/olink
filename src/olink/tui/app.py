@@ -5,7 +5,7 @@ from textual.binding import Binding
 from textual.widgets import Static
 
 from olink.core.exceptions import OlinkError
-from olink.core.pins import load_pins, toggle_pin
+from olink.core.pins import load_pins, save_pins
 from olink.tui.actions import copy_to_clipboard, open_in_browser
 from olink.tui.models import (
     FilterState,
@@ -174,24 +174,27 @@ class OlinkTUI(App[None]):
         self._action_on_selected("copy")
 
     def action_toggle_pin(self) -> None:
-        """Pin/unpin the highlighted target, persist, and keep it selected."""
+        """Pin/unpin the highlighted target, persist, and keep it selected.
+
+        The app's in-memory list is the session's source of truth: we toggle it
+        first, then try to persist. If the write fails the change still stands
+        (surfaced as an error), and a later successful toggle cannot silently
+        drop it by reloading a stale file from disk.
+        """
         target_list = self.query_one(TargetListWidget)
         item = target_list.get_selected_item()
         if item is None:
             return
         name = item.name
+        if name in self.pinned:
+            self.pinned = [existing for existing in self.pinned if existing != name]
+        else:
+            self.pinned = [*self.pinned, name]
         status = self.query_one(StatusBar)
         error: OSError | None = None
-        # toggle_pin re-reads the file as the source of truth so an external
-        # edit is respected. Only when persisting fails do we mirror the toggle
-        # in memory, so the change stays visible for the rest of the session.
         try:
-            self.pinned = toggle_pin(name)
+            save_pins(self.pinned)
         except OSError as exc:
-            if name in self.pinned:
-                self.pinned = [existing for existing in self.pinned if existing != name]
-            else:
-                self.pinned = [*self.pinned, name]
             error = exc
         self._refresh_list()
         # Rows are re-mounted by update_items; wait for that to settle before

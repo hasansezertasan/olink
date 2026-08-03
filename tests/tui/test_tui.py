@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pyperclip
 import pytest
+from textual.widgets import Static
 
 from olink.core.targets import Target
 from olink.tui.actions import copy_to_clipboard, open_in_browser
@@ -352,6 +353,11 @@ class TestPinningInTUI:
         ):
             return OlinkTUI(cwd="/tmp")
 
+    @staticmethod
+    def _row_text(row: TargetRow) -> str:
+        rendered = row.query_one(Static).render()
+        return getattr(rendered, "plain", str(rendered))
+
     @pytest.mark.asyncio
     async def test_pinned_target_renders_first(self) -> None:
         app = self._app(["origin"])
@@ -360,11 +366,15 @@ class TestPinningInTUI:
             rows = list(app.query_one(TargetListWidget).query(TargetRow))
             assert rows[0].item.name == "origin"
             assert rows[0].item.pinned is True
+            # The pinned row renders with a leading ★ marker; others do not.
+            assert self._row_text(rows[0]).startswith("★ origin")
+            unpinned = next(r for r in rows if not r.item.pinned)
+            assert not self._row_text(unpinned).startswith("★")
 
     @pytest.mark.asyncio
     async def test_p_key_pins_selected_and_persists(self) -> None:
         app = self._app([])
-        with patch("olink.tui.app.toggle_pin", return_value=["pypi"]) as toggle:
+        with patch("olink.tui.app.save_pins") as save:
             async with app.run_test() as pilot:
                 await pilot.pause()
                 target_list = app.query_one(TargetListWidget)
@@ -374,13 +384,32 @@ class TestPinningInTUI:
                 assert selected is not None
                 await pilot.press("p")
                 await pilot.pause()
-                toggle.assert_called_once_with(selected.name)
                 assert app.pinned == ["pypi"]
+                save.assert_called_once_with(["pypi"])
+
+    @pytest.mark.asyncio
+    async def test_p_key_unpins_selected_and_persists(self) -> None:
+        app = self._app(["pypi"])
+        with patch("olink.tui.app.save_pins") as save:
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi" is pinned → floats to top
+                await pilot.pause()
+                assert target_list.get_selected_item().name == "pypi"
+                await pilot.press("p")
+                await pilot.pause()
+                assert app.pinned == []
+                save.assert_called_once_with([])
+                # Selection follows the target as it drops back into the list.
+                selected = target_list.get_selected_item()
+                assert selected.name == "pypi"
+                assert selected.pinned is False
 
     @pytest.mark.asyncio
     async def test_p_key_keeps_selection_on_same_target(self) -> None:
         app = self._app([])
-        with patch("olink.tui.app.toggle_pin", return_value=["issues"]):
+        with patch("olink.tui.app.save_pins"):
             async with app.run_test() as pilot:
                 await pilot.pause()
                 target_list = app.query_one(TargetListWidget)
@@ -395,7 +424,7 @@ class TestPinningInTUI:
     @pytest.mark.asyncio
     async def test_save_failure_shows_error_but_toggles_memory(self) -> None:
         app = self._app([])
-        with patch("olink.tui.app.toggle_pin", side_effect=OSError("read-only")):
+        with patch("olink.tui.app.save_pins", side_effect=OSError("read-only")):
             async with app.run_test() as pilot:
                 await pilot.pause()
                 target_list = app.query_one(TargetListWidget)
@@ -411,7 +440,7 @@ class TestPinningInTUI:
     @pytest.mark.asyncio
     async def test_unpin_save_failure_removes_in_memory(self) -> None:
         app = self._app(["pypi"])
-        with patch("olink.tui.app.toggle_pin", side_effect=OSError("read-only")):
+        with patch("olink.tui.app.save_pins", side_effect=OSError("read-only")):
             async with app.run_test() as pilot:
                 await pilot.pause()
                 target_list = app.query_one(TargetListWidget)
@@ -427,7 +456,7 @@ class TestPinningInTUI:
     @pytest.mark.asyncio
     async def test_pin_shows_success_status(self) -> None:
         app = self._app([])
-        with patch("olink.tui.app.toggle_pin", return_value=["pypi"]):
+        with patch("olink.tui.app.save_pins"):
             async with app.run_test() as pilot:
                 await pilot.pause()
                 target_list = app.query_one(TargetListWidget)
@@ -441,7 +470,7 @@ class TestPinningInTUI:
     @pytest.mark.asyncio
     async def test_pin_preserves_active_search_filter(self) -> None:
         app = self._app([])
-        with patch("olink.tui.app.toggle_pin", return_value=["pypi"]):
+        with patch("olink.tui.app.save_pins"):
             async with app.run_test() as pilot:
                 await pilot.pause()
                 await pilot.press("slash")  # open search
