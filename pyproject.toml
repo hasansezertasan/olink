@@ -75,7 +75,7 @@ test = [
   "coverage[toml]==7.15.3",
   "coverage-enable-subprocess==1.0",
 ]
-tool = ["poethepoet==0.48.0", "prek==0.4.11"]
+tool = ["poethepoet==0.48.0", "prek==0.4.12"]
 
 [tool.uv]
 add-bounds = "exact"
