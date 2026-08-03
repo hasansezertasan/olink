@@ -17,6 +17,9 @@ import json
 import logging
 import re
 import tomllib
+from collections.abc import (
+    Callable,  # noqa: TC003  # runtime import: EcosystemConfig's field annotation is read by Sphinx autodoc / get_type_hints
+)
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -27,7 +30,6 @@ import defusedxml.ElementTree as ET  # noqa: N817  # ET is the universal alias f
 from olink.core.exceptions import NotGitRepoError, ProjectMetadataError, UnknownPlatformError
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
 __all__ = [

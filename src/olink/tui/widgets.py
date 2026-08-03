@@ -1,15 +1,15 @@
 """Custom Textual widgets for the TUI."""
 
-from typing import TYPE_CHECKING
-
 from rich.text import Text
+from textual.app import (
+    ComposeResult,  # noqa: TC002  # runtime import: read by Sphinx autodoc / get_type_hints on compose()
+)
 from textual.binding import Binding
 from textual.widgets import Input, ListItem, ListView, Static
 
-if TYPE_CHECKING:
-    from textual.app import ComposeResult
-
-    from olink.tui.models import TargetItem
+from olink.tui.models import (
+    TargetItem,  # noqa: TC001  # runtime import: read by Sphinx autodoc / get_type_hints on the widget signatures
+)
 
 __all__ = ["SearchInput", "StatusBar", "TargetListWidget", "TargetRow"]
 
