@@ -50,10 +50,17 @@ def load_pins() -> list[str]:
 
 
 def save_pins(pins: list[str]) -> None:
-    """Write the pin list, creating the config directory if needed."""
+    """Write the pin list, creating the config directory if needed.
+
+    Writes to a sibling temp file and atomically renames it into place so a
+    crash mid-write can never truncate ``pins.json`` (which ``load_pins`` would
+    then silently read as an empty list, losing every pin).
+    """
     path = pins_file()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"pins": pins}, indent=2) + "\n", encoding="utf-8")
+    tmp = path.parent / (path.name + ".tmp")
+    tmp.write_text(json.dumps({"pins": pins}, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
 
 
 def toggle_pin(name: str) -> list[str]:

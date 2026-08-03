@@ -43,6 +43,9 @@ class OlinkTUI(App[None]):
         self.available_targets = build_available_targets(cwd)
         self.searching = False
         self.pinned = load_pins()
+        # Active search filter, kept after the search bar closes so a later
+        # refresh (e.g. toggling a pin) does not silently drop the filter.
+        self.active_query = ""
 
     def compose(self) -> ComposeResult:
         header = Static(HEADER_TEXT, id="header")
@@ -64,17 +67,20 @@ class OlinkTUI(App[None]):
         return order_by_pins(base, self.pinned)
 
     def _refresh_list(self) -> None:
-        self.query_one(TargetListWidget).update_items(self._source())
-        self._refresh_status()
+        items = self._filter_items(self.active_query)
+        self.query_one(TargetListWidget).update_items(items)
+        self._refresh_status(len(items))
 
-    def _refresh_status(self) -> None:
-        count = len(self._source())
+    def _refresh_status(self, count: int | None = None) -> None:
+        if count is None:
+            count = len(self._filter_items(self.active_query))
         total = len(self.all_targets)
         self.query_one(StatusBar).status_update(self.state.mode, count, total)
 
     def action_toggle_mode(self) -> None:
         self.state.mode = "all" if self.state.mode == "available" else "available"
         self._end_search()
+        self.active_query = ""
         self._refresh_list()
 
     def _filter_items(self, query: str) -> list[TargetItem]:
@@ -110,6 +116,7 @@ class OlinkTUI(App[None]):
         if not self.searching:
             return
         self._end_search()
+        self.active_query = ""
         self._refresh_list()
         self.query_one(TargetListWidget).focus()
 
@@ -118,6 +125,7 @@ class OlinkTUI(App[None]):
         if not self.searching:
             return
         query = event.value
+        self.active_query = query
         filtered = self._filter_items(query)
         self.query_one(TargetListWidget).update_items(filtered)
         status = self.query_one(StatusBar)
@@ -174,10 +182,12 @@ class OlinkTUI(App[None]):
         name = item.name
         status = self.query_one(StatusBar)
         error: OSError | None = None
+        # toggle_pin re-reads the file as the source of truth so an external
+        # edit is respected. Only when persisting fails do we mirror the toggle
+        # in memory, so the change stays visible for the rest of the session.
         try:
             self.pinned = toggle_pin(name)
         except OSError as exc:
-            # Persisting failed; still toggle in memory so the session works.
             if name in self.pinned:
                 self.pinned = [existing for existing in self.pinned if existing != name]
             else:
@@ -189,6 +199,9 @@ class OlinkTUI(App[None]):
         self.call_after_refresh(self._reselect, name)
         if error is not None:
             status.set_error(f"Could not save pins: {error}")
+        else:
+            verb = "Pinned" if name in self.pinned else "Unpinned"
+            status.set_success(f"{verb} {name}")
 
     def _reselect(self, name: str) -> None:
         """Move the cursor back onto the row for `name` after a refresh."""

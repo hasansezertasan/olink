@@ -32,6 +32,15 @@ Added a persistent pinning feature to the TUI, allowing users to mark frequently
 - Failures in reading/writing pins are handled gracefully — the user sees errors in the status bar but the toggle still takes effect in-memory.
 - Pins apply to the current project only when in `available` mode (unpinned targets never surface in `available` mode regardless of global pin state).
 
+### Follow-up (post-review polish)
+
+Addressed the minor findings from the PR #70 review:
+
+- **Atomic writes**: `save_pins()` now writes to a `pins.json.tmp` sibling and `os.replace()`s it into place, so a crash mid-write can no longer truncate `pins.json` into an empty (silent pin-loss) file.
+- **Search filter preserved on pin**: added `active_query` state so toggling a pin while a submitted search filter is active re-applies the filter instead of resetting to the full list; `_refresh_list()` now computes the source once (was called twice per refresh).
+- **Success feedback**: pin/unpin now reports `Pinned <name>` / `Unpinned <name>` in the status bar, consistent with open/copy.
+- Added tests for the unpin write-failure branch, success status, filter preservation, and atomic overwrite (313 passing).
+
 ---
 
 ## 2026-07-31 — Adopt keycast-style tooling; migrate versioning to hatch-vcs

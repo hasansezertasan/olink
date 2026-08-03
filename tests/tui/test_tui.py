@@ -408,6 +408,58 @@ class TestPinningInTUI:
                 status = _status_text(app.query_one(StatusBar))
                 assert "Could not save pins" in status
 
+    @pytest.mark.asyncio
+    async def test_unpin_save_failure_removes_in_memory(self) -> None:
+        app = self._app(["pypi"])
+        with patch("olink.tui.app.toggle_pin", side_effect=OSError("read-only")):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi" is pinned → floats to top
+                await pilot.pause()
+                assert target_list.get_selected_item().name == "pypi"
+                await pilot.press("p")
+                await pilot.pause()
+                assert "pypi" not in app.pinned
+                status = _status_text(app.query_one(StatusBar))
+                assert "Could not save pins" in status
+
+    @pytest.mark.asyncio
+    async def test_pin_shows_success_status(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.toggle_pin", return_value=["pypi"]):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                target_list.index = 0  # "pypi"
+                await pilot.pause()
+                await pilot.press("p")
+                await pilot.pause()
+                status = _status_text(app.query_one(StatusBar))
+                assert "Pinned pypi" in status
+
+    @pytest.mark.asyncio
+    async def test_pin_preserves_active_search_filter(self) -> None:
+        app = self._app([])
+        with patch("olink.tui.app.toggle_pin", return_value=["pypi"]):
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                await pilot.press("slash")  # open search
+                await pilot.pause()
+                app.query_one(SearchInput).value = "pypi"
+                await pilot.pause()
+                await pilot.press("enter")  # submit; filter stays applied
+                await pilot.pause()
+                target_list = app.query_one(TargetListWidget)
+                before = {r.item.name for r in target_list.query(TargetRow)}
+                assert before == {"pypi", "pypistats"}
+                target_list.index = 0
+                await pilot.pause()
+                await pilot.press("p")
+                await pilot.pause()
+                after = {r.item.name for r in target_list.query(TargetRow)}
+                assert after == {"pypi", "pypistats"}
+
 
 class TestOrderByPins:
     """Tests for order_by_pins pinned-first ordering."""

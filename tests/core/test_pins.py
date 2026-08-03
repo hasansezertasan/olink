@@ -61,6 +61,14 @@ def test_load_ignores_non_string_and_wrong_shape(xdg: Path) -> None:
     assert load_pins() == []
 
 
+def test_save_overwrites_and_leaves_no_temp_file(xdg: Path) -> None:
+    save_pins(["origin"])
+    save_pins(["pypi"])
+    assert load_pins() == ["pypi"]
+    # Atomic write renames the temp file into place — nothing should linger.
+    assert list((xdg / "olink").glob("*.tmp")) == []
+
+
 def test_toggle_adds_then_removes(xdg: Path) -> None:
     assert toggle_pin("origin") == ["origin"]
     assert toggle_pin("pypi") == ["origin", "pypi"]
