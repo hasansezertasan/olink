@@ -4,6 +4,36 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-08-03 — Pinned Targets in TUI
+
+### Context
+
+Added a persistent pinning feature to the TUI, allowing users to mark frequently-accessed targets so they float to the top of the list across all projects.
+
+### Decisions
+
+- **Global pin storage**: Pins are persisted globally (not per-project) in `$XDG_CONFIG_HOME/olink/pins.json` (default `~/.config/olink/pins.json`) using stdlib `json` with no new dependencies. Matches user expectations for a machine-wide "bookmark" mechanism.
+- **TUI-only feature**: Pinning is wired only in the TUI (`action_toggle_pin` in `app.py`), not in the CLI. Users toggle pins via the `p` key.
+- **Visual marker**: Pinned targets are marked with `★` in the list widget to make their status obvious at a glance.
+- **Pinned-first ordering**: The `order_by_pins(items, pinned)` helper in `models.py` floats pinned targets to the top, preserving their relative order, then lists the rest alphabetically (or in original order in `all` mode).
+- **Graceful degradation**: Missing or corrupt pins file → empty pin set (no crash). Write failures → logged to status bar + in-memory toggle still applies (user sees the change until the next session).
+
+### Implementation
+
+- **`core/pins.py`**: New module with `load_pins()`, `toggle_pin()`, `save_pins()`, and helper functions for config dir/file management. Uses stdlib `json` and `pathlib`, respects `$XDG_CONFIG_HOME`.
+- **`models.py`**: Added `TargetItem.pinned` boolean field and `order_by_pins(items, pinned)` helper to reorder based on the pinned set.
+- **`app.py`**: Wired `load_pins()` at init, passed pinned set to `_source()`, added `action_toggle_pin()` action handler with OSError catch → status-bar error.
+- **`widgets.py`**: Updated `TargetRow` to prepend `★` when `item.pinned` is True.
+
+### Outcome
+
+- Users can now press `p` to pin/unpin targets, with the pinned state persisting across sessions and projects.
+- Pinned targets float to the top (marked with `★`) in both `available` and `all` modes.
+- Failures in reading/writing pins are handled gracefully — the user sees errors in the status bar but the toggle still takes effect in-memory.
+- Pins apply to the current project only when in `available` mode (unpinned targets never surface in `available` mode regardless of global pin state).
+
+---
+
 ## 2026-07-31 — Adopt keycast-style tooling; migrate versioning to hatch-vcs
 
 ### Context
