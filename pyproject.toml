@@ -76,7 +76,7 @@ style = [
   "sphinx-lint==1.0.2",
   "taplo==0.9.3",
   "ty==0.0.53",
-  "typos==1.47.2",
+  "typos==1.49.0",
   "validate-pyproject[all]==0.25",
   "vulture==2.16",
   # "zuban==0.9.0",  # removed from the style gate: panics on untyped pyperclip (see [tool.tox.env.style])
