@@ -4,6 +4,37 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-08-04 — Adopt copier-pyproject README Idioms
+
+### Context
+
+The template treats the README as project-owned identity and does not overwrite it,
+so after the tooling adoption olink's README was still a bare title + one-line
+description with no badges. Ported the template's README **idioms** onto olink's
+existing content.
+
+### Decisions
+
+- **Idioms, not content.** Adopted the template's badge block, blockquote
+  description, Table of Contents, and the standard Support / Motivation / Features /
+  Analysis / Contributing / Development / Releasing / Author / Credits / License /
+  Changelog sections plus the `<!-- Refs -->` link block — while keeping olink's
+  rich, project-specific Usage/Targets/Examples/TUI content verbatim.
+- **Diverged from planted generic prose.** Omitted the megalinter/sonarcloud/
+  all-contributors badges (those features are `false` in `.copier-answers.yml`),
+  wrote real Motivation/Features instead of the template's empty `TODO` stubs,
+  dropped the `xc` task-runner references (olink has no `xcfile`), and kept olink's
+  real Usage surface over the template's placeholder stubs.
+
+### Outcome
+
+Opened PR #80. Review fixes applied: mypy badge switched to HTTPS (CWE-319, both
+image and link URLs), author sentence comma split into two sentences. Branch
+renamed to the Conventional Branch type `chore/` (the spec's allowed set has no
+`docs` type); `no-issue` label applied to satisfy the linked-issue gate.
+
+---
+
 ## 2026-08-03 — Adopt copier-pyproject Template Tooling
 
 ### Context
