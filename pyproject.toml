@@ -115,7 +115,7 @@ docs = [
   "sphinx-click==6.2.0",
 ]
 tool = [
-  "commitizen==4.10.0",
+  "commitizen==4.17.0",
   # "marimo==0.15.2",
   # "inflection==0.5.1",
   # "copier==9.11.0",
