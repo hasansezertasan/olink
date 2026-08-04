@@ -9,7 +9,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/hasansezertasan/olink?style=social)](https://github.com/hasansezertasan/olink/stargazers)
 [![Latest Commit](https://img.shields.io/github/last-commit/hasansezertasan/olink)](https://github.com/hasansezertasan/olink)
 
-[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://www.mypy-lang.org/)
 [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hasansezertasan/olink/badge)](https://scorecard.dev/viewer/?uri=github.com/hasansezertasan/olink)
 [![GitHub Tag](https://img.shields.io/github/tag/hasansezertasan/olink?include_prereleases=&sort=semver&color=black)](https://github.com/hasansezertasan/olink/releases/)
@@ -365,7 +365,7 @@ Versioning and releases are automated with [release-please](https://github.com/g
 
 ## Author :person_with_crown:
 
-This project is maintained by [Hasan Sezer Taşan][author], It's me :wave:
+This project is maintained by [Hasan Sezer Taşan][author]. It's me :wave:
 
 ## Credits
 
