@@ -60,7 +60,7 @@ dev = [
   "olink[all]",
   "tox==4.31.0",
   "tox-uv==1.29.0",
-  "debugpy==1.8.0",
+  "debugpy==1.8.21",
   { include-group = "style" },
   { include-group = "test" },
 ]
