@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.2.0](https://github.com/hasansezertasan/olink/compare/v0.1.0...v0.2.0) (2026-08-04)
+
+
+### 🚀 Features
+
+* **tui:** pin frequently-used targets ([#70](https://github.com/hasansezertasan/olink/issues/70)) ([ce1e616](https://github.com/hasansezertasan/olink/commit/ce1e6168306a428fc7c4a59f6b7815ae42a3f129))
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency typer to v0.26.8 ([#26](https://github.com/hasansezertasan/olink/issues/26)) ([fc8bafa](https://github.com/hasansezertasan/olink/commit/fc8bafa2a54ee1835582cf85b396877d6eea4f87))
+* **deps:** update dependency typer to v0.27.0 ([#42](https://github.com/hasansezertasan/olink/issues/42)) ([4ae9420](https://github.com/hasansezertasan/olink/commit/4ae9420f336665f6615d78b276a09bca84f61d7c))
+* **deps:** update dependency typer to v0.27.1 ([#72](https://github.com/hasansezertasan/olink/issues/72)) ([7e374ca](https://github.com/hasansezertasan/olink/commit/7e374ca7d892efe289a0c53a9de95a9fdbc94b3b))
+* **taplo:** pass relocated config to poe tasks and restore lint schema catalogs ([#36](https://github.com/hasansezertasan/olink/issues/36)) ([c92863a](https://github.com/hasansezertasan/olink/commit/c92863a6c1a0d18f42e673e6e2b9c9789dfac456))
+
+
+### 📝 Documentation
+
+* **readme:** adopt copier-pyproject badges and section idioms ([#81](https://github.com/hasansezertasan/olink/issues/81)) ([6b9eb09](https://github.com/hasansezertasan/olink/commit/6b9eb094e0f7a8f4670412a68ba70cc3ce75f604))
+
+
+### 🛠 Build
+
+* **deps:** convert hook config to native prek.toml ([#39](https://github.com/hasansezertasan/olink/issues/39)) ([4c3883a](https://github.com/hasansezertasan/olink/commit/4c3883adadd92b9a8adb655b6c467d13876732ef))
+* **deps:** migrate from pre-commit to prek ([#38](https://github.com/hasansezertasan/olink/issues/38)) ([043ebd2](https://github.com/hasansezertasan/olink/commit/043ebd2fbe5db9762bd565a2a3cc61bf046ae929))
+
 ## 0.1.0 (2026-06-20)
 
 ### Features
