@@ -339,9 +339,12 @@ uv run --locked tox run -e style
 
 ### Hooks
 
-Run the prek hooks (a separate CI job, not part of `tox run`):
+Run the prek hooks (a separate CI job, not part of `tox run`). The `ghalint` hook
+runs the mise-managed binary, so install the mise tools first — exactly as the CI
+`hooks` job does:
 
 ```sh
+mise install
 uv run --locked tox run -e prek
 ```
 
