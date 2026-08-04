@@ -185,7 +185,7 @@ branch = true
 # Match `_version.py` wherever it resolves: `src/...` in editable dev installs and
 # `.../site-packages/...` when tox/CI installs the built wheel or sdist. A
 # `src/**`-only pattern silently misses the installed copy and reports it at 0%.
-omit = ["*/_version.py", "*/olink/__main__.py"]
+omit = ["*/_version.py"]
 parallel = true
 source_pkgs = ["olink", "tests"]
 
@@ -212,7 +212,7 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 fail_under = 99
 # Patterns match both the `src/` (editable) and installed (`site-packages`)
 # layouts (see [tool.coverage.run] omit).
-omit = ["*/_version.py", "*/olink/__main__.py"]
+omit = ["*/_version.py"]
 show_missing = true
 skip_covered = true
 
