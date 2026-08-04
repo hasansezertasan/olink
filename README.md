@@ -337,13 +337,24 @@ Run the style checks:
 uv run --locked tox run -e style
 ```
 
+### Hooks
+
+Run the prek hooks (a separate CI job, not part of `tox run`):
+
+```sh
+uv run --locked tox run -e prek
+```
+
 ### CI
 
-Run the CI pipeline:
+Run the test pipeline (the `style`, `cli`, and `3.14` tox environments):
 
 ```sh
 uv run --locked tox run
 ```
+
+To reproduce the full CI locally, run the hooks command above as well — CI runs
+prek hooks in a separate job.
 
 ### Docs
 
