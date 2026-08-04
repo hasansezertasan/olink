@@ -12,6 +12,9 @@ import os
 from pathlib import Path
 from typing import cast
 
+__all__ = ["config_dir", "load_pins", "pins_file", "save_pins"]
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -68,4 +71,4 @@ def save_pins(pins: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.parent / (path.name + ".tmp")
     tmp.write_text(json.dumps({"pins": pins}, indent=2) + "\n", encoding="utf-8")
-    os.replace(tmp, path)
+    Path(tmp).replace(path)

@@ -1,11 +1,16 @@
 """Tests for CLI interface."""
 
+import pathlib
 import subprocess
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
 from typer.testing import CliRunner
 
 from olink.cli.app import app
+
+if TYPE_CHECKING:
+    import pytest
 
 runner = CliRunner()
 
@@ -131,8 +136,7 @@ class TestCLIErrors:
         import os
 
         filepath = os.path.join(temp_dir, "afile.txt")
-        with open(filepath, "w") as f:
-            f.write("hello")
+        pathlib.Path(filepath).write_text("hello", encoding="utf-8")
         result = runner.invoke(app, ["-d", filepath, "origin"])
         assert result.exit_code == 1
         assert "Not a directory" in result.output
@@ -178,7 +182,7 @@ class TestCLIErrors:
         import os
 
         subdir = os.path.join(temp_pyproject, "src")
-        os.makedirs(subdir)
+        pathlib.Path(subdir).mkdir(parents=True)
         result = runner.invoke(app, ["-n", "-d", subdir, "pypi"])
         assert result.exit_code == 1
         assert "No pyproject.toml found" in result.output
@@ -213,3 +217,53 @@ class TestCLITUILaunch:
     def test_tui_keyboard_interrupt_handled(self, mock_tui: MagicMock, temp_dir: str) -> None:
         result = runner.invoke(app, ["-d", temp_dir])
         assert result.exit_code == 0
+
+    def test_tui_missing_optional_deps_shows_hint(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """When a TUI optional dep is missing, the CLI prints an install hint and exits 1."""
+        import builtins
+
+        real_import: Any = builtins.__import__
+
+        def fake_import(name: str, *args: object, **kwargs: object) -> object:
+            if name == "olink.tui":
+                msg = "No module named 'textual'"
+                raise ImportError(msg, name="textual")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        result = runner.invoke(app, ["-d", temp_dir])
+        assert result.exit_code == 1
+        assert "requires extra dependencies" in result.output
+
+    def test_tui_unrelated_import_error_propagates(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """An ImportError unrelated to the TUI optional deps must not be swallowed."""
+        import builtins
+
+        real_import: Any = builtins.__import__
+
+        def fake_import(name: str, *args: object, **kwargs: object) -> object:
+            if name == "olink.tui":
+                msg = "boom"
+                raise ImportError(msg, name="some_unrelated_module")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        result = runner.invoke(app, ["-d", temp_dir])
+        assert isinstance(result.exception, ImportError)
+
+
+class TestCLIEntryPoint:
+    """Tests for the module entry point."""
+
+    def test_main_invokes_app(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sys
+
+        app_module = sys.modules["olink.cli.app"]
+        called: list[bool] = []
+        monkeypatch.setattr(app_module, "app", lambda: called.append(True))
+        app_module.main()
+        assert called == [True]

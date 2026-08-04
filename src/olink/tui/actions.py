@@ -4,6 +4,8 @@ import webbrowser
 
 import pyperclip
 
+__all__ = ["copy_to_clipboard", "open_in_browser"]
+
 
 def open_in_browser(url: str) -> bool:
     """Open a URL in the default browser."""

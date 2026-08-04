@@ -1,11 +1,17 @@
 """Custom Textual widgets for the TUI."""
 
 from rich.text import Text
-from textual.app import ComposeResult
+from textual.app import (
+    ComposeResult,  # noqa: TC002  # runtime import: read by Sphinx autodoc / get_type_hints on compose()
+)
 from textual.binding import Binding
 from textual.widgets import Input, ListItem, ListView, Static
 
-from olink.tui.models import TargetItem
+from olink.tui.models import (
+    TargetItem,  # noqa: TC001  # runtime import: read by Sphinx autodoc / get_type_hints on the widget signatures
+)
+
+__all__ = ["SearchInput", "StatusBar", "TargetListWidget", "TargetRow"]
 
 
 class TargetRow(ListItem):
@@ -37,8 +43,7 @@ class TargetListWidget(ListView):
 
     def get_selected_item(self) -> TargetItem | None:
         """Get the currently highlighted target item."""
-        if self.highlighted_child is not None:
-            assert isinstance(self.highlighted_child, TargetRow)
+        if isinstance(self.highlighted_child, TargetRow):
             return self.highlighted_child.item
         return None
 

@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "Taşan"
+    given-names: "Hasan Sezer"
+    email: "hasansezertasan@gmail.com"
+title: "olink"
+abstract: "A CLI tool that opens external URLs related to your project."
+repository-code: "https://github.com/hasansezertasan/olink"
+license: MIT

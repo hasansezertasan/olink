@@ -17,19 +17,31 @@ import json
 import logging
 import re
 import tomllib
-from collections.abc import Callable
+from collections.abc import (
+    Callable,  # noqa: TC003  # runtime import: EcosystemConfig's field annotation is read by Sphinx autodoc / get_type_hints
+)
 from dataclasses import dataclass
 from pathlib import Path
-from xml.etree.ElementTree import Element
+from typing import TYPE_CHECKING
 
 import defusedxml
-import defusedxml.ElementTree as ET
+import defusedxml.ElementTree as ET  # noqa: N817  # ET is the universal alias for ElementTree
 
-from olink.core.exceptions import (
-    NotGitRepoError,
-    ProjectMetadataError,
-    UnknownPlatformError,
-)
+from olink.core.exceptions import NotGitRepoError, ProjectMetadataError, UnknownPlatformError
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
+__all__ = [
+    "EcosystemConfig",
+    "ParsedRemote",
+    "detect_ecosystems",
+    "get_open_vsx_name",
+    "get_package_name",
+    "get_remote_url",
+    "parse_remote_url",
+]
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +74,7 @@ class ParsedRemote:
 
     @property
     def base_url(self) -> str:
-        """Get the base URL for this remote."""
+        """The base URL for this remote."""
         return f"https://{self.host}/{self.owner}/{self.repo}"
 
 
@@ -154,16 +166,20 @@ def _read_git_config_text(cwd: str) -> str:
     """Read raw .git/config text, mapping permission/encoding errors to NotGitRepoError."""
     git_dir = _get_git_dir(cwd)
     if git_dir is None:
-        raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
+        msg = f"'{cwd}' is not inside a git repository"
+        raise NotGitRepoError(msg)
     config_path = git_dir / "config"
     if not config_path.exists():
-        raise NotGitRepoError(f"'{cwd}' is not inside a git repository")
+        msg = f"'{cwd}' is not inside a git repository"
+        raise NotGitRepoError(msg)
     try:
         return config_path.read_text(encoding="utf-8")
     except PermissionError as e:
-        raise NotGitRepoError(f"Cannot read git config: {e}") from e
+        msg = f"Cannot read git config: {e}"
+        raise NotGitRepoError(msg) from e
     except UnicodeDecodeError as e:
-        raise NotGitRepoError(f"Git config has invalid UTF-8: {e}") from e
+        msg = f"Git config has invalid UTF-8: {e}"
+        raise NotGitRepoError(msg) from e
 
 
 def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
@@ -182,11 +198,7 @@ def get_remote_url(cwd: str, remote_name: str = "origin") -> str | None:
     return _apply_insteadof(raw_url, rules)
 
 
-_SELF_HOSTED_LABEL_TO_PLATFORM = {
-    "gitea": "gitea",
-    "forgejo": "forgejo",
-    "codeberg": "forgejo",
-}
+_SELF_HOSTED_LABEL_TO_PLATFORM = {"gitea": "gitea", "forgejo": "forgejo", "codeberg": "forgejo"}
 
 _HOST_LABEL_TO_PLATFORM: dict[str, str] = {
     host.split(".", 1)[0]: platform
@@ -230,23 +242,18 @@ def parse_remote_url(url: str) -> ParsedRemote:
             if platform is None:
                 platform = _detect_platform_from_labels(host)
             if platform is None:
-                raise UnknownPlatformError(f"Unknown git hosting platform: {host}")
+                msg = f"Unknown git hosting platform: {host}"
+                raise UnknownPlatformError(msg)
 
             if "/" in repo:
                 logger.debug(
-                    "Repo path '%s/%s' contains nested groups (e.g. GitLab subgroups).",
-                    owner,
-                    repo,
+                    "Repo path '%s/%s' contains nested groups (e.g. GitLab subgroups).", owner, repo
                 )
 
-            return ParsedRemote(
-                platform=platform,
-                host=host,
-                owner=owner,
-                repo=repo,
-            )
+            return ParsedRemote(platform=platform, host=host, owner=owner, repo=repo)
 
-    raise UnknownPlatformError(f"Could not parse remote URL: {url}")
+    msg = f"Could not parse remote URL: {url}"
+    raise UnknownPlatformError(msg)
 
 
 # =============================================================================
@@ -294,9 +301,11 @@ def _read_text(path: Path, label: str) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except PermissionError as e:
-        raise ProjectMetadataError(f"Cannot read {label}: {e}") from e
+        msg = f"Cannot read {label}: {e}"
+        raise ProjectMetadataError(msg) from e
     except UnicodeDecodeError as e:
-        raise ProjectMetadataError(f"Invalid {label} (non-UTF-8): {e}") from e
+        msg = f"Invalid {label} (non-UTF-8): {e}"
+        raise ProjectMetadataError(msg) from e
 
 
 def _get_pypi_name(cwd: str) -> str:
@@ -307,17 +316,20 @@ def _get_pypi_name(cwd: str) -> str:
     """
     pyproject_path = Path(cwd) / "pyproject.toml"
     if not pyproject_path.exists():
-        raise ProjectMetadataError("No pyproject.toml found")
+        msg = "No pyproject.toml found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(pyproject_path, "pyproject.toml")
     try:
         data = tomllib.loads(content)
     except tomllib.TOMLDecodeError as e:
-        raise ProjectMetadataError(f"Invalid pyproject.toml: {e}") from e
+        msg = f"Invalid pyproject.toml: {e}"
+        raise ProjectMetadataError(msg) from e
 
     name = data.get("project", {}).get("name")
     if not name or not isinstance(name, str):
-        raise ProjectMetadataError("No 'project.name' in pyproject.toml")
+        msg = "No 'project.name' in pyproject.toml"
+        raise ProjectMetadataError(msg)
     return str(name)
 
 
@@ -329,17 +341,20 @@ def _get_npm_name(cwd: str) -> str:
     """
     package_json_path = Path(cwd) / "package.json"
     if not package_json_path.exists():
-        raise ProjectMetadataError("No package.json found")
+        msg = "No package.json found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(package_json_path, "package.json")
     try:
         data = json.loads(content)
     except json.JSONDecodeError as e:
-        raise ProjectMetadataError(f"Invalid package.json: {e}") from e
+        msg = f"Invalid package.json: {e}"
+        raise ProjectMetadataError(msg) from e
 
     name = data.get("name")
     if not name or not isinstance(name, str):
-        raise ProjectMetadataError("No 'name' in package.json")
+        msg = "No 'name' in package.json"
+        raise ProjectMetadataError(msg)
     return str(name)
 
 
@@ -350,17 +365,20 @@ def _get_cargo_name(cwd: str) -> str:
     """
     cargo_path = Path(cwd) / "Cargo.toml"
     if not cargo_path.exists():
-        raise ProjectMetadataError("No Cargo.toml found")
+        msg = "No Cargo.toml found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(cargo_path, "Cargo.toml")
     try:
         data = tomllib.loads(content)
     except tomllib.TOMLDecodeError as e:
-        raise ProjectMetadataError(f"Invalid Cargo.toml: {e}") from e
+        msg = f"Invalid Cargo.toml: {e}"
+        raise ProjectMetadataError(msg) from e
 
     name = data.get("package", {}).get("name")
     if not name or not isinstance(name, str):
-        raise ProjectMetadataError("No 'package.name' in Cargo.toml")
+        msg = "No 'package.name' in Cargo.toml"
+        raise ProjectMetadataError(msg)
     return str(name)
 
 
@@ -372,12 +390,14 @@ def _get_go_name(cwd: str) -> str:
     """
     go_mod_path = Path(cwd) / "go.mod"
     if not go_mod_path.exists():
-        raise ProjectMetadataError("No go.mod found")
+        msg = "No go.mod found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(go_mod_path, "go.mod")
     match = re.search(r"^module\s+(\S+)", content, re.MULTILINE)
     if not match:
-        raise ProjectMetadataError("No 'module' declaration in go.mod")
+        msg = "No 'module' declaration in go.mod"
+        raise ProjectMetadataError(msg)
     return match.group(1)
 
 
@@ -389,11 +409,13 @@ def _get_gems_name(cwd: str) -> str:
     """
     gemspec_files = sorted(Path(cwd).glob("*.gemspec"))
     if not gemspec_files:
-        raise ProjectMetadataError("No .gemspec file found")
+        msg = "No .gemspec file found"
+        raise ProjectMetadataError(msg)
     content = _read_text(gemspec_files[0], gemspec_files[0].name)
     match = re.search(r"""\w+\.name\s*=\s*['"]([^'"]+)['"]""", content)
     if not match:
-        raise ProjectMetadataError("No 'name' in .gemspec file")
+        msg = "No 'name' in .gemspec file"
+        raise ProjectMetadataError(msg)
     return match.group(1)
 
 
@@ -404,17 +426,20 @@ def _get_packagist_name(cwd: str) -> str:
     """
     composer_path = Path(cwd) / "composer.json"
     if not composer_path.exists():
-        raise ProjectMetadataError("No composer.json found")
+        msg = "No composer.json found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(composer_path, "composer.json")
     try:
         data = json.loads(content)
     except json.JSONDecodeError as e:
-        raise ProjectMetadataError(f"Invalid composer.json: {e}") from e
+        msg = f"Invalid composer.json: {e}"
+        raise ProjectMetadataError(msg) from e
 
     name = data.get("name")
     if not name or not isinstance(name, str):
-        raise ProjectMetadataError("No 'name' in composer.json")
+        msg = "No 'name' in composer.json"
+        raise ProjectMetadataError(msg)
     return str(name)
 
 
@@ -426,12 +451,14 @@ def _get_pub_name(cwd: str) -> str:
     """
     pubspec_path = Path(cwd) / "pubspec.yaml"
     if not pubspec_path.exists():
-        raise ProjectMetadataError("No pubspec.yaml found")
+        msg = "No pubspec.yaml found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(pubspec_path, "pubspec.yaml")
     match = re.search(r"^name:\s*['\"]?([^\s'\"]+)['\"]?", content, re.MULTILINE)
     if not match:
-        raise ProjectMetadataError("No 'name' in pubspec.yaml")
+        msg = "No 'name' in pubspec.yaml"
+        raise ProjectMetadataError(msg)
     return match.group(1)
 
 
@@ -443,11 +470,13 @@ def _get_hex_name(cwd: str) -> str:
     """
     mix_path = Path(cwd) / "mix.exs"
     if not mix_path.exists():
-        raise ProjectMetadataError("No mix.exs found")
+        msg = "No mix.exs found"
+        raise ProjectMetadataError(msg)
     content = _read_text(mix_path, "mix.exs")
     match = re.search(r"""app:\s*:(\w+)""", content)
     if not match:
-        raise ProjectMetadataError("No 'app' in mix.exs")
+        msg = "No 'app' in mix.exs"
+        raise ProjectMetadataError(msg)
     return match.group(1)
 
 
@@ -459,7 +488,8 @@ def _get_nuget_name(cwd: str) -> str:
     """
     csproj_files = sorted(Path(cwd).glob("*.csproj"))
     if not csproj_files:
-        raise ProjectMetadataError("No .csproj file found")
+        msg = "No .csproj file found"
+        raise ProjectMetadataError(msg)
     content = _read_text(csproj_files[0], csproj_files[0].name)
     match = re.search(r"<PackageId>([^<]+)</PackageId>", content)
     if not match:
@@ -476,20 +506,24 @@ def get_open_vsx_name(cwd: str) -> str:
     """
     package_json_path = Path(cwd) / "package.json"
     if not package_json_path.exists():
-        raise ProjectMetadataError("No package.json found")
+        msg = "No package.json found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(package_json_path, "package.json")
     try:
         data = json.loads(content)
     except json.JSONDecodeError as e:
-        raise ProjectMetadataError(f"Invalid package.json: {e}") from e
+        msg = f"Invalid package.json: {e}"
+        raise ProjectMetadataError(msg) from e
 
     publisher = data.get("publisher")
     name = data.get("name")
     if not publisher or not isinstance(publisher, str):
-        raise ProjectMetadataError("No 'publisher' in package.json for open-vsx")
+        msg = "No 'publisher' in package.json for open-vsx"
+        raise ProjectMetadataError(msg)
     if not name or not isinstance(name, str):
-        raise ProjectMetadataError("No 'name' in package.json")
+        msg = "No 'name' in package.json"
+        raise ProjectMetadataError(msg)
 
     return f"{publisher}.{name}"
 
@@ -503,9 +537,11 @@ def _parse_pom(pom_path: Path) -> tuple[Element, str]:
     try:
         root = ET.fromstring(content)
     except defusedxml.DefusedXmlException as e:
-        raise ProjectMetadataError(f"pom.xml contains disallowed XML features: {e}") from e
+        msg = f"pom.xml contains disallowed XML features: {e}"
+        raise ProjectMetadataError(msg) from e
     except ET.ParseError as e:
-        raise ProjectMetadataError(f"Invalid pom.xml: {e}") from e
+        msg = f"Invalid pom.xml: {e}"
+        raise ProjectMetadataError(msg) from e
     namespace = ""
     if root.tag.startswith("{"):
         namespace = root.tag.split("}", 1)[0] + "}"
@@ -521,13 +557,15 @@ def _get_maven_name(cwd: str) -> str:
     """
     pom_path = Path(cwd) / "pom.xml"
     if not pom_path.exists():
-        raise ProjectMetadataError("No pom.xml found")
+        msg = "No pom.xml found"
+        raise ProjectMetadataError(msg)
 
     root, ns = _parse_pom(pom_path)
 
     artifact_id = root.findtext(f"{ns}artifactId")
     if not artifact_id:
-        raise ProjectMetadataError("No 'artifactId' in pom.xml")
+        msg = "No 'artifactId' in pom.xml"
+        raise ProjectMetadataError(msg)
 
     group_id = root.findtext(f"{ns}groupId")
     current_pom = pom_path
@@ -546,7 +584,7 @@ def _get_maven_name(cwd: str) -> str:
             break
         next_pom = (current_pom.parent / relative).resolve()
         if next_pom.is_dir():
-            next_pom = next_pom / "pom.xml"
+            next_pom /= "pom.xml"
         if not next_pom.exists() or next_pom == current_pom:
             break
         current_pom = next_pom
@@ -555,7 +593,8 @@ def _get_maven_name(cwd: str) -> str:
         depth += 1
 
     if not group_id:
-        raise ProjectMetadataError("No 'groupId' in pom.xml or parent chain")
+        msg = "No 'groupId' in pom.xml or parent chain"
+        raise ProjectMetadataError(msg)
 
     return f"{group_id}:{artifact_id}"
 
@@ -568,12 +607,14 @@ def _get_hackage_name(cwd: str) -> str:
     """
     cabal_files = sorted(Path(cwd).glob("*.cabal"))
     if not cabal_files:
-        raise ProjectMetadataError("No .cabal file found")
+        msg = "No .cabal file found"
+        raise ProjectMetadataError(msg)
 
     content = _read_text(cabal_files[0], cabal_files[0].name)
     match = re.search(r"^name\s*:\s*(\S+)", content, re.MULTILINE | re.IGNORECASE)
     if not match:
-        raise ProjectMetadataError("No 'name' in .cabal file")
+        msg = "No 'name' in .cabal file"
+        raise ProjectMetadataError(msg)
     return match.group(1)
 
 
@@ -599,14 +640,11 @@ def _get_cpan_name(cwd: str) -> str:
     # 2. Directory layout: lib/Foo/Bar.pm -> Foo::Bar (prefer shallowest module)
     lib_dir = root / "lib"
     if lib_dir.exists() and lib_dir.is_dir():
-        pm_files = sorted(
-            lib_dir.rglob("*.pm"),
-            key=lambda p: (len(p.parts), p.as_posix()),
-        )
+        pm_files = sorted(lib_dir.rglob("*.pm"), key=lambda p: (len(p.parts), p.as_posix()))
         for pm in pm_files:
             try:
                 rel = pm.relative_to(lib_dir)
-            except ValueError:
+            except ValueError:  # pragma: no cover - unreachable: rglob stays under lib_dir
                 continue
             module = rel.with_suffix("").as_posix().replace("/", "::")
             if module:
@@ -622,7 +660,8 @@ def _get_cpan_name(cwd: str) -> str:
             return match.group(1).strip().replace("-", "::")
         logger.debug("dist.ini found but name not parseable")
 
-    raise ProjectMetadataError("Could not determine CPAN module name from project metadata")
+    msg = "Could not determine CPAN module name from project metadata"
+    raise ProjectMetadataError(msg)
 
 
 ECOSYSTEMS: dict[str, EcosystemConfig] = {
@@ -665,5 +704,6 @@ def get_package_name(cwd: str, ecosystem: str) -> str:
     """Get the package name for a specific ecosystem."""
     if ecosystem not in ECOSYSTEMS:
         available = ", ".join(sorted(ECOSYSTEMS.keys()))
-        raise ProjectMetadataError(f"Unknown ecosystem: '{ecosystem}'. Available: {available}")
+        msg = f"Unknown ecosystem: '{ecosystem}'. Available: {available}"
+        raise ProjectMetadataError(msg)
     return ECOSYSTEMS[ecosystem].get_package_name(cwd)

@@ -11,6 +11,7 @@ from olink.core.exceptions import NotGitRepoError, ProjectMetadataError, Unknown
 from olink.core.project import (
     ParsedRemote,
     detect_ecosystems,
+    get_open_vsx_name,
     get_package_name,
     get_remote_url,
     parse_remote_url,
@@ -323,10 +324,7 @@ class TestParsedRemote:
 
     def test_base_url_property(self) -> None:
         remote = ParsedRemote(
-            platform="github",
-            host="github.com",
-            owner="testowner",
-            repo="testrepo",
+            platform="github", host="github.com", owner="testowner", repo="testrepo"
         )
         assert remote.base_url == "https://github.com/testowner/testrepo"
 
@@ -366,7 +364,9 @@ class TestDetectEcosystems:
 
         caplog.set_level(logging.WARNING)
         # pyproject.toml without [project].name
-        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
+        Path(temp_dir, "pyproject.toml").write_text(
+            "[project]\nversion = '1.0'\n", encoding="utf-8"
+        )
         ecosystems = detect_ecosystems(temp_dir)
         assert "pypi" not in ecosystems
         assert any("skipped" in r.message.lower() for r in caplog.records)
@@ -404,42 +404,44 @@ class TestGetPackageName:
             get_package_name(temp_dir, "cargo")
 
     def test_malformed_pyproject_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "pyproject.toml").write_text("[project]\nversion = '1.0'\n")
+        Path(temp_dir, "pyproject.toml").write_text(
+            "[project]\nversion = '1.0'\n", encoding="utf-8"
+        )
         with pytest.raises(ProjectMetadataError):
             get_package_name(temp_dir, "pypi")
 
     def test_malformed_package_json_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "package.json").write_text(json.dumps({"version": "1.0"}))
+        Path(temp_dir, "package.json").write_text(json.dumps({"version": "1.0"}), encoding="utf-8")
         with pytest.raises(ProjectMetadataError):
             get_package_name(temp_dir, "npm")
 
     def test_invalid_toml_pyproject_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "pyproject.toml").write_text("this is not [valid toml !!!")
+        Path(temp_dir, "pyproject.toml").write_text("this is not [valid toml !!!", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="Invalid pyproject.toml"):
             get_package_name(temp_dir, "pypi")
 
     def test_empty_pyproject_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "pyproject.toml").write_text("")
+        Path(temp_dir, "pyproject.toml").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="No 'project.name'"):
             get_package_name(temp_dir, "pypi")
 
     def test_empty_package_json_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "package.json").write_text("")
+        Path(temp_dir, "package.json").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="Invalid package.json"):
             get_package_name(temp_dir, "npm")
 
     def test_empty_cargo_toml_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "Cargo.toml").write_text("")
+        Path(temp_dir, "Cargo.toml").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="No 'package.name'"):
             get_package_name(temp_dir, "cargo")
 
     def test_empty_go_mod_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "go.mod").write_text("")
+        Path(temp_dir, "go.mod").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="No 'module' declaration"):
             get_package_name(temp_dir, "go")
 
     def test_empty_composer_json_raises(self, temp_dir: str) -> None:
-        Path(temp_dir, "composer.json").write_text("")
+        Path(temp_dir, "composer.json").write_text("", encoding="utf-8")
         with pytest.raises(ProjectMetadataError, match="Invalid composer.json"):
             get_package_name(temp_dir, "packagist")
 
@@ -471,3 +473,286 @@ class TestGetPackageName:
         link_dir = Path(temp_dir) / "link"
         link_dir.symlink_to(real_dir, target_is_directory=True)
         assert get_package_name(str(link_dir), "pypi") == "linked-project"
+
+
+class TestGitDirResolution:
+    """Tests for _get_git_dir handling of .git files (worktrees/submodules)."""
+
+    def test_relative_gitdir_file_resolves_config(self, temp_dir: str) -> None:
+        """Submodule-style `.git` file pointing (relatively) at a real gitdir with config."""
+        real_git = Path(temp_dir) / "realgit"
+        real_git.mkdir()
+        (real_git / "config").write_text(
+            '[remote "origin"]\n\turl = git@github.com:owner/repo.git\n', encoding="utf-8"
+        )
+        work = Path(temp_dir) / "work"
+        work.mkdir()
+        (work / ".git").write_text("gitdir: ../realgit\n", encoding="utf-8")
+        assert get_remote_url(str(work), "origin") == "git@github.com:owner/repo.git"
+
+    def test_absolute_gitdir_file_resolves_config(self, temp_dir: str) -> None:
+        """`.git` file with an absolute gitdir path is used verbatim."""
+        real_git = Path(temp_dir) / "absgit"
+        real_git.mkdir()
+        (real_git / "config").write_text(
+            '[remote "origin"]\n\turl = git@github.com:owner/repo.git\n', encoding="utf-8"
+        )
+        work = Path(temp_dir) / "work"
+        work.mkdir()
+        (work / ".git").write_text(f"gitdir: {real_git}\n", encoding="utf-8")
+        assert get_remote_url(str(work), "origin") == "git@github.com:owner/repo.git"
+
+    def test_git_file_without_gitdir_prefix_is_not_a_repo(self, temp_dir: str) -> None:
+        """A `.git` file whose content is not a `gitdir:` pointer is treated as no repo."""
+        (Path(temp_dir) / ".git").write_text("garbage content\n", encoding="utf-8")
+        with pytest.raises(NotGitRepoError):
+            get_remote_url(temp_dir, "origin")
+
+    def test_git_dir_without_config_file_raises(self, temp_dir: str) -> None:
+        """A `.git` directory that has no `config` file must raise NotGitRepoError."""
+        (Path(temp_dir) / ".git").mkdir()
+        with pytest.raises(NotGitRepoError, match="not inside a git repository"):
+            get_remote_url(temp_dir, "origin")
+
+
+class TestGetRemoteUrlEdgeCases:
+    """Edge cases in get_remote_url and insteadOf scanning."""
+
+    def test_remote_section_without_url_returns_none(self, temp_dir: str) -> None:
+        """A `[remote "origin"]` section lacking a `url` key resolves to None, not a crash."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=temp_dir, capture_output=True, check=True)
+        config = Path(temp_dir) / ".git" / "config"
+        config.write_text(
+            config.read_text()
+            + '\n[remote "origin"]\n\tfetch = +refs/heads/*:refs/remotes/origin/*\n',
+            encoding="utf-8",
+        )
+        assert get_remote_url(temp_dir, "origin") is None
+
+    def test_url_section_ignores_non_insteadof_and_empty_insteadof(self, temp_dir: str) -> None:
+        """Non-insteadOf keys and empty insteadOf values inside `[url]` add no rewrite rules."""
+        import subprocess
+
+        subprocess.run(["git", "init"], cwd=temp_dir, capture_output=True, check=True)
+        config = Path(temp_dir) / ".git" / "config"
+        config.write_text(
+            config.read_text()
+            + '\n[remote "origin"]\n'
+            + "\turl = git@github.com:owner/repo.git\n"
+            + '[url "git@example.com:"]\n'
+            + "\tpushInsteadOf = other:\n"  # non-insteadOf key inside [url] section
+            + "\tinsteadOf = \n",  # empty value -> no rule
+            encoding="utf-8",
+        )
+        # No usable rewrite rule applies, so the raw origin URL is returned unchanged.
+        assert get_remote_url(temp_dir, "origin") == "git@github.com:owner/repo.git"
+
+
+class TestNestedRepoPaths:
+    """Parsing remotes with nested group paths (e.g. GitLab subgroups)."""
+
+    def test_gitlab_subgroup_path(self) -> None:
+        result = parse_remote_url("git@gitlab.com:group/subgroup/repo.git")
+        assert result.platform == "gitlab"
+        assert result.owner == "group"
+        assert result.repo == "subgroup/repo"
+        assert result.base_url == "https://gitlab.com/group/subgroup/repo"
+
+
+class TestDetectViaGlob:
+    """Ecosystem detection through glob-based config files (EcosystemConfig.exists)."""
+
+    def test_detect_gems_via_glob(self, temp_gemspec: str) -> None:
+        """`*.gemspec` glob detection surfaces the gems ecosystem."""
+        assert "gems" in detect_ecosystems(temp_gemspec)
+
+
+class TestPackageNameExtractors:
+    """Direct coverage of per-ecosystem package-name extractors."""
+
+    def test_cargo_invalid_toml_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "Cargo.toml").write_text("this is not [valid toml !!!", encoding="utf-8")
+        with pytest.raises(ProjectMetadataError, match="Invalid Cargo.toml"):
+            get_package_name(temp_dir, "cargo")
+
+    def test_gemspec_without_name_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "my.gemspec").write_text(
+            "Gem::Specification.new do |spec|\n  spec.version = '1.0'\nend\n", encoding="utf-8"
+        )
+        with pytest.raises(ProjectMetadataError, match="No 'name' in .gemspec file"):
+            get_package_name(temp_dir, "gems")
+
+    def test_packagist_name(self, temp_dir: str) -> None:
+        Path(temp_dir, "composer.json").write_text(
+            json.dumps({"name": "vendor/package"}), encoding="utf-8"
+        )
+        assert get_package_name(temp_dir, "packagist") == "vendor/package"
+
+    def test_packagist_without_name_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "composer.json").write_text(
+            json.dumps({"description": "no name here"}), encoding="utf-8"
+        )
+        with pytest.raises(ProjectMetadataError, match="No 'name' in composer.json"):
+            get_package_name(temp_dir, "packagist")
+
+    def test_pub_name(self, temp_dir: str) -> None:
+        Path(temp_dir, "pubspec.yaml").write_text(
+            "name: my_flutter_app\nversion: 1.0.0\n", encoding="utf-8"
+        )
+        assert get_package_name(temp_dir, "pub") == "my_flutter_app"
+
+    def test_pub_without_name_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "pubspec.yaml").write_text("version: 1.0.0\n", encoding="utf-8")
+        with pytest.raises(ProjectMetadataError, match="No 'name' in pubspec.yaml"):
+            get_package_name(temp_dir, "pub")
+
+    def test_hex_name(self, temp_dir: str) -> None:
+        Path(temp_dir, "mix.exs").write_text(
+            "defmodule MyApp.MixProject do\n  def project do\n"
+            '    [app: :my_app, version: "0.1.0"]\n  end\nend\n',
+            encoding="utf-8",
+        )
+        assert get_package_name(temp_dir, "hex") == "my_app"
+
+    def test_hex_without_app_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "mix.exs").write_text("defmodule Broken do\nend\n", encoding="utf-8")
+        with pytest.raises(ProjectMetadataError, match="No 'app' in mix.exs"):
+            get_package_name(temp_dir, "hex")
+
+    def test_nuget_package_id(self, temp_dir: str) -> None:
+        Path(temp_dir, "MyLib.csproj").write_text(
+            "<Project>\n  <PropertyGroup>\n    <PackageId>Custom.Package.Id</PackageId>\n"
+            "  </PropertyGroup>\n</Project>\n",
+            encoding="utf-8",
+        )
+        assert get_package_name(temp_dir, "nuget") == "Custom.Package.Id"
+
+    def test_nuget_falls_back_to_filename_stem(self, temp_dir: str) -> None:
+        """When <PackageId> is absent, NuGet uses the .csproj filename stem."""
+        Path(temp_dir, "MyLibrary.csproj").write_text(
+            "<Project>\n  <PropertyGroup></PropertyGroup>\n</Project>\n", encoding="utf-8"
+        )
+        assert get_package_name(temp_dir, "nuget") == "MyLibrary"
+
+    def test_open_vsx_invalid_json_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "package.json").write_text("{not valid json", encoding="utf-8")
+        with pytest.raises(ProjectMetadataError, match="Invalid package.json"):
+            get_open_vsx_name(temp_dir)
+
+    def test_open_vsx_missing_name_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "package.json").write_text(
+            json.dumps({"publisher": "acme"}), encoding="utf-8"
+        )
+        with pytest.raises(ProjectMetadataError, match="No 'name' in package.json"):
+            get_open_vsx_name(temp_dir)
+
+
+class TestMavenExtractorEdgeCases:
+    """pom.xml parsing edge cases in _get_maven_name / _parse_pom."""
+
+    def test_pom_without_namespace(self, temp_dir: str) -> None:
+        """A pom.xml with no XML namespace resolves via unprefixed tags."""
+        Path(temp_dir, "pom.xml").write_text(
+            "<project>\n  <groupId>com.example</groupId>\n"
+            "  <artifactId>plain-app</artifactId>\n</project>\n",
+            encoding="utf-8",
+        )
+        assert get_package_name(temp_dir, "maven") == "com.example:plain-app"
+
+    def test_pom_disallowed_xml_features_raise(self, temp_dir: str) -> None:
+        """Defusedxml rejects DTD/entity declarations, surfaced as ProjectMetadataError."""
+        Path(temp_dir, "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<!DOCTYPE project [ <!ENTITY xxe "payload"> ]>\n'
+            "<project>\n  <groupId>com.example</groupId>\n"
+            "  <artifactId>app</artifactId>\n</project>\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(ProjectMetadataError, match="disallowed XML features"):
+            get_package_name(temp_dir, "maven")
+
+    def test_pom_missing_artifact_id_raises(self, temp_dir: str) -> None:
+        Path(temp_dir, "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <groupId>com.example</groupId>\n</project>\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(ProjectMetadataError, match="No 'artifactId'"):
+            get_package_name(temp_dir, "maven")
+
+    def test_pom_parent_relative_path_is_directory(self, tmp_path: Path) -> None:
+        """<relativePath> pointing at a directory resolves to that dir's pom.xml."""
+        parent_dir = tmp_path / "parentdir"
+        child_dir = tmp_path / "child"
+        parent_dir.mkdir()
+        child_dir.mkdir()
+        (parent_dir / "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <groupId>com.dir</groupId>\n  <artifactId>parent</artifactId>\n</project>\n",
+            encoding="utf-8",
+        )
+        (child_dir / "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <artifactId>child</artifactId>\n"
+            "  <parent>\n    <artifactId>parent</artifactId>\n"
+            "    <relativePath>../parentdir</relativePath>\n  </parent>\n</project>\n",
+            encoding="utf-8",
+        )
+        assert get_package_name(str(child_dir), "maven") == "com.dir:child"
+
+    def test_pom_parent_relative_path_empty_stops_walk(self, temp_dir: str) -> None:
+        """A whitespace-only <relativePath> halts the parent walk (no groupId found)."""
+        Path(temp_dir, "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <artifactId>child</artifactId>\n"
+            "  <parent>\n    <artifactId>parent</artifactId>\n"
+            "    <relativePath>   </relativePath>\n  </parent>\n</project>\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(ProjectMetadataError, match="No 'groupId'"):
+            get_package_name(temp_dir, "maven")
+
+    def test_pom_parent_relative_path_missing_stops_walk(self, temp_dir: str) -> None:
+        """A <relativePath> pointing at a non-existent pom halts the walk."""
+        Path(temp_dir, "pom.xml").write_text(
+            '<?xml version="1.0"?>\n'
+            '<project xmlns="http://maven.apache.org/POM/4.0.0">\n'
+            "  <artifactId>child</artifactId>\n"
+            "  <parent>\n    <artifactId>parent</artifactId>\n"
+            "    <relativePath>../nowhere/pom.xml</relativePath>\n  </parent>\n</project>\n",
+            encoding="utf-8",
+        )
+        with pytest.raises(ProjectMetadataError, match="No 'groupId'"):
+            get_package_name(temp_dir, "maven")
+
+
+class TestCpanExtractorEdgeCases:
+    """CPAN module-name inference fallbacks in _get_cpan_name."""
+
+    def test_makefile_pl_without_name_falls_through(self, temp_dir: str) -> None:
+        """Makefile.PL present but with no parseable NAME, and no other signals, fails cleanly."""
+        Path(temp_dir, "Makefile.PL").write_text(
+            "use ExtUtils::MakeMaker;\nWriteMakefile();\n", encoding="utf-8"
+        )
+        with pytest.raises(ProjectMetadataError, match="Could not determine CPAN module name"):
+            get_package_name(temp_dir, "cpan")
+
+    def test_empty_lib_dir_falls_back_to_dist_ini(self, temp_dir: str) -> None:
+        """An empty lib/ directory is skipped, deferring to the dist.ini heuristic."""
+        (Path(temp_dir) / "lib").mkdir()
+        (Path(temp_dir) / "dist.ini").write_text(
+            "name = My-Dist\nversion = 0.001\n", encoding="utf-8"
+        )
+        assert get_package_name(temp_dir, "cpan") == "My::Dist"
+
+    def test_dist_ini_without_name_raises(self, temp_dir: str) -> None:
+        """A dist.ini with no `name =` line cannot resolve a module name."""
+        (Path(temp_dir) / "dist.ini").write_text("version = 0.001\n", encoding="utf-8")
+        with pytest.raises(ProjectMetadataError, match="Could not determine CPAN module name"):
+            get_package_name(temp_dir, "cpan")

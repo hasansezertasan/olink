@@ -5,15 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from olink.core.pins import (
-    config_dir,
-    load_pins,
-    pins_file,
-    save_pins,
-)
+from olink.core.pins import config_dir, load_pins, pins_file, save_pins
 
 
-@pytest.fixture()
+@pytest.fixture
 def xdg(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Point the config dir at a temp location via XDG_CONFIG_HOME."""
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
@@ -61,6 +56,12 @@ class TestPinsPersistence:
         pins_file().write_text(json.dumps({"pins": ["origin", 5, None]}), encoding="utf-8")
         assert load_pins() == ["origin"]
         pins_file().write_text(json.dumps(["origin"]), encoding="utf-8")
+        assert load_pins() == []
+
+    def test_load_pins_key_not_a_list_returns_empty(self, xdg: Path) -> None:
+        """A `pins` key that is not a list is treated as corrupt, degrading to []."""
+        pins_file().parent.mkdir(parents=True)
+        pins_file().write_text(json.dumps({"pins": "origin"}), encoding="utf-8")
         assert load_pins() == []
 
     def test_save_overwrites_and_leaves_no_temp_file(self, xdg: Path) -> None:

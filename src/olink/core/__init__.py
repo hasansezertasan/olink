@@ -13,19 +13,19 @@ from olink.core.exceptions import (
 from olink.core.targets import GitPageTarget, MultiEcosystemTarget, Target
 
 __all__ = [
-    # Targets
-    "Target",
+    "REGISTRY",
     "GitPageTarget",
     "MultiEcosystemTarget",
-    "REGISTRY",
-    "get_target",
-    "list_targets",
+    "NoRemoteError",
+    "NotGitRepoError",
     # Exceptions
     "OlinkError",
-    "NotGitRepoError",
-    "NoRemoteError",
+    "ProjectMetadataError",
+    # Targets
+    "Target",
     "UnknownPlatformError",
     "UnknownTargetError",
-    "ProjectMetadataError",
     "UnsupportedFeatureError",
+    "get_target",
+    "list_targets",
 ]

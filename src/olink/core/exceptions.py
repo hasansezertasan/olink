@@ -1,5 +1,15 @@
 """Custom exceptions for olink."""
 
+__all__ = [
+    "NoRemoteError",
+    "NotGitRepoError",
+    "OlinkError",
+    "ProjectMetadataError",
+    "UnknownPlatformError",
+    "UnknownTargetError",
+    "UnsupportedFeatureError",
+]
+
 
 class OlinkError(Exception):
     """Base exception for olink."""

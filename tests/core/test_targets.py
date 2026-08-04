@@ -1,17 +1,18 @@
 """Tests for targets.py - Target URL generation."""
 
 import subprocess
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
+from olink.core.catalog import REGISTRY, get_target, list_available_targets, list_targets
 from olink.core.exceptions import (
     NoRemoteError,
     ProjectMetadataError,
+    UnknownPlatformError,
     UnknownTargetError,
     UnsupportedFeatureError,
 )
-from olink.core.catalog import REGISTRY, get_target, list_targets
 from olink.core.targets import (
     ActionsTarget,
     BranchesTarget,
@@ -34,8 +35,8 @@ from olink.core.targets import (
     InspectorTarget,
     IssuesTarget,
     JsDelivrTarget,
-    LibRsTarget,
     LibrariesIOTarget,
+    LibRsTarget,
     MavenTarget,
     MultiEcosystemTarget,
     NPMStatTarget,
@@ -63,7 +64,11 @@ from olink.core.targets import (
     UnpkgTarget,
     UpstreamTarget,
     WikiTarget,
+    get_platform_url,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestRegistry:
@@ -563,7 +568,7 @@ class TestRegistryTargets:
         assert url == "https://central.sonatype.com/artifact/com.parent/child-app"
 
     def test_maven_target_grandparent_group_id(self, tmp_path: Path) -> None:
-        """groupId resolved via two-level parent chain (parent has no groupId either)."""
+        """GroupId resolved via two-level parent chain (parent has no groupId either)."""
         grandparent = tmp_path / "grandparent"
         parent = tmp_path / "parent"
         child = tmp_path / "child"
@@ -636,8 +641,7 @@ class TestRegistryTargets:
     def test_hackage_target_missing_name(self, tmp_path: Path) -> None:
         cabal = tmp_path / "test-package.cabal"
         cabal.write_text(
-            "cabal-version: >=1.10\nversion: 0.1.0.0\nbuild-type: Simple\n",
-            encoding="utf-8",
+            "cabal-version: >=1.10\nversion: 0.1.0.0\nbuild-type: Simple\n", encoding="utf-8"
         )
         target = HackageTarget()
         with pytest.raises(ProjectMetadataError, match="No 'name' in .cabal file"):
@@ -853,8 +857,7 @@ class TestMultiEcosystemTargets:
         assert "test-go-module" in url
 
     @pytest.mark.parametrize(
-        "raw_target",
-        ["libraries-io:foo", "deps:foo", "ecosystems:foo", "socket:foo"],
+        "raw_target", ["libraries-io:foo", "deps:foo", "ecosystems:foo", "socket:foo"]
     )
     def test_multi_ecosystem_invalid_suffix_raises(self, raw_target: str) -> None:
         with pytest.raises(UnknownTargetError) as exc_info:
@@ -1003,6 +1006,61 @@ class TestRegistryURLCoverage:
             NuGetTarget().get_url(temp_dir)
 
 
+class TestGetPlatformUrl:
+    """Tests for the get_platform_url helper's error branches."""
+
+    def test_unknown_platform_raises(self) -> None:
+        with pytest.raises(UnknownPlatformError, match="Unknown platform"):
+            get_platform_url("https://example.com/o/r", "nosuchforge", "issues")
+
+    def test_unknown_page_raises(self) -> None:
+        with pytest.raises(UnsupportedFeatureError, match="Unknown page 'nosuchpage'"):
+            get_platform_url("https://github.com/o/r", "github", "nosuchpage")
+
+
+class TestTargetGuardsOnMalformedMetadata:
+    """Targets must reject malformed upstream identifiers rather than emit bad URLs."""
+
+    def test_open_vsx_identifier_without_dot_raises(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        monkeypatch.setattr("olink.core.targets.get_open_vsx_name", lambda _cwd: "nodothere")
+        with pytest.raises(ProjectMetadataError, match="Invalid Open VSX identifier"):
+            OpenVSXTarget().get_url(temp_dir)
+
+    def test_maven_coordinates_without_colon_raises(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        monkeypatch.setattr("olink.core.targets.get_package_name", lambda _cwd, _eco: "nocolon")
+        with pytest.raises(ProjectMetadataError, match="Invalid Maven coordinates"):
+            MavenTarget().get_url(temp_dir)
+
+
+class TestListAvailableTargetsSkips:
+    """list_available_targets must silently skip targets whose URL resolution fails."""
+
+    def test_multi_ecosystem_single_supported_but_unresolvable_is_skipped(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """Detection claims 'pypi', but the dir has no pyproject.toml, so multi targets drop out."""
+        monkeypatch.setattr("olink.core.catalog.detect_ecosystems", lambda _cwd: ["pypi"])
+        results = list_available_targets(temp_dir)
+        names = {name for name, *_ in results}
+        # snyk/deps/etc. supported pypi per detection but get_url raises → excluded.
+        assert "snyk" not in names
+        assert "deps" not in names
+
+    def test_multi_ecosystem_multiple_supported_but_unresolvable_is_skipped(
+        self, monkeypatch: pytest.MonkeyPatch, temp_dir: str
+    ) -> None:
+        """Two ecosystems 'detected' with no real metadata: every expanded variant is skipped."""
+        monkeypatch.setattr("olink.core.catalog.detect_ecosystems", lambda _cwd: ["pypi", "npm"])
+        results = list_available_targets(temp_dir)
+        names = {name for name, *_ in results}
+        assert not any(name.startswith("snyk") for name in names)
+        assert not any(name.startswith("deps") for name in names)
+
+
 class TestRegistryDriftGuard:
     """Guard against REGISTRY ↔ targets module drift."""
 
@@ -1013,7 +1071,7 @@ class TestRegistryDriftGuard:
 
         target_subclasses = {
             cls
-            for _, cls in vars(targets_mod).items()
+            for cls in vars(targets_mod).values()
             if isinstance(cls, type) and issubclass(cls, Target) and cls is not Target
         }
         # Skip abstract bases (no `name` ClassVar set on the class itself).

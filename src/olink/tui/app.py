@@ -16,6 +16,9 @@ from olink.tui.models import (
 )
 from olink.tui.widgets import SearchInput, StatusBar, TargetListWidget, TargetRow
 
+__all__ = ["OlinkTUI", "launch_tui"]
+
+
 HEADER_TEXT = (
     "olink — Interactive Target Browser\n"
     "Tab: toggle view  j/k: navigate  /: search  o: open  c: copy  p: pin  q: quit"

@@ -51,13 +51,7 @@ from pathlib import Path
 
 import pytest
 
-from olink.core.pins import (
-    config_dir,
-    load_pins,
-    pins_file,
-    save_pins,
-    toggle_pin,
-)
+from olink.core.pins import config_dir, load_pins, pins_file, save_pins, toggle_pin
 
 
 @pytest.fixture()
@@ -314,10 +308,7 @@ def order_by_pins(items: list[TargetItem], pinned: list[str]) -> list[TargetItem
     rank = {name: index for index, name in enumerate(pinned)}
     for item in items:
         item.pinned = item.name in rank
-    pinned_items = sorted(
-        (item for item in items if item.pinned),
-        key=lambda item: rank[item.name],
-    )
+    pinned_items = sorted((item for item in items if item.pinned), key=lambda item: rank[item.name])
     rest = [item for item in items if not item.pinned]
     return [*pinned_items, *rest]
 ```
@@ -394,7 +385,7 @@ HEADER_TEXT = (
 Add the binding to `BINDINGS` (after the `c` binding):
 
 ```python
-        Binding("p", "toggle_pin", "Pin"),
+(Binding("p", "toggle_pin", "Pin"),)
 ```
 
 In `__init__`, load pins (after `self.searching = False`):
@@ -414,33 +405,34 @@ Change `_source` to apply pin ordering:
 Add the toggle action and a selection helper (near the other actions, e.g. after `action_copy_target`):
 
 ```python
-    def action_toggle_pin(self) -> None:
-        """Pin/unpin the highlighted target, persist, and keep it selected."""
-        target_list = self.query_one(TargetListWidget)
-        item = target_list.get_selected_item()
-        if item is None:
-            return
-        name = item.name
-        status = self.query_one(StatusBar)
-        try:
-            self.pinned = toggle_pin(name)
-        except OSError as exc:
-            # Persisting failed; still toggle in memory so the session works.
-            if name in self.pinned:
-                self.pinned = [existing for existing in self.pinned if existing != name]
-            else:
-                self.pinned = [*self.pinned, name]
-            status.set_error(f"Could not save pins: {exc}")
-        self._refresh_list()
-        self._reselect(name)
+def action_toggle_pin(self) -> None:
+    """Pin/unpin the highlighted target, persist, and keep it selected."""
+    target_list = self.query_one(TargetListWidget)
+    item = target_list.get_selected_item()
+    if item is None:
+        return
+    name = item.name
+    status = self.query_one(StatusBar)
+    try:
+        self.pinned = toggle_pin(name)
+    except OSError as exc:
+        # Persisting failed; still toggle in memory so the session works.
+        if name in self.pinned:
+            self.pinned = [existing for existing in self.pinned if existing != name]
+        else:
+            self.pinned = [*self.pinned, name]
+        status.set_error(f"Could not save pins: {exc}")
+    self._refresh_list()
+    self._reselect(name)
 
-    def _reselect(self, name: str) -> None:
-        """Move the cursor back onto the row for `name` after a refresh."""
-        target_list = self.query_one(TargetListWidget)
-        for index, row in enumerate(target_list.query(TargetRow)):
-            if row.item.name == name:
-                target_list.index = index
-                return
+
+def _reselect(self, name: str) -> None:
+    """Move the cursor back onto the row for `name` after a refresh."""
+    target_list = self.query_one(TargetListWidget)
+    for index, row in enumerate(target_list.query(TargetRow)):
+        if row.item.name == name:
+            target_list.index = index
+            return
 ```
 
 Add `TargetRow` to the widgets import at the top of `app.py`:

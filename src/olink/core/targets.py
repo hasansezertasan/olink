@@ -19,6 +19,62 @@ from olink.core.project import (
     parse_remote_url,
 )
 
+__all__ = [
+    "ActionsTarget",
+    "BranchesTarget",
+    "BundlephobiaTarget",
+    "ClickPyTarget",
+    "CodecovTarget",
+    "CommitsTarget",
+    "CoverallsTarget",
+    "CpanTarget",
+    "CratesTarget",
+    "DepsDevTarget",
+    "DiscussionsTarget",
+    "DocsRsTarget",
+    "EcosystemsTarget",
+    "GemsTarget",
+    "GitPageTarget",
+    "GoDocsTarget",
+    "GoPkgTarget",
+    "HackageTarget",
+    "HexTarget",
+    "InspectorTarget",
+    "IssuesTarget",
+    "JsDelivrTarget",
+    "LibRsTarget",
+    "LibrariesIOTarget",
+    "MavenTarget",
+    "MultiEcosystemTarget",
+    "NPMStatTarget",
+    "NPMTarget",
+    "NuGetTarget",
+    "OpenVSXTarget",
+    "OriginTarget",
+    "PackagephobiaTarget",
+    "PackagistTarget",
+    "PePyTarget",
+    "PiWheelsTarget",
+    "PipTrendsTarget",
+    "PubTarget",
+    "PullsTarget",
+    "PyPIJSONTarget",
+    "PyPIStatsTarget",
+    "PyPITarget",
+    "ReleasesTarget",
+    "RubyGemsStatsTarget",
+    "SafetyDBTarget",
+    "SecurityTarget",
+    "SkypackTarget",
+    "SnykTarget",
+    "SocketTarget",
+    "Target",
+    "UnpkgTarget",
+    "UpstreamTarget",
+    "WikiTarget",
+    "get_platform_url",
+]
+
 
 class Target(ABC):
     """Base class for all targets.
@@ -45,7 +101,7 @@ class Target(ABC):
         """
 
 
-class MultiEcosystemTarget(Target):
+class MultiEcosystemTarget(Target, ABC):
     """Base class for targets that support multiple ecosystems.
 
     Supports suffix notation: target:ecosystem
@@ -56,7 +112,7 @@ class MultiEcosystemTarget(Target):
     description: ClassVar[str]
     ecosystem_url_map: ClassVar[dict[str, str]]
 
-    def __init__(self, ecosystem: str | None = None):
+    def __init__(self, ecosystem: str | None = None) -> None:
         self._ecosystem = ecosystem
 
     @abstractmethod
@@ -65,14 +121,14 @@ class MultiEcosystemTarget(Target):
 
     def get_url(self, cwd: str) -> str:
         """Get the URL, auto-detecting ecosystem if not specified."""
-
         if self._ecosystem:
             if self._ecosystem not in self.ecosystem_url_map:
                 available = ", ".join(sorted(self.ecosystem_url_map.keys()))
-                raise ProjectMetadataError(
+                msg = (
                     f"'{self.name}' doesn't support ecosystem '{self._ecosystem}'. "
                     f"Supported: {available}"
                 )
+                raise ProjectMetadataError(msg)
             ecosystem = self._ecosystem
         else:
             detected = detect_ecosystems(cwd)
@@ -80,16 +136,16 @@ class MultiEcosystemTarget(Target):
 
             if not supported:
                 available = ", ".join(sorted(self.ecosystem_url_map.keys()))
-                raise ProjectMetadataError(
-                    f"No supported ecosystem found for '{self.name}'. Supported: {available}"
-                )
+                msg = f"No supported ecosystem found for '{self.name}'. Supported: {available}"
+                raise ProjectMetadataError(msg)
 
             if len(supported) > 1:
                 variants = ", ".join(f"{self.name}:{e}" for e in sorted(supported))
-                raise ProjectMetadataError(
+                msg = (
                     f"Multiple ecosystems detected ({', '.join(sorted(supported))}). "
                     f"Use: {variants}"
                 )
+                raise ProjectMetadataError(msg)
 
             ecosystem = supported[0]
 
@@ -173,22 +229,24 @@ def _get_parsed_remote(cwd: str, remote: str = "origin") -> ParsedRemote:
     """Get and parse a git remote, raising NoRemoteError if missing."""
     remote_url = get_remote_url(cwd, remote)
     if not remote_url:
-        raise NoRemoteError(f"No '{remote}' remote configured")
+        msg = f"No '{remote}' remote configured"
+        raise NoRemoteError(msg)
     return parse_remote_url(remote_url)
 
 
 def get_platform_url(base_url: str, platform: str, page: str) -> str:
     """Get URL for a specific page on a platform."""
     if platform not in PLATFORM_URLS:
-        raise UnknownPlatformError(f"Unknown platform: '{platform}'")
+        msg = f"Unknown platform: '{platform}'"
+        raise UnknownPlatformError(msg)
     if page not in PLATFORM_URLS[platform]:
         available = ", ".join(sorted(PLATFORM_URLS[platform].keys()))
-        raise UnsupportedFeatureError(
-            f"Unknown page '{page}' for {platform}. Available: {available}"
-        )
+        msg = f"Unknown page '{page}' for {platform}. Available: {available}"
+        raise UnsupportedFeatureError(msg)
     path = PLATFORM_URLS[platform][page]
     if path is None:
-        raise UnsupportedFeatureError(f"'{page}' is not available on {platform}")
+        msg = f"'{page}' is not available on {platform}"
+        raise UnsupportedFeatureError(msg)
     return base_url + path
 
 
@@ -235,54 +293,72 @@ class GitPageTarget(Target):
 
 
 class IssuesTarget(GitPageTarget):
+    """Open the issues page."""
+
     name = "issues"
     description = "Open the issues page"
     _page = "issues"
 
 
 class PullsTarget(GitPageTarget):
+    """Open the pull/merge requests page."""
+
     name = "pulls"
     description = "Open the pull/merge requests page"
     _page = "pulls"
 
 
 class ActionsTarget(GitPageTarget):
+    """Open the CI/CD page (Actions, Pipelines)."""
+
     name = "actions"
     description = "Open the CI/CD page (Actions, Pipelines)"
     _page = "actions"
 
 
 class WikiTarget(GitPageTarget):
+    """Open the wiki page."""
+
     name = "wiki"
     description = "Open the wiki page"
     _page = "wiki"
 
 
 class ReleasesTarget(GitPageTarget):
+    """Open the releases page."""
+
     name = "releases"
     description = "Open the releases page"
     _page = "releases"
 
 
 class BranchesTarget(GitPageTarget):
+    """Open the branches page."""
+
     name = "branches"
     description = "Open the branches page"
     _page = "branches"
 
 
 class CommitsTarget(GitPageTarget):
+    """Open the commit history."""
+
     name = "commits"
     description = "Open the commit history"
     _page = "commits"
 
 
 class SecurityTarget(GitPageTarget):
+    """Open the security page."""
+
     name = "security"
     description = "Open the security page"
     _page = "security"
 
 
 class DiscussionsTarget(GitPageTarget):
+    """Open the discussions page."""
+
     name = "discussions"
     description = "Open the discussions page"
     _page = "discussions"
@@ -310,9 +386,8 @@ class CodecovTarget(Target):
         parsed = _get_parsed_remote(cwd, "origin")
         platform_code = self._PLATFORM_CODES.get(parsed.platform)
         if platform_code is None:
-            raise UnsupportedFeatureError(
-                f"Codecov does not support '{parsed.platform}' (only github, gitlab, bitbucket)"
-            )
+            msg = f"Codecov does not support '{parsed.platform}' (only github, gitlab, bitbucket)"
+            raise UnsupportedFeatureError(msg)
         return f"https://codecov.io/{platform_code}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
 
 
@@ -332,9 +407,8 @@ class CoverallsTarget(Target):
     def get_url(self, cwd: str) -> str:
         parsed = _get_parsed_remote(cwd, "origin")
         if parsed.platform not in self._SUPPORTED_PLATFORMS:
-            raise UnsupportedFeatureError(
-                f"Coveralls does not support '{parsed.platform}' (only github, gitlab, bitbucket)"
-            )
+            msg = f"Coveralls does not support '{parsed.platform}' (only github, gitlab, bitbucket)"
+            raise UnsupportedFeatureError(msg)
         return f"https://coveralls.io/{parsed.platform}/{quote(parsed.owner, safe='')}/{quote(parsed.repo, safe='')}"
 
 
@@ -444,12 +518,7 @@ class SnykTarget(MultiEcosystemTarget):
 
     name = "snyk"
     description = "Open the Snyk security advisor"
-    ecosystem_url_map = {
-        "pypi": "python",
-        "npm": "npm-package",
-        "go": "golang",
-        "cargo": "rust",
-    }
+    ecosystem_url_map = {"pypi": "python", "npm": "npm-package", "go": "golang", "cargo": "rust"}
 
     def _build_url(self, ecosystem_path: str, package_name: str) -> str:
         return f"https://snyk.io/advisor/{ecosystem_path}/{_encode_name(package_name)}"
@@ -498,12 +567,7 @@ class SocketTarget(MultiEcosystemTarget):
 
     name = "socket"
     description = "Open Socket.dev package health"
-    ecosystem_url_map = {
-        "pypi": "pypi",
-        "npm": "npm",
-        "cargo": "cargo",
-        "go": "go",
-    }
+    ecosystem_url_map = {"pypi": "pypi", "npm": "npm", "cargo": "cargo", "go": "go"}
 
     def _build_url(self, ecosystem_path: str, package_name: str) -> str:
         """Encode package names safely because Socket URLs include the raw package identifier."""
@@ -552,9 +616,9 @@ class NPMStatTarget(Target):
     description = "Open npm-stat download charts"
 
     def get_url(self, cwd: str) -> str:
-        return "https://npm-stat.com/charts.html?" + urlencode(
-            {"package": get_package_name(cwd, "npm")}
-        )
+        return "https://npm-stat.com/charts.html?" + urlencode({
+            "package": get_package_name(cwd, "npm")
+        })
 
 
 class JsDelivrTarget(Target):
@@ -749,10 +813,11 @@ class OpenVSXTarget(Target):
         """Use publisher + name from package.json because Open VSX identifies extensions by both."""
         publisher_name = get_open_vsx_name(cwd)
         if "." not in publisher_name:
-            raise ProjectMetadataError(
+            msg = (
                 f"Invalid Open VSX identifier '{publisher_name}': "
                 "expected 'publisher.name' format in package.json"
             )
+            raise ProjectMetadataError(msg)
         publisher, name = publisher_name.split(".", 1)
         return f"https://open-vsx.org/extension/{_encode_name(publisher)}/{_encode_name(name)}"
 
@@ -767,10 +832,11 @@ class MavenTarget(Target):
         """Convert groupId/artifactId coordinates into Maven Central's artifact URL format."""
         group_artifact = get_package_name(cwd, "maven")
         if ":" not in group_artifact:
-            raise ProjectMetadataError(
+            msg = (
                 f"Invalid Maven coordinates '{group_artifact}': "
                 "expected 'groupId:artifactId' format from pom.xml"
             )
+            raise ProjectMetadataError(msg)
         group_id, artifact_id = group_artifact.split(":", 1)
         return f"https://central.sonatype.com/artifact/{_encode_name(group_id)}/{_encode_name(artifact_id)}"
 
