@@ -1,6 +1,47 @@
 # olink
 
-A CLI tool that opens external URLs related to your project.
+[![CI](https://github.com/hasansezertasan/olink/actions/workflows/ci.yml/badge.svg)](https://github.com/hasansezertasan/olink/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/hasansezertasan/olink)](https://codecov.io/gh/hasansezertasan/olink)
+[![Documentation Status](https://img.shields.io/github/deployments/hasansezertasan/olink/github-pages?label=docs)](https://hasansezertasan.github.io/olink)
+[![PyPI - Version](https://img.shields.io/pypi/v/olink.svg)](https://pypi.org/project/olink)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/olink.svg)](https://pypi.org/project/olink)
+[![License - MIT](https://img.shields.io/github/license/hasansezertasan/olink.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Stars](https://img.shields.io/github/stars/hasansezertasan/olink?style=social)](https://github.com/hasansezertasan/olink/stargazers)
+[![Latest Commit](https://img.shields.io/github/last-commit/hasansezertasan/olink)](https://github.com/hasansezertasan/olink)
+
+[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+[![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hasansezertasan/olink/badge)](https://scorecard.dev/viewer/?uri=github.com/hasansezertasan/olink)
+[![GitHub Tag](https://img.shields.io/github/tag/hasansezertasan/olink?include_prereleases=&sort=semver&color=black)](https://github.com/hasansezertasan/olink/releases/)
+
+[![Downloads](https://pepy.tech/badge/olink)](https://pepy.tech/project/olink)
+[![Downloads/Month](https://pepy.tech/badge/olink/month)](https://pepy.tech/project/olink)
+[![Downloads/Week](https://pepy.tech/badge/olink/week)](https://pepy.tech/project/olink)
+
+> A CLI tool that opens external URLs related to your project.
+
+-----
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Available Targets](#available-targets)
+- [Examples](#examples)
+- [Interactive TUI](#interactive-tui)
+- [Limitations](#limitations)
+- [Requirements](#requirements)
+- [Motivation](#motivation)
+- [Features](#features)
+- [Support](#support-heart)
+- [Analysis](#analysis)
+- [Contributing](#contributing-heart)
+- [Development](#development-toolbox)
+- [Releasing](#releasing)
+- [Author](#author-person_with_crown)
+- [Credits](#credits)
+- [License](#license-scroll)
+- [Changelog](#changelog-memo)
 
 ## Installation
 
@@ -228,10 +269,116 @@ The TUI lets you browse, search, open, and pin targets interactively. Keybinding
 
 - Python 3.14+
 
-## Development
+## Motivation
 
-See `JOURNAL.md` for a chronological record of decisions, attempts (including failures), and outcomes.
+The metadata for any project already lives in files you keep in the repo — the git
+remote in `.git/config`, the package name in `pyproject.toml`, `package.json`,
+`Cargo.toml`, and friends. Yet the pages you actually want to visit (the PyPI page,
+the issue tracker, download stats, a security advisor) are scattered across dozens
+of hosts, each with its own URL shape. olink reads those files directly and opens
+the right page for you — no bookmarks to maintain, no URLs to memorize, and it works
+the same way in every project you `cd` into.
 
-## License
+## Features
 
-MIT
+- **Zero configuration**: Detects your platform and package name from files already
+  in the repo (`.git/config`, `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, …).
+- **Wide platform coverage**: GitHub, GitLab, Bitbucket, Gitea, and Forgejo (incl.
+  Codeberg), with self-hosted instances detected by hostname.
+- **Many ecosystems**: Python, npm, Rust, Go, PHP, Dart, Ruby, Java/Maven, Haskell,
+  Perl, Elixir, and .NET package registries and stats services.
+- **Interactive TUI**: Browse, search, open, copy, and pin targets from a Textual
+  terminal interface (via the `[tui]` extra).
+- **File I/O over subprocess**: Reads config files directly instead of shelling out
+  to `git`/`npm`, so it is fast and dependency-light.
+- **Type Safety**: Full type hints checked by mypy and basedpyright.
+- **Modern Python**: uv for dependency management, hatch for building.
+
+## Support :heart:
+
+If you have any questions or need help, feel free to open an issue on the [GitHub repository][olink].
+
+## Analysis
+
+- [Snyk Python Package Health Analysis](https://snyk.io/advisor/python/olink)
+- [Libraries.io - PyPI](https://libraries.io/pypi/olink)
+- [Safety DB](https://data.safetycli.com/packages/pypi/olink)
+- [PePy Download Stats](https://www.pepy.tech/projects/olink)
+- [PyPI Download Stats](https://pypistats.org/packages/olink)
+- [Pip Trends Download Stats](https://piptrends.com/package/olink)
+- [PyPI Map Dependency Graph](https://pypimap.com/package/olink)
+
+## Contributing :heart:
+
+Any contributions are welcome! Please follow the [Contributing Guidelines](./.github/CONTRIBUTING.md) to contribute to this project.
+
+## Development :toolbox:
+
+Clone the repository and cd into the project directory:
+
+```sh
+git clone https://github.com/hasansezertasan/olink
+cd olink
+```
+
+### Install
+
+Install the dependencies:
+
+```sh
+uv sync
+```
+
+### Style
+
+Run the style checks:
+
+```sh
+uv run --locked tox run -e style
+```
+
+### CI
+
+Run the CI pipeline:
+
+```sh
+uv run --locked tox run
+```
+
+### Docs
+
+Build the documentation site:
+
+```sh
+uv run --locked tox run -e docs-build
+```
+
+Start the live-reloading docs server:
+
+```sh
+uv run --locked tox run -e docs-server
+```
+
+## Releasing
+
+Versioning and releases are automated with [release-please](https://github.com/googleapis/release-please), driven by [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) PR titles squash-merged into `main`. release-please maintains a release PR that bumps the version and `CHANGELOG.md`; merging it tags the release and publishes to PyPI. See the [Contributing Guidelines](./.github/CONTRIBUTING.md#releasing) for the commit conventions and the one-time [Repository setup](./.github/CONTRIBUTING.md#repository-setup-one-time) (squash-merge settings, Actions permissions, release immutability, and PyPI trusted publishing).
+
+## Author :person_with_crown:
+
+This project is maintained by [Hasan Sezer Taşan][author], It's me :wave:
+
+## Credits
+
+This package was created with [Copier](https://github.com/copier-org/copier) and the [hasansezertasan/copier-pyproject](https://github.com/hasansezertasan/copier-pyproject) project template.
+
+## License :scroll:
+
+This project is licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
+
+## Changelog :memo:
+
+For a detailed list of changes, please refer to the [CHANGELOG](./CHANGELOG.md).
+
+<!-- Refs -->
+[author]: https://github.com/hasansezertasan
+[olink]: https://github.com/hasansezertasan/olink
