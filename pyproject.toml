@@ -70,7 +70,7 @@ style = [
   "editorconfig-checker==3.6.1",
   "import-linter==2.13",
   "mypy==2.1.0",
-  "pyrefly==1.1.1",
+  "pyrefly==1.2.0",
   "ruff==0.15.19",
   "slotscheck==0.20.1",
   "sphinx-lint==1.0.2",
