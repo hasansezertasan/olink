@@ -52,10 +52,19 @@ uv tool install 'olink[tui]'     # Include the interactive TUI
 
 Or with `pipx`:
 
+<<<<<<< before updating
 ```bash
 pipx install olink
 pipx install 'olink[tui]'
+=======
+`olink` is a standalone end-user tool whose primary command is `olink`. Install it into an isolated environment:
+
+```console
+uv tool install olink
+>>>>>>> after updating
 ```
+
+Or run it without installing with `uvx olink`. See the [installation docs](https://hasansezertasan.github.io/olink/installation.html) for pipx and from-source options.
 
 ## Usage
 
@@ -243,6 +252,7 @@ olink --list
 
 ## Interactive TUI
 
+<<<<<<< before updating
 Launch the interactive target browser with:
 
 ```bash
@@ -262,6 +272,9 @@ The TUI lets you browse, search, open, and pin targets interactively. Keybinding
 - `q` — quit
 
 ## Limitations
+=======
+## Support :heart:
+>>>>>>> after updating
 
 - olink must be run from the project root directory. Running from a subdirectory (e.g. `src/`) is not supported.
 
@@ -271,6 +284,7 @@ The TUI lets you browse, search, open, and pin targets interactively. Keybinding
 
 ## Motivation
 
+<<<<<<< before updating
 The metadata for any project already lives in files you keep in the repo — the git
 remote in `.git/config`, the package name in `pyproject.toml`, `package.json`,
 `Cargo.toml`, and friends. Yet the pages you actually want to visit (the PyPI page,
@@ -278,6 +292,10 @@ the issue tracker, download stats, a security advisor) are scattered across doze
 of hosts, each with its own URL shape. olink reads those files directly and opens
 the right page for you — no bookmarks to maintain, no URLs to memorize, and it works
 the same way in every project you `cd` into.
+=======
+- **CLI Application**: Command-line interface built with Typer
+- **TUI Application**: Terminal user interface built with Textual
+>>>>>>> after updating
 
 ## Features
 
@@ -314,6 +332,7 @@ Any contributions are welcome! Please follow the [Contributing Guidelines](./.gi
 
 ## Development :toolbox:
 
+<<<<<<< before updating
 Clone the repository and cd into the project directory:
 
 ```sh
@@ -372,6 +391,11 @@ Start the live-reloading docs server:
 ```sh
 uv run --locked tox run -e docs-server
 ```
+=======
+See the [Contributing Guidelines](./.github/CONTRIBUTING.md#your-first-code-contribution)
+for local setup, the common development tasks (exposed via [mise](https://mise.jdx.dev)),
+building and previewing the documentation, and the VS Code debugging configurations.
+>>>>>>> after updating
 
 ## Releasing
 
