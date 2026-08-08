@@ -1,6 +1,6 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
 ---
-_commit: v1.0.0
+_commit: v1.1.0
 _src_path: https://github.com/hasansezertasan/copier-pyproject.git
 author_email: hasansezertasan@gmail.com
 author_family_names: Taşan
@@ -13,8 +13,10 @@ include_c_extensions: false
 include_cli: true
 include_compiler: false
 include_dbeaver: false
+include_examples: true
 include_freezer: false
 include_gui: false
+include_homebrew: false
 include_launcher: false
 include_mcp: false
 include_megalinter: false
@@ -22,6 +24,8 @@ include_postgres: false
 include_profiling: false
 include_pydantic_settings: false
 include_redis: false
+include_repo_settings: false
+include_scoop: false
 include_sonarcloud: false
 include_sourcery: false
 include_tui: true
@@ -29,4 +33,5 @@ include_vpn: false
 include_web: false
 include_worker: false
 package_keywords: developer-tools, git, github, gitlab, bitbucket, npm, open-url
+preset: library
 short_description: A CLI tool that opens external URLs related to your project.
