@@ -1,26 +1,42 @@
 Installation
 ============
 
-Possible extras:
-
-- ``cli``: Installs typer and adds ``olink`` as a command.
-- ``tui``: Installs textual and adds ``olink-tui`` as a command.
-- ``all``: Installs all extras if available.
+``olink`` is an end-user application, not a library, so install
+it as a standalone tool rather than as a project dependency. Its primary entry
+point is the ``olink`` command.
 
 Stable release
 --------------
 
-To install ``olink``, run this command in your terminal:
+Install ``olink`` into an isolated environment with your
+preferred tool installer:
 
 .. code-block:: sh
 
-   uv add olink
-
-Or if you prefer to use ``pip``:
+   uv tool install olink
 
 .. code-block:: sh
 
-   pip install olink
+   pipx install olink
+
+Or run it without installing:
+
+.. code-block:: sh
+
+   uvx olink
+
+Homebrew (macOS/Linux):
+
+.. code-block:: sh
+
+    brew install hasansezertasan/tap/olink
+
+Scoop (Windows):
+
+.. code-block:: sh
+
+    scoop bucket add hasansezertasan https://github.com/hasansezertasan/scoop-bucket
+    scoop install hasansezertasan/olink
 
 From source
 -----------
@@ -47,4 +63,4 @@ Once you have a copy of the source, you can install it with:
 .. code-block:: sh
 
    cd olink
-   uv pip install .
+   uv tool install .

@@ -49,7 +49,7 @@
       "request": "launch",
       "justMyCode": true,
       "module": "uv",
-      "args": ["run", "olink-tui"]
+      "args": ["run", "olink"]
     },
     
     

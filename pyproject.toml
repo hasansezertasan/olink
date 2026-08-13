@@ -50,7 +50,6 @@ issues = "https://github.com/hasansezertasan/olink/issues"
 releasenotes = "https://github.com/hasansezertasan/olink/releases"
 source = "https://github.com/hasansezertasan/olink.git"
 
-
 [project.scripts]
 olink = "olink.cli:main"
 
@@ -65,20 +64,21 @@ dev = [
   { include-group = "test" },
 ]
 style = [
-  "actionlint-py==1.7.12.24",
   "basedpyright==1.39.9",
   "editorconfig-checker==3.11.1",
   "import-linter==2.13",
   "mypy==2.3.0",
+  "pylint==4.0.6",
   "pyrefly==1.2.0",
-  "ruff==0.15.19",
+  "ruff==0.16.1",
   "slotscheck==0.20.1",
   "sphinx-lint==1.0.2",
   "taplo==0.9.3",
   "ty==0.0.71",
   "typos==1.49.0",
-  "validate-pyproject[all]==0.25",
-  "vulture==2.16",
+  # actionlint, validate-pyproject, and vulture moved to prek upstream hooks
+  # (see prek.toml); the tox `style` run no longer invokes them, so they are no
+  # longer part of this group.
   # "zuban==0.9.0",  # removed from the style gate: panics on untyped pyperclip (see [tool.tox.env.style])
   # "google-yamlfmt",
   # "shellcheck-makefile>=1.27.3",
@@ -142,7 +142,12 @@ trusted-publishing = "always"
 
 [tool.hatch.version]
 source = "vcs"
-fallback-version = "0.1.0"
+# Last-resort sentinel: only used when a build sees neither a .git directory nor
+# an expanded .git_archival.txt (e.g. an archive of a commit with no reachable
+# tag). "0.0.0" reads clearly as "version could not be determined" rather than
+# masquerading as a real early release. See .git_archival.txt + .gitattributes
+# `export-subst` for the archive path that recovers the real tag-derived version.
+fallback-version = "0.0.0"
 
 
 [tool.hatch.build]
@@ -304,6 +309,13 @@ ignore = [
   "CPY",
   "FIX",
   "TD",
+  # Two opinionated ruff 0.16 preview rules: RUF105 would rewrite the portable
+  # `# noqa` comments into ruff's own `# ruff: ignore` syntax (its docs note
+  # `# noqa` is needed for cross-tool compatibility), and RUF201 would rewrite
+  # every rule *code* in this config's selectors into long rule *names*. Both are
+  # stylistic.
+  "RUF105",
+  "RUF201",
   # Line length is enforced by the formatter (line-length = 100); the residual
   # E501 hits are unsplittable URLs/strings in code and are acceptable.
   "E501",
@@ -452,6 +464,51 @@ error-on-warning = true
 python-version = "3.14"
 project-includes = ["src"]
 
+[tool.pylint.main]
+# pylint runs as an always-on gate that deliberately overlaps ruff's PL* rules.
+# Its canonical invocation is `pylint src`, so it never descends into tests; this
+# ignore-paths is a defensive scope guard for broader invocations (`pylint .`,
+# filename-passing hooks). Tests are linted by ruff, not pylint.
+ignore-paths = ["^tests/.*$"]
+# `.pyi` stubs (the c-extension type stub) are signature-only: their bodies are
+# `...` and every parameter is unused by construction, so pylint's unused-argument
+# check is a guaranteed false positive there. Stubs are type-checked by the
+# type-checker gate, not pylint.
+ignore-patterns = ['.*\.pyi$']
+
+[tool.pylint."messages control"]
+# Only formatter-owned checks, the docstring family, and too-few-public-methods
+# are disabled so pylint is usable out of the box; everything else stays on.
+disable = [
+  "line-too-long",              # C0301 — ruff-format owns line length
+  "missing-module-docstring",   # C0114
+  "missing-class-docstring",    # C0115
+  "missing-function-docstring", # C0116
+  "too-few-public-methods",     # R0903 — trips dataclasses / config / Protocol classes
+  "import-outside-toplevel",    # C0415 — components (cli->tui/gui/web, and each
+  # component's own optional-dependency probe) are
+  # deliberately lazy-imported so import-linter's
+  # layering contract holds and optional extras
+  # aren't required at import time.
+  "try-except-raise", # W0706 — the generated TUI entry point
+  # explicitly re-raises KeyboardInterrupt/SystemExit
+  # ahead of a broad `except Exception` to make the
+  # "let these propagate" intent obvious to readers,
+  # even though BaseException subclasses wouldn't be
+  # caught by the Exception clause anyway.
+  "duplicate-code", # R0801 — the component skeletons (gui/tui/mcp/
+  # worker) are deliberately parallel: each fetches
+  # package metadata and formats the same info block
+  # the same way. That structural symmetry is a
+  # feature of the scaffold, not copy-paste debt, and
+  # R0801 cannot be suppressed inline at the call site.
+]
+
+[tool.pylint.design]
+max-args = 10
+max-positional-arguments = 10
+max-branches = 20
+
 [tool.tox]
 # The ``worker`` env is intentionally omitted: it starts a broker-bound process
 # and would hang/fail under ``tox run`` in CI (where no broker is available).
@@ -527,7 +584,8 @@ commands = [
   # `pyperclip` dep and ignores mypy's ignore_missing_imports override. mypy
   # (strict), basedpyright (strict), ty, and pyrefly already cover typing.
   [
-    "vulture",
+    "pylint",
+    "src",
   ],
   [
     "python",
@@ -556,15 +614,8 @@ commands = [
     "*.toml",
   ],
   [
-    "validate-pyproject",
-    "pyproject.toml",
-  ],
-  [
     "typos",
     "--diff",
-  ],
-  [
-    "actionlint",
   ],
   [
     "ec",
@@ -573,12 +624,15 @@ commands = [
     "sphinx-lint",
     "docs",
   ],
-  # ["yamlfmt", "."],
 ]
 # `test` is included so the type checkers that scope tests (e.g. ty) can
 # resolve pytest and other test-only imports.
 dependency_groups = ["style", "test"]
 description = "Run Checkers, Linters and Formatters"
+# Optional components (web/gui/tui/mcp/worker) are only importable when their
+# extra is installed; without this, pylint/mypy/etc. see import-error for any
+# optional component present in this render.
+extras = ["all"]
 runner = "uv-venv-runner"
 
 

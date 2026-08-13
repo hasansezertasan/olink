@@ -12,6 +12,11 @@
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://www.mypy-lang.org/)
 [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hasansezertasan/olink/badge)](https://scorecard.dev/viewer/?uri=github.com/hasansezertasan/olink)
+<!-- prettier-ignore-start -->
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/github/all-contributors/hasansezertasan/olink?color=ee8449&style=flat-square)](#contributors)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+<!-- prettier-ignore-end -->
 [![GitHub Tag](https://img.shields.io/github/tag/hasansezertasan/olink?include_prereleases=&sort=semver&color=black)](https://github.com/hasansezertasan/olink/releases/)
 
 [![Downloads](https://pepy.tech/badge/olink)](https://pepy.tech/project/olink)
@@ -42,6 +47,7 @@
 - [Credits](#credits)
 - [License](#license-scroll)
 - [Changelog](#changelog-memo)
+- [Contributors](#contributors)
 
 ## Installation
 
@@ -55,6 +61,19 @@ Or with `pipx`:
 ```bash
 pipx install olink
 pipx install 'olink[tui]'
+```
+
+Install with [Homebrew](https://brew.sh) (macOS/Linux):
+
+```sh
+brew install hasansezertasan/tap/olink
+```
+
+Install with [Scoop](https://scoop.sh) (Windows):
+
+```sh
+scoop bucket add hasansezertasan https://github.com/hasansezertasan/scoop-bucket
+scoop install hasansezertasan/olink
 ```
 
 ## Usage
@@ -392,6 +411,26 @@ This project is licensed under the [MIT License](https://spdx.org/licenses/MIT.h
 ## Changelog :memo:
 
 For a detailed list of changes, please refer to the [CHANGELOG](./CHANGELOG.md).
+
+## Contributors
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)). This project follows the [all-contributors](https://allcontributors.org/) specification — contributions of any kind welcome! Add a contributor with the [bot](https://allcontributors.org/docs/en/bot/usage) (`@all-contributors please add @user for code`) or the [CLI](https://allcontributors.org/docs/en/cli/usage).
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hasansezertasan"><img src="https://avatars.githubusercontent.com/hasansezertasan?s=100" width="100px;" alt="Hasan Sezer Taşan"/><br /><sub><b>Hasan Sezer Taşan</b></sub></a><br /><a href="#maintenance-hasansezertasan" title="Maintenance">🚧</a> <a href="https://github.com/hasansezertasan/olink/commits?author=hasansezertasan" title="Code">💻</a> <a href="https://github.com/hasansezertasan/olink/commits?author=hasansezertasan" title="Documentation">📖</a> <a href="https://github.com/hasansezertasan/olink/commits?author=hasansezertasan" title="Tests">⚠️</a> <a href="#ideas-hasansezertasan" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 <!-- Refs -->
 [author]: https://github.com/hasansezertasan

@@ -173,6 +173,18 @@ A few project-specific notes:
   configure — olink reads local project files (`.git/config`, `pyproject.toml`,
   `package.json`, …) directly.
 
+### Debugging
+
+Debug in VS Code using the launch configurations shipped in `.vscode/launch.json`:
+
+- **Current File**: Debug the currently open Python file.
+- **Tests**: Debug pytest runs.
+- **Attach**: Attach to a running process (e.g., web app with debugpy).
+- **Web App/CLI/TUI/GUI**: Debug specific entry points (if enabled).
+- **With Profiling**: Debug while profiling with scalene (if profiling enabled).
+
+Select a configuration from the Run and Debug panel in VS Code.
+
 ### Improving The Documentation
 
 The documentation lives under `docs/` (Sphinx, reStructuredText). Build it
@@ -398,6 +410,97 @@ local edits diverged from the template the diff can contain conflict markers
 on them ([renovate#31600](https://github.com/renovatebot/renovate/issues/31600)),
 so a copier PR can look mergeable while carrying conflicts. Reconcile before
 merging: keep your project identity, adopt the template's tooling/config changes.
+
+**10. Enable GitHub Discussions.** New repositories ship with Discussions
+disabled, but the community-health files point contributors there — `SUPPORT.md`,
+the issue-template chooser (`config.yml`), and the **Join The Project Team**
+section of this guide all link to the Discussions tab, so those links 404 until
+it is turned on:
+
+```sh
+gh api -X PATCH repos/hasansezertasan/olink -F has_discussions=true
+```
+
+(UI: **Settings → General → Features** — tick **Discussions**.)
+
+**11. Homebrew tap (optional).** The release workflow does not build a
+formula itself — it sends a `repository_dispatch` event to your
+`hasansezertasan/homebrew-tap` repo, whose own listener workflow bumps the
+formula and opens a PR there. Full one-time setup (creating the tap,
+bootstrapping the initial formula, and installing the listener) is documented
+in [`docs/packaging/homebrew-tap/README.md`](../docs/packaging/homebrew-tap/README.md).
+
+The only piece owned by **this** repo is the dispatch credential: create a
+fine-grained PAT with **Contents: write** on `hasansezertasan/homebrew-tap`
+(no `Pull requests` scope needed — the tap opens its own PR with its own
+`GITHUB_TOKEN`) and set it as the `HOMEBREW_TAP_TOKEN` repository secret:
+
+```sh
+gh secret set HOMEBREW_TAP_TOKEN --repo hasansezertasan/olink
+```
+
+When unset, the `bump-homebrew` job skips with a notice (never fails the release).
+
+**12. Scoop bucket (optional).** The release workflow does not build a
+manifest itself — it sends a `repository_dispatch` event to your
+`hasansezertasan/scoop-bucket` repo, whose own listener workflow bumps the
+manifest and opens a PR there. Full one-time setup (creating the bucket,
+bootstrapping the initial manifest, and installing the listener) is
+documented in [`docs/packaging/scoop-bucket/README.md`](../docs/packaging/scoop-bucket/README.md).
+
+The only piece owned by **this** repo is the dispatch credential: create a
+fine-grained PAT with **Contents: write** on `hasansezertasan/scoop-bucket`
+(no `Pull requests` scope needed — the bucket opens its own PR with its own
+`GITHUB_TOKEN`) and set it as the `SCOOP_BUCKET_TOKEN` repository secret:
+
+```sh
+gh secret set SCOOP_BUCKET_TOKEN --repo hasansezertasan/olink
+```
+
+When unset, the `bump-scoop` job skips with a notice (never fails the release).
+
+### Optional third-party integrations
+
+These are enabled in this project's Copier answers and each needs a one-time
+external setup. Until set up, they are inert — CI stays green.
+
+**all-contributors.** `.all-contributorsrc` and the README **Contributors**
+section follow the [all-contributors](https://allcontributors.org/)
+specification. The bundled `all-contributors.yml` workflow regenerates the README
+table from `.all-contributorsrc` (on demand via _Actions → All Contributors → Run
+workflow_, and automatically when `.all-contributorsrc` changes on the default
+branch) and opens a PR with the result — this reuses the same _Allow GitHub
+Actions to create and approve pull requests_ setting release-please needs (step
+3 above), so no extra setup. To add people, either edit `.all-contributorsrc`
+(or run the [CLI](https://allcontributors.org/docs/en/cli/usage), which is pinned
+in `mise.toml`: `mise exec -- all-contributors add <user> <contributions>`) and
+let the workflow regenerate, or install the
+[bot](https://allcontributors.org/docs/en/bot/usage) for
+`@all-contributors please add @user for code` comments.
+
+**Repository settings ("Settings" App).** `.github/settings.yml` declares this
+repository's description, homepage, and (when the `repository_topics` template
+answer is set) topics. It is applied by the
+[Settings GitHub App](https://github.com/apps/settings) on every push to the
+default branch — install it once on this repository (or your account) from the
+[App page](https://github.com/apps/settings). Nothing syncs until it is
+installed.
+
+> [!CAUTION]
+> The Settings App **escalates anyone with push access to admin**: a merge to
+> the default branch syncs whatever is in `settings.yml`. Mitigate this with
+> CODEOWNERS — this project already makes `@hasansezertasan` the code owner of
+> every file (`.github/CODEOWNERS`), so enabling branch protection's **Require
+> review from Code Owners** on the default branch means a `settings.yml` change
+> cannot merge without your review. Note that with the shipped `* @hasansezertasan`
+> ownership this requires code-owner review for _all_ files (the whole branch);
+> to scope the requirement to just `settings.yml`, narrow `.github/CODEOWNERS`
+> to `/.github/settings.yml @hasansezertasan`.
+
+The "Include in the home page" activity toggles (Releases / Packages /
+Deployments in the About sidebar) are **not** settable through any GitHub API,
+so neither this App nor any workflow can manage them — set those in the web UI.
+Labels are managed separately by `.github/labels.yml`, not here.
 
 ## Join The Project Team
 

@@ -1,6 +1,6 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
 ---
-_commit: v1.0.0
+_commit: v1.1.0
 _src_path: https://github.com/hasansezertasan/copier-pyproject.git
 author_email: hasansezertasan@gmail.com
 author_family_names: Taşan
@@ -8,13 +8,15 @@ author_full_name: Hasan Sezer Taşan
 author_given_names: Hasan Sezer
 github_repo_name: olink
 github_user: hasansezertasan
-include_all_contributors: false
+include_all_contributors: true
 include_c_extensions: false
 include_cli: true
 include_compiler: false
 include_dbeaver: false
+include_examples: false
 include_freezer: false
 include_gui: false
+include_homebrew: true
 include_launcher: false
 include_mcp: false
 include_megalinter: false
@@ -22,6 +24,8 @@ include_postgres: false
 include_profiling: false
 include_pydantic_settings: false
 include_redis: false
+include_repo_settings: true
+include_scoop: true
 include_sonarcloud: false
 include_sourcery: false
 include_tui: true
@@ -29,4 +33,7 @@ include_vpn: false
 include_web: false
 include_worker: false
 package_keywords: developer-tools, git, github, gitlab, bitbucket, npm, open-url
+preset: tool
+repository_topics: python, cli, tui, cli-tool, developer-tools, productivity, git,
+    github, gitlab, bitbucket, pypi, npm, open-url, typer, textual, terminal, cross-platform
 short_description: A CLI tool that opens external URLs related to your project.
