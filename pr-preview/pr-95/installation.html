@@ -113,20 +113,30 @@ data-aria-dark="Switch to auto color mode">
   <article class="yue" role="main">
           <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
-<p>Possible extras:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">cli</span></code>: Installs typer and adds <code class="docutils literal notranslate"><span class="pre">olink</span></code> as a command.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tui</span></code>: Installs textual and adds <code class="docutils literal notranslate"><span class="pre">olink-tui</span></code> as a command.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">all</span></code>: Installs all extras if available.</p></li>
-</ul>
+<p><code class="docutils literal notranslate"><span class="pre">olink</span></code> is an end-user application, not a library, so install
+it as a standalone tool rather than as a project dependency. Its primary entry
+point is the <code class="docutils literal notranslate"><span class="pre">olink</span></code> command.</p>
 <section id="stable-release">
 <h2>Stable release<a class="headerlink" href="#stable-release" title="Link to this heading">#</a></h2>
-<p>To install <code class="docutils literal notranslate"><span class="pre">olink</span></code>, run this command in your terminal:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">uv<span class="w"> </span>add<span class="w"> </span>olink
+<p>Install <code class="docutils literal notranslate"><span class="pre">olink</span></code> into an isolated environment with your
+preferred tool installer:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>olink
 </span></pre></div>
 </div>
-<p>Or if you prefer to use <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">pip<span class="w"> </span>install<span class="w"> </span>olink
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">pipx<span class="w"> </span>install<span class="w"> </span>olink
+</span></pre></div>
+</div>
+<p>Or run it without installing:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">uvx<span class="w"> </span>olink
+</span></pre></div>
+</div>
+<p>Homebrew (macOS/Linux):</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">brew<span class="w"> </span>install<span class="w"> </span>hasansezertasan/tap/olink
+</span></pre></div>
+</div>
+<p>Scoop (Windows):</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">scoop<span class="w"> </span>bucket<span class="w"> </span>add<span class="w"> </span>hasansezertasan<span class="w"> </span>https://github.com/hasansezertasan/scoop-bucket
+</span><span data-line="2">scoop<span class="w"> </span>install<span class="w"> </span>hasansezertasan/olink
 </span></pre></div>
 </div>
 </section>
@@ -146,7 +156,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 <p>Once you have a copy of the source, you can install it with:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nb">cd</span><span class="w"> </span>olink
-</span><span data-line="2">uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+</span><span data-line="2">uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>.
 </span></pre></div>
 </div>
 </section>
