@@ -123,16 +123,27 @@ data-aria-dark="Switch to auto color mode">
 </section>
 <section id="as-a-command-line-tool">
 <h2>As a command-line tool<a class="headerlink" href="#as-a-command-line-tool" title="Link to this heading">#</a></h2>
-<p>To use <code class="docutils literal notranslate"><span class="pre">olink</span></code> as a command-line tool:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">olink<span class="w"> </span>version
-</span><span data-line="2">olink<span class="w"> </span>info
+<p>Open the page you want for the current project by naming a target:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">olink<span class="w"> </span>origin<span class="w">          </span><span class="c1"># Open the remote&#39;s homepage</span>
+</span><span data-line="2">olink<span class="w"> </span>issues<span class="w">          </span><span class="c1"># Open the issues page</span>
+</span><span data-line="3">olink<span class="w"> </span>pypi<span class="w">            </span><span class="c1"># Open the PyPI project page</span>
+</span><span data-line="4">olink<span class="w"> </span>--list<span class="w">          </span><span class="c1"># List targets available for the current project</span>
+</span><span data-line="5">olink<span class="w"> </span>--list-all<span class="w">      </span><span class="c1"># List every known target</span>
+</span><span data-line="6">olink<span class="w"> </span>--version<span class="w">       </span><span class="c1"># Show the olink version</span>
+</span></pre></div>
+</div>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">-n</span></code>/<code class="docutils literal notranslate"><span class="pre">--dry-run</span></code> to print the resolved URL instead of opening it, and
+<code class="docutils literal notranslate"><span class="pre">-d</span></code>/<code class="docutils literal notranslate"><span class="pre">--directory</span></code> to point olink at a different project directory:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">olink<span class="w"> </span>-n<span class="w"> </span>pypi
+</span><span data-line="2">olink<span class="w"> </span>-d<span class="w"> </span>/path/to/project<span class="w"> </span>issues
 </span></pre></div>
 </div>
 </section>
 <section id="as-a-tui">
 <h2>As a TUI<a class="headerlink" href="#as-a-tui" title="Link to this heading">#</a></h2>
-<p>To launch the terminal user interface:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">olink-tui
+<p>Run <code class="docutils literal notranslate"><span class="pre">olink</span></code> with no target to launch the interactive terminal user interface
+(requires the <code class="docutils literal notranslate"><span class="pre">tui</span></code> extra — install with <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">tool</span> <span class="pre">install</span> <span class="pre">'olink[tui]'</span></code>):</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">olink
 </span></pre></div>
 </div>
 </section>
