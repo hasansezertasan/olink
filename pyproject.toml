@@ -51,7 +51,13 @@ releasenotes = "https://github.com/hasansezertasan/olink/releases"
 source = "https://github.com/hasansezertasan/olink.git"
 
 [project.scripts]
+<<<<<<< before updating
 olink = "olink.cli:main"
+=======
+olink = "olink.__main__:main"
+
+
+>>>>>>> after updating
 
 
 [dependency-groups]
@@ -270,10 +276,11 @@ name = "Layered architecture with independent components"
 type = "layers"
 # Layers are listed high -> low: a layer may import lower layers but never a
 # higher one. Modules joined by ` | ` on one line are independent SIBLINGS that
-# may not import each other. `cli` is the orchestrator layer — its subcommands
-# launch the other components (web/gui/tui) via lazy imports — so it sits ABOVE
-# the independent component group, which sits above `core`, which sits above the
-# leaf `utils`. `__metadata__` is left outside the contract as an unconstrained
+# may not import each other. `cli` is the orchestrator layer — the
+# `olink` console root, whose subcommands launch the other
+# components (web/gui/tui/mcp/worker) via lazy imports — so it sits ABOVE the
+# independent component group, which sits above `core`, which sits above the leaf
+# `utils`. `__metadata__` is left outside the contract as an unconstrained
 # foundation.
 layers = ["olink.cli", "olink.tui", "olink.core"]
 

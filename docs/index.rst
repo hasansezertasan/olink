@@ -11,6 +11,12 @@ A CLI tool that opens external URLs related to your project.
    usage
    modules
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Maintainer guide
+
+   maintaining/setup
+
 Indices and tables
 ==================
 
