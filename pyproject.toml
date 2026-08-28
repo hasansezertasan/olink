@@ -75,7 +75,7 @@ style = [
   "sphinx-lint==1.0.2",
   "taplo==0.9.3",
   "ty==0.0.75",
-  "typos==1.49.0",
+  "typos==1.49.1",
   # actionlint, validate-pyproject, and vulture moved to prek upstream hooks
   # (see prek.toml); the tox `style` run no longer invokes them, so they are no
   # longer part of this group.
