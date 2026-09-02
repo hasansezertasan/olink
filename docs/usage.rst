@@ -40,4 +40,8 @@ Run ``olink`` with no target to launch the interactive terminal user interface
 
 .. code-block:: sh
 
+<<<<<<< before updating
    olink
+=======
+   olink interactive
+>>>>>>> after updating

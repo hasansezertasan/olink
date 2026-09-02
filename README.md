@@ -13,9 +13,7 @@
 [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hasansezertasan/olink/badge)](https://scorecard.dev/viewer/?uri=github.com/hasansezertasan/olink)
 <!-- prettier-ignore-start -->
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/github/all-contributors/hasansezertasan/olink?color=ee8449&style=flat-square)](#contributors)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- prettier-ignore-end -->
 [![GitHub Tag](https://img.shields.io/github/tag/hasansezertasan/olink?include_prereleases=&sort=semver&color=black)](https://github.com/hasansezertasan/olink/releases/)
 
@@ -218,6 +216,7 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 ## Examples
 
 ```bash
+<<<<<<< before updating
 # Open the GitHub repo for your project
 olink origin
 
@@ -258,6 +257,9 @@ olink -d ~/projects/other-project origin
 
 # See which targets work for your project
 olink --list
+=======
+olink interactive
+>>>>>>> after updating
 ```
 
 ## Interactive TUI
@@ -394,7 +396,7 @@ uv run --locked tox run -e docs-server
 
 ## Releasing
 
-Versioning and releases are automated with [release-please](https://github.com/googleapis/release-please), driven by [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) PR titles squash-merged into `main`. release-please maintains a release PR that bumps the version and `CHANGELOG.md`; merging it tags the release and publishes to PyPI. See the [Contributing Guidelines](./.github/CONTRIBUTING.md#releasing) for the commit conventions and the one-time [Repository setup](./.github/CONTRIBUTING.md#repository-setup-one-time) (squash-merge settings, Actions permissions, release immutability, and PyPI trusted publishing).
+Versioning and releases are automated with [release-please](https://github.com/googleapis/release-please), driven by [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) PR titles squash-merged into `main`. release-please maintains a release PR that bumps the version and `CHANGELOG.md`; merging it tags the release and publishes to PyPI. See the [Contributing Guidelines](./.github/CONTRIBUTING.md#releasing) for the commit conventions, and the one-time [Repository setup](./docs/maintaining/setup.rst) guide (squash-merge settings, Actions permissions, release immutability, and PyPI trusted publishing) for maintainers.
 
 ## Author :person_with_crown:
 
