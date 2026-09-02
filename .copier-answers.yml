@@ -1,11 +1,12 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
 ---
-_commit: v1.1.0
+_commit: v1.2.1
 _src_path: https://github.com/hasansezertasan/copier-pyproject.git
 author_email: hasansezertasan@gmail.com
 author_family_names: Taşan
 author_full_name: Hasan Sezer Taşan
 author_given_names: Hasan Sezer
+cli_framework: typer
 github_repo_name: olink
 github_user: hasansezertasan
 include_all_contributors: true
@@ -24,6 +25,7 @@ include_postgres: false
 include_profiling: false
 include_pydantic_settings: false
 include_redis: false
+include_repo_ruleset: false
 include_repo_settings: true
 include_scoop: true
 include_sonarcloud: false
