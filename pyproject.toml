@@ -57,7 +57,7 @@ olink = "olink.cli:main"
 [dependency-groups]
 dev = [
   "olink[all]",
-  "tox==4.60.1",
+  "tox==4.61.2",
   "tox-uv==1.36.0",
   "debugpy==1.8.21",
   { include-group = "style" },
