@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/hasansezertasan/olink/compare/v0.2.0...v0.2.1) (2026-09-05)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency typer to v0.27.2 ([#179](https://github.com/hasansezertasan/olink/issues/179)) ([fc75ed9](https://github.com/hasansezertasan/olink/commit/fc75ed900a36f1624b9c9682bd471b29a441db01))
+* **renovate:** resolve copier template git-tags lookup failure ([#114](https://github.com/hasansezertasan/olink/issues/114)) ([6ced01e](https://github.com/hasansezertasan/olink/commit/6ced01e7ca35f595ce791af57c91dd27be55c7fb))
+
 ## [0.2.0](https://github.com/hasansezertasan/olink/compare/v0.1.0...v0.2.0) (2026-08-04)
 
 
