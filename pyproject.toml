@@ -37,11 +37,14 @@ classifiers = [
 requires-python = ">=3.14"
 dependencies = ["typer==0.27.2", "defusedxml>=0.7.1"]
 
+<<<<<<< before updating
 [project.optional-dependencies]
 tui = ["textual>=3.0.0", "pyperclip==1.11.0"]
 all = ["textual>=3.0.0", "pyperclip==1.11.0"]
 
 
+=======
+>>>>>>> after updating
 [project.urls]
 changelog = "https://github.com/hasansezertasan/olink/blob/main/CHANGELOG.md"
 documentation = "https://hasansezertasan.github.io/olink"
@@ -51,19 +54,30 @@ releasenotes = "https://github.com/hasansezertasan/olink/releases"
 source = "https://github.com/hasansezertasan/olink.git"
 
 [project.scripts]
+<<<<<<< before updating
 olink = "olink.cli:main"
+=======
+olink = "olink.__main__:main"
+
+
+>>>>>>> after updating
 
 
 [dependency-groups]
 dev = [
+<<<<<<< before updating
   "olink[all]",
   "tox==4.61.4",
+=======
+  "tox==4.58.0",
+>>>>>>> after updating
   "tox-uv==1.36.0",
   "debugpy==1.8.21",
   { include-group = "style" },
   { include-group = "test" },
 ]
 style = [
+<<<<<<< before updating
   "basedpyright==1.40.1",
   "editorconfig-checker==3.11.1",
   "import-linter==2.15",
@@ -72,6 +86,17 @@ style = [
   "pyrefly==1.3.0",
   "ruff==0.16.5",
   "slotscheck==0.21.0",
+=======
+  "basedpyright==1.39.9",
+  "detect-secrets==1.5.0",
+  "editorconfig-checker==3.8.0",
+  "import-linter==2.13",
+  "mypy==2.3.0",
+  "pylint==4.0.6",
+  "pyrefly==1.2.0",
+  "ruff==0.16.1",
+  "slotscheck==0.20.1",
+>>>>>>> after updating
   "sphinx-lint==1.0.2",
   "taplo==0.9.3",
   "ty==0.0.80",
@@ -101,8 +126,10 @@ test = [
   "pytest-asyncio>=0.23.0",
   "dirty-equals",
   "inline-snapshot",
+  "pytest-deadfixtures==3.1.0",
 ]
 docs = [
+<<<<<<< before updating
   "sphinx==9.1.0",
   "shibuya==2026.7.12",
   "sphinx-autobuild==2025.8.25", # 2025.x drops Python 3.10 (requires-python >= 3.11)
@@ -113,6 +140,24 @@ docs = [
   "auto-pytabs[sphinx]==0.5.0",
   "myst-parser==5.1.0",
   "sphinx-click==6.2.0",
+=======
+    "sphinx==8.1.3",
+    "shibuya==2026.7.12",
+    "sphinx-autobuild==2024.10.3",  # 2025.x drops Python 3.10 (requires-python >= 3.11)
+    "sphinx-copybutton==0.5.2",
+    "sphinx-design==0.6.1",  # 0.7.0 drops Python 3.10 (requires-python >= 3.11)
+    "sphinx-togglebutton==0.4.5",
+    "sphinx-paramlinks==0.6.0",
+    "auto-pytabs[sphinx]==0.5.0",
+    "myst-parser==4.0.1",
+    # Per-page "last updated" footer sourced from git commit dates (ADR-027);
+    # offline, no network. Works from full history (docs CI checks out depth 0).
+    "sphinx-last-updated-by-git==0.3.8",
+    # PEP 440 version parsing/sorting used by tools/build_docs.py to order
+    # published versions and pick the `latest` alias (ADR-027). Also a Sphinx
+    # transitive dependency; pinned here for the explicit direct use.
+    "packaging>=24.0",
+>>>>>>> after updating
 ]
 tool = [
   "commitizen==4.18.0",
@@ -166,7 +211,13 @@ allow-direct-references = true
 # The package uses a src layout, so the source tree lives under /src (not
 # /olink); including /src ships the actual modules -- and, for
 # C-extension projects, the .pyx/.pxd sources needed to compile from the sdist.
-include = ["/README.md", "LICENSE", "/src", "/tests"]
+include = [
+  "/README.md",
+  "LICENSE",
+  "/src",
+  "/tests",
+  "/docs/examples",
+]
 
 
 [tool.commitizen]
@@ -179,6 +230,14 @@ name = "cz_conventional_commits"
 [tool.pytest.ini_options]
 # addopts = "-rXs --strict-config --strict-markers"
 addopts = "-v --tb=short"
+# One marker per component, auto-applied by tests/conftest.py from each test's
+# top-level tests/<dir>/. Enables `pytest -m web` locally and per-component CI
+# jobs (issue #160, ADR-028); `integration` (ADR-008) is one axis of the scheme.
+markers = [
+  "core: core/shared component tests",
+  "cli: CLI component tests",
+  "tui: TUI component tests",
+]
 asyncio_mode = "auto"
 filterwarnings = ["error"]
 testpaths = ["tests"]
@@ -192,6 +251,11 @@ branch = true
 # `src/**`-only pattern silently misses the installed copy and reports it at 0%.
 omit = ["*/_version.py"]
 parallel = true
+# Store data-file paths relative to the project root so `.coverage` files produced
+# on different runners/OSes merge in the `coverage-combine` CI job without
+# absolute-path mismatches. Complements the `[tool.coverage.paths]` remap below
+# (which unifies the src/ vs site-packages layouts). See ADR-026.
+relative_files = true
 source_pkgs = ["olink", "tests"]
 
 
@@ -270,10 +334,11 @@ name = "Layered architecture with independent components"
 type = "layers"
 # Layers are listed high -> low: a layer may import lower layers but never a
 # higher one. Modules joined by ` | ` on one line are independent SIBLINGS that
-# may not import each other. `cli` is the orchestrator layer — its subcommands
-# launch the other components (web/gui/tui) via lazy imports — so it sits ABOVE
-# the independent component group, which sits above `core`, which sits above the
-# leaf `utils`. `__metadata__` is left outside the contract as an unconstrained
+# may not import each other. `cli` is the orchestrator layer — the
+# `olink` console root, whose subcommands launch the other
+# components (web/gui/tui/mcp/worker) via lazy imports — so it sits ABOVE the
+# independent component group, which sits above `core`, which sits above the leaf
+# `utils`. `__metadata__` is left outside the contract as an unconstrained
 # foundation.
 layers = ["olink.cli", "olink.tui", "olink.core"]
 
@@ -284,8 +349,13 @@ line-length = 100
 output-format = "full"
 preview = true
 show-fixes = true
+<<<<<<< before updating
 src = ["src", "tests"]
 target-version = "py314"
+=======
+src = ["src", "tests", "docs/examples"]
+target-version = "py310"
+>>>>>>> after updating
 unsafe-fixes = true
 
 
@@ -371,6 +441,7 @@ convention = "pep257"
 
 
 [tool.ruff.lint.per-file-ignores]
+<<<<<<< before updating
 # Recursive glob so nested test packages (tests/cli, tests/tui, ...) are covered.
 # Tests legitimately assert, use magic values, reach into package internals, and
 # their fixtures/helpers do not need annotations or return-value docs.
@@ -404,6 +475,23 @@ convention = "pep257"
   "PLR0912",
   "PLW0717",
 ]
+=======
+# Recursive glob so nested test packages (tests/cli, tests/gui, ...) are covered.
+# Tests legitimately use asserts/magic values, reach into package internals, and
+# don't need return-value documentation on their fixtures and helpers.
+"tests/**/*.py" = ["S101", "PLR2004", "PLC2701", "DOC201"]
+# Documentation examples are importable modules tested by
+# ``tests/test_docs_examples.py``; they are not application packages.
+"docs/examples/**/*.py" = ["INP001"]
+# The Sphinx config is a standalone module, not part of an importable package.
+"docs/conf.py" = ["INP001"]
+# The docs warning-allowlist gate is a standalone script (not an importable
+# package) whose whole job is to print GitHub `::error::` annotations to stdout.
+"docs/check_warnings.py" = ["INP001", "T201"]
+# The versioned-docs build orchestrator is a standalone CLI script under tools/,
+# not part of an importable package (ADR-027).
+"tools/build_docs.py" = ["INP001"]
+>>>>>>> after updating
 
 
 [tool.ruff.lint.pyupgrade]
@@ -415,7 +503,7 @@ parenthesize-tuple-in-subscript = true
 
 
 [tool.mypy]
-files = ["src"]
+files = ["src", "docs/examples"]
 pretty = true
 python_version = "3.14"
 strict = true
@@ -429,8 +517,13 @@ ignore_missing_imports = true
 
 [tool.basedpyright]
 exclude = [".venv"]
+<<<<<<< before updating
 include = ["src/olink"]
 pythonVersion = "3.14"
+=======
+include = ["src/olink", "docs/examples"]
+pythonVersion = "3.10"
+>>>>>>> after updating
 venv = ".venv"
 # venvPath is the directory *containing* the venv, not the venv itself; ".venv"
 # here would make basedpyright look for ".venv/.venv". Use "." so both the venv
@@ -448,7 +541,7 @@ reportImplicitStringConcatenation = "none"
 
 
 [tool.ty.src]
-include = ["src", "tests"]
+include = ["src", "tests", "docs/examples"]
 respect-ignore-files = false
 
 
@@ -461,12 +554,17 @@ error-on-warning = true
 
 
 [tool.pyrefly]
+<<<<<<< before updating
 python-version = "3.14"
 project-includes = ["src"]
+=======
+python-version = "3.10"
+project-includes = ["src", "docs/examples"]
+>>>>>>> after updating
 
 [tool.pylint.main]
 # pylint runs as an always-on gate that deliberately overlaps ruff's PL* rules.
-# Its canonical invocation is `pylint src`, so it never descends into tests; this
+# Its canonical invocation is `pylint src docs/examples`, so it never descends into tests; this
 # ignore-paths is a defensive scope guard for broader invocations (`pylint .`,
 # filename-passing hooks). Tests are linted by ruff, not pylint.
 ignore-paths = ["^tests/.*$"]
@@ -485,6 +583,7 @@ disable = [
   "missing-class-docstring",    # C0115
   "missing-function-docstring", # C0116
   "too-few-public-methods",     # R0903 — trips dataclasses / config / Protocol classes
+<<<<<<< before updating
   "import-outside-toplevel",    # C0415 — components (cli->tui/gui/web, and each
   # component's own optional-dependency probe) are
   # deliberately lazy-imported so import-linter's
@@ -502,6 +601,23 @@ disable = [
   # the same way. That structural symmetry is a
   # feature of the scaffold, not copy-paste debt, and
   # R0801 cannot be suppressed inline at the call site.
+=======
+  # C0415 — the cli->tui/gui/web dispatch, and each component's own heavy or
+  # platform-conditional import (tkinter, textual, uvicorn, the worker's uvloop
+  # probe), are deliberately lazy so import-linter's layering contract holds and
+  # a framework is only imported when the code path that needs it actually runs.
+  "import-outside-toplevel",
+  # W0706 — the generated TUI entry point explicitly re-raises
+  # KeyboardInterrupt/SystemExit ahead of a broad `except Exception` to make the
+  # "let these propagate" intent obvious to readers, even though BaseException
+  # subclasses wouldn't be caught by the Exception clause anyway.
+  "try-except-raise",
+  # R0801 — the component skeletons (gui/tui/mcp/worker) are deliberately
+  # parallel: each fetches package metadata and formats the same info block the
+  # same way. That structural symmetry is a feature of the scaffold, not
+  # copy-paste debt, and R0801 cannot be suppressed inline at the call site.
+  "duplicate-code",
+>>>>>>> after updating
 ]
 
 [tool.pylint.design]
@@ -514,7 +630,22 @@ max-branches = 20
 # and would hang/fail under ``tox run`` in CI (where no broker is available).
 # The worker is covered by its pytest TestBroker suite; run it on demand with
 # ``tox -e worker`` when a broker is up (e.g. inside the devcontainer).
+<<<<<<< before updating
 env_list = ["style", "cli", "3.14"]
+=======
+env_list = [
+    "style",
+    # Inline ``>>>`` snippets are part of the tested-documentation contract,
+    # so run them in the default CI ``tox run`` invocation.
+    "docs-doctest",
+    "cli",
+    "3.14",
+    "3.13",
+    "3.12",
+    "3.11",
+    "3.10"
+]
+>>>>>>> after updating
 requires = ["tox>=4"]
 
 
@@ -540,7 +671,6 @@ env_tmp_dir = "{toxworkdir}/tmp/{envname}"
 # `coverage run` plus `parallel = true` writes per-env data files that the CI
 # `coverage combine` step merges.
 set_env = { COVERAGE_PROCESS_START = "{tox_root}/pyproject.toml" }
-extras = ["all"]
 
 package = "wheel"
 
@@ -568,6 +698,18 @@ commands = [
     "--python-version",
     "3.14",
   ],
+  # Style runs once on Linux, so explicitly sweep platform-gated branches that
+  # mypy would otherwise prune as unreachable on the host platform.
+  [
+    "mypy",
+    "--platform",
+    "win32",
+  ],
+  [
+    "mypy",
+    "--platform",
+    "darwin",
+  ],
   [
     "basedpyright",
   ],
@@ -579,13 +721,23 @@ commands = [
     "pyrefly",
     "check",
   ],
+<<<<<<< before updating
   # NOTE: `["zuban", "check", "src"]` is temporarily removed — zuban 0.9.0 panics
   # (RefCell already mutably borrowed) following the import into the untyped
   # `pyperclip` dep and ignores mypy's ignore_missing_imports override. mypy
   # (strict), basedpyright (strict), ty, and pyrefly already cover typing.
+=======
+  [
+    "zuban",
+    "check",
+    "src",
+    "docs/examples",
+  ],
+>>>>>>> after updating
   [
     "pylint",
     "src",
+    "docs/examples",
   ],
   [
     "python",
@@ -624,15 +776,18 @@ commands = [
     "sphinx-lint",
     "docs",
   ],
+  # Collects (does not run) the suite and flags fixtures that are never used --
+  # cheap, deterministic, and a natural fit next to the other whole-program
+  # analyzers above (lint-imports, slotscheck).
+  [
+    "pytest",
+    "--dead-fixtures",
+  ],
 ]
 # `test` is included so the type checkers that scope tests (e.g. ty) can
 # resolve pytest and other test-only imports.
 dependency_groups = ["style", "test"]
 description = "Run Checkers, Linters and Formatters"
-# Optional components (web/gui/tui/mcp/worker) are only importable when their
-# extra is installed; without this, pylint/mypy/etc. see import-error for any
-# optional component present in this render.
-extras = ["all"]
 runner = "uv-venv-runner"
 
 
@@ -644,24 +799,54 @@ runner = "uv-venv-runner"
 
 
 [tool.tox.env.docs-build]
-commands = [["sphinx-build", "-b", "html", "docs", "docs/_build/html"]]
-extras = ["all"]
+# Write the warning stream to a file (`-w`) instead of `-W` turning the first
+# warning into a hard error, then let docs/check_warnings.py own the pass/fail:
+# it diffs the emitted warnings against the docs/expected_warnings.txt allowlist,
+# failing on both unexpected new warnings and expected ones that vanished.
+commands = [
+    ["sphinx-build", "-w", "docs/_build/warnings.txt", "-b", "html", "docs", "docs/_build/html"],
+    ["python", "docs/check_warnings.py"],
+]
 dependency_groups = ["docs"]
 description = "Build Docs"
 runner = "uv-venv-runner"
+# Keep build log output unbuffered/ordered. Reproducible builds pin Sphinx's
+# "today"/copyright to SOURCE_DATE_EPOCH, which the CI docs steps
+# (docs-preview.yml, release.yml) export from the last commit date before
+# invoking sphinx-build directly. Local `tox` runs deliberately do NOT export
+# it: an empty value ("{env:SOURCE_DATE_EPOCH:}") is *present but blank*, which
+# breaks hatchling's get_reproducible_timestamp (`int("")`), so we leave it
+# unset locally and conf.py falls back to the current year.
+set_env = { PYTHONUNBUFFERED = "1" }
 
 
 [tool.tox.env.docs-server]
-commands = [["sphinx-autobuild", "docs", "docs/_build/html"]]
-extras = ["all"]
+# ``--ignore`` the machine-generated ``docs/_generated/`` tree: ``conf.py``
+# rewrites it on every Sphinx build, so watching it would make each rebuild
+# trigger the next in an endless live-reload loop.
+commands = [["sphinx-autobuild", "--ignore", "*/_generated/*", "docs", "docs/_build/html"]]
 dependency_groups = ["docs"]
 description = "Start the live-reloading docs server"
 runner = "uv-venv-runner"
+set_env = { PYTHONUNBUFFERED = "1" }
+
+
+[tool.tox.env.docs-doctest]
+# ``literalinclude`` keeps complete examples in tested Python modules; this
+# separate builder executes the occasional ``>>>`` snippet that belongs inline
+# with prose.
+commands = [["sphinx-build", "-b", "doctest", "docs", "docs/_build/doctest"]]
+extras = ["all"]
+dependency_groups = ["docs"]
+description = "Run documentation doctests"
+runner = "uv-venv-runner"
+set_env = { PYTHONUNBUFFERED = "1" }
 
 
 [tool.tox.env.docs-linkcheck]
 # On-demand link checker. Also run weekly (non-blocking) by docs-linkcheck.yml.
 # Hits the network, so it is deliberately not part of the `style` env or PR CI.
+<<<<<<< before updating
 commands = [
   [
     "sphinx-build",
@@ -672,9 +857,13 @@ commands = [
   ],
 ]
 extras = ["all"]
+=======
+commands = [["sphinx-build", "-b", "linkcheck", "docs", "docs/_build/linkcheck"]]
+>>>>>>> after updating
 dependency_groups = ["docs"]
 description = "Check documentation for broken links"
 runner = "uv-venv-runner"
+set_env = { PYTHONUNBUFFERED = "1" }
 
 [tool.tox.env.cli]
 commands = [

@@ -17,5 +17,6 @@ def test_main_is_callable() -> None:
     main_module = importlib.import_module("olink.__main__")
 
     assert callable(main_module.main)
-    # CLI dispatch wires the Typer ``app`` into __main__; assert it resolved.
+    # The console root (CLI or shared launcher) wires ``app`` into __main__;
+    # assert it resolved.
     assert hasattr(main_module, "app")
