@@ -4,11 +4,20 @@ Usage
 As a library
 ------------
 
-To use ``olink`` in a project:
+Look up the installed distribution version:
 
-.. code-block:: python
+.. literalinclude:: examples/version_lookup.py
+   :language: python
+   :caption: examples/version_lookup.py
 
-   import olink
+For short interactive snippets embedded in prose, the ``docs-doctest`` task
+executes ``>>>`` blocks too:
+
+.. doctest::
+
+   >>> from olink.__metadata__ import PROJECT_NAME
+   >>> PROJECT_NAME
+   'olink'
 
 As a command-line tool
 ----------------------
@@ -40,4 +49,8 @@ Run ``olink`` with no target to launch the interactive terminal user interface
 
 .. code-block:: sh
 
+<<<<<<< before updating
    olink
+=======
+   olink interactive
+>>>>>>> after updating
