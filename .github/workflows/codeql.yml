@@ -10,6 +10,22 @@ on:
 jobs:
   analyze:
     name: Analyze
+    # Code scanning needs GitHub Advanced Security on private/internal repos;
+    # without it every run leaves a permanent red X. Free on public repos.
+    #
+    # `||` returns the first truthy operand, so this coalesces two visibility
+    # sources and falls back to "public". Two sources because neither covers
+    # every trigger alone, and one is only probably real:
+    #   * `github.event.repository.visibility` is documented, but `schedule`
+    #     carries no event payload at all, so it is empty there.
+    #   * `github.repository_visibility` is the only source a scheduled run
+    #     could have, but it is undocumented -- absent from both the contexts
+    #     and default-env-var references, though actionlint models it.
+    # Hence the 'public' default: if that property does not resolve, a
+    # scheduled run on a *public* repo sees nothing from either source and must
+    # still run. Silently disabling CodeQL everywhere is a worse failure than
+    # the red X this guard removes, so unknown fails OPEN.
+    if: (github.repository_visibility || github.event.repository.visibility || 'public') == 'public'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -26,13 +42,23 @@ jobs:
         with:
           persist-credentials: false
       - name: Initialize CodeQL
+<<<<<<< before updating
         uses: github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd  # v4.38.1
+=======
+        uses: github/codeql-action/init@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd  # v4
+>>>>>>> after updating
         with:
           languages: ${{ matrix.language }}
           config-file: ./.github/linters/.codeql.yml
       - name: Autobuild
+<<<<<<< before updating
         uses: github/codeql-action/autobuild@1c5b675653bb5c22dbe9b12b556ec555138e09fd  # v4.38.1
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd  # v4.38.1
+=======
+        uses: github/codeql-action/autobuild@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd  # v4
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd  # v4
+>>>>>>> after updating
         with:
           category: "/language:${{ matrix.language }}"
