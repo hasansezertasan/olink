@@ -3,11 +3,32 @@
 documentation:
   - changed-files:
       - any-glob-to-any-file: docs/**
+# Apply area labels from the component and cross-cutting paths a PR changes.
+# Keep each component rule gated so generated projects never receive labels for
+# packages they do not contain.
+area:core:
+  - changed-files:
+      - any-glob-to-any-file: ['src/olink/core/**', 'src/olink/utils/**', 'tests/core/**', 'tests/test_*.py']
+area:cli:
+  - changed-files:
+      - any-glob-to-any-file: ['src/olink/cli/**', 'tests/cli/**']
+area:tui:
+  - changed-files:
+      - any-glob-to-any-file: ['src/olink/tui/**', 'tests/tui/**']
+area:docs:
+  - changed-files:
+      - any-glob-to-any-file: ['docs/**', '*.md', '*.rst']
+area:ci:
+  - changed-files:
+      - any-glob-to-any-file: .github/workflows/**
+area:deps:
+  - changed-files:
+      - any-glob-to-any-file: ['pyproject.toml', 'uv.lock']
 # Add 'release' label to any PR where the head branch name starts with 'release'
 release:
   - head-branch: ['^release']
 bug:
-  - head-branch: ['^bugfix', '^bug/', '^fix/']
+  - head-branch: ['^bugfix', '^bug/', '^fix/', '^hotfix']
 github_actions:
   - changed-files:
       - any-glob-to-any-file: ['.github/workflows/**', '.github/*labeler*.yml']

@@ -351,6 +351,15 @@ __marimo__/
 # cobo `eol=lf` tradeoff — see ADR-012 and cobo#124). These legacy HFS
 # resource-fork files are rarely committed; the full fix needs both cobo#124 and
 # a Copier render carve-out (Jinja strips the CR at scaffold time too).
+# Reference material emitted from docs/conf.py on every docs build (the worker's
+# AsyncAPI, the web app's OpenAPI spec, and/or the Typer CLI reference Markdown —
+# see the "* interface" and "CLI reference" pages); regenerated, never committed.
+# This condition must track the generator guard in docs/conf.py: an artifact that
+# is written but not ignored is swept up by `git add -A` after any local build.
+docs/_generated/
+# Version manifest generated into each docs build by tools/build_docs.py from the
+# gh-pages branch listing (ADR-027); regenerated, never committed.
+docs/_static/versions.json
 # MegaLinter local report output (REPORT_OUTPUT_FOLDER in .mega-linter.yml)
 megalinter-reports/
 src/**/_version.py
