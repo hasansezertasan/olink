@@ -39,7 +39,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         except ValueError:  # pragma: no cover - README.md doctests live outside tests/
             continue
         component = rel.parts[0] if len(rel.parts) > 1 else "core"
-        if component in _COMPONENT_DIRS:
+        if component in _COMPONENT_DIRS:  # pragma: no branch - a future unlisted dir stays unmarked
             item.add_marker(component)
 
 
