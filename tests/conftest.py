@@ -15,6 +15,33 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 REPOS_DIR = FIXTURES_DIR / "repos"
 GIT_CONFIGS_DIR = FIXTURES_DIR / "git_configs"
 
+# ``--doctest-glob=README.md`` matches on the basename, so without this any
+# ``tests/**/README.md`` would also be collected as a doctest.
+collect_ignore_glob = ["*.md"]
+
+# tests/<dir> names that map to a component marker (registered in pyproject.toml
+# ``markers``). CI selects each component's tests with ``pytest -m <component>``.
+# fmt: off
+_COMPONENT_DIRS: frozenset[str] = frozenset({
+    "core",
+    "cli",
+    "tui",
+})
+# fmt: on
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Mark each collected test with its top-level tests/<dir> component name."""
+    tests_root = Path(str(config.rootpath)) / "tests"
+    for item in items:
+        try:
+            rel = item.path.relative_to(tests_root)
+        except ValueError:  # pragma: no cover - README.md doctests live outside tests/
+            continue
+        component = rel.parts[0] if len(rel.parts) > 1 else "core"
+        if component in _COMPONENT_DIRS:
+            item.add_marker(component)
+
 
 def copy_repo_fixture(fixture_name: str, dest: str) -> None:
     """Copy project files (including subdirectories) from a fixture template into dest."""

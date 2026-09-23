@@ -125,7 +125,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
         # Builds only the latest release's docs, then assembles ./site with every
         # prior version copied from gh-pages, a `latest` alias, and a redirect.
-        run: uv run --no-default-groups --group docs python tools/build_docs.py site
+        run: uv run --no-default-groups --extra all --group docs python tools/build_docs.py site
       - name: Deploy to GitHub Pages
         # Publishes the assembled ./site to gh-pages. The action does its own git
         # auth from the token input (default github.token) without writing it to

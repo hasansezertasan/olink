@@ -46,4 +46,4 @@ jobs:
       - name: Check documentation links
         env:
           PYTHONUNBUFFERED: "1"
-        run: uv run --no-default-groups --group docs sphinx-build -b linkcheck docs docs/_build/linkcheck
+        run: uv run --no-default-groups --extra all --group docs sphinx-build -b linkcheck docs docs/_build/linkcheck

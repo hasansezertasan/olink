@@ -69,8 +69,8 @@ jobs:
         # the docs-build tox env, so PR previews fail on the same unexpected
         # warnings the local loop catches.
         run: |
-          uv run --no-default-groups --group docs sphinx-build -w docs/_build/warnings.txt -b html docs docs/_build/html
-          uv run --no-default-groups --group docs python docs/check_warnings.py
+          uv run --no-default-groups --extra all --group docs sphinx-build -w docs/_build/warnings.txt -b html docs docs/_build/html
+          uv run --no-default-groups --extra all --group docs python docs/check_warnings.py
       - name: Deploy preview
         # action: auto deploys on opened/synchronize/reopened and removes the
         # pr-preview/pr-<N>/ subfolder on closed; the sticky comment is updated
