@@ -147,7 +147,7 @@ hooks = [{ id = "validate-pyproject", name = "Validate pyproject.toml" }]
 
 [[repos]]
 repo = "https://github.com/python-jsonschema/check-jsonschema"
-rev = "0.38.1"
+rev = "0.38.2"
 hooks = [
   { id = "check-github-actions", name = "Validate GitHub Actions", args = [
     "--verbose",
