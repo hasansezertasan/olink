@@ -53,41 +53,54 @@ head branches**.
 Branch protection
 -----------------
 
-This project ships its branch protection as a repository ruleset
-(``.github/rulesets/main.json``) applied by the ``ruleset-sync.yml`` workflow on
-every push to the default branch. It enforces squash-only merges, linear
-history, and the required CI checks; manual edits in the web UI are reverted on
-the next push.
+Protect ``main`` so a PR can only merge once its checks pass. Mark these check
+contexts as required (the names are the **check runs**, not the workflow files):
 
-**[HUMAN]** Create a ``REPO_ADMIN_TOKEN`` — a fine-grained PAT with
-**Administration: read and write** on this repository (the Actions
-``GITHUB_TOKEN`` cannot manage rulesets).
+- ``check`` — ``ci.yml``'s aggregate gate. It is the single context that covers
+  the tests, the per-component coverage gates, style, hooks and the documentation
+  build; without it a PR whose entire test suite failed still satisfies
+  protection, because the four metadata gates below say nothing about the code.
+- ``Validate PR title`` — the Conventional Commits PR-title lint
+  (``check-pr-title.yml``), which release-please depends on.
+- ``Validate branch name`` — the Conventional Branch lint
+  (``check-branch-name.yml``), which fails a PR whose head branch name does not
+  follow the ``<type>/<description>`` format.
+- ``Verify linked issue`` — the linked-issue check (``check-linked-issues.yml``),
+  which fails a PR with no linked issue.
+- ``Task Completed Checker`` — the PR task-list gate (``task-completed-check.yml``),
+  which fails while any unticked checkbox remains in the PR description. This is
+  the name of the **check run** the action publishes, not of the job around it
+  (``Check PR task list``) — the job is green even when boxes are unticked, so
+  requiring the job name would not gate anything.
 
-**[AGENT]** Store it as a repository secret:
-
-.. code-block:: sh
-
-   gh secret set REPO_ADMIN_TOKEN --repo hasansezertasan/olink
-
-**[AGENT]** Trigger the workflow once (push a change under ``.github/rulesets/``
-or run it directly):
-
-.. code-block:: sh
-
-   gh workflow run ruleset-sync.yml --repo hasansezertasan/olink
-
-**[CHECK]** The ``Protect main`` ruleset is applied and active — verifying the
-end state (not just that the ``REPO_ADMIN_TOKEN`` secret exists), so a repo where
-``ruleset-sync.yml`` has not yet run, failed, or had its ruleset deleted is
-correctly reported as not-done:
+**[AGENT]**
 
 .. code-block:: sh
 
-   gh api --paginate repos/hasansezertasan/olink/rulesets \
-     --jq 'any(.[]; .name == "Protect main" and .enforcement == "active")' | grep -qx true
+   gh api -X PUT repos/hasansezertasan/olink/branches/main/protection \
+     --input - <<'JSON'
+   {
+     "required_status_checks": {
+       "strict": true,
+       "contexts": ["check", "Validate PR title", "Validate branch name", "Verify linked issue", "Task Completed Checker"]
+     },
+     "enforce_admins": null,
+     "required_pull_request_reviews": null,
+     "restrictions": null
+   }
+   JSON
 
-Until the ``REPO_ADMIN_TOKEN`` secret is set the workflow logs a notice and exits
-without error, so the repository is never blocked.
+**[CHECK]**
+
+.. code-block:: sh
+
+   gh api repos/hasansezertasan/olink/branches/main/protection \
+     --jq '(.required_status_checks.strict == true) and ((["check","Validate PR title","Validate branch name","Verify linked issue","Task Completed Checker"] - (.required_status_checks.contexts // [])) == [])' | grep -qx true
+
+UI equivalent: **Settings → Branches → Add branch ruleset** (or **Add rule** for
+``main``) — enable **Require status checks to pass before merging**, then search
+for and add the five contexts above. The contexts only appear in the picker
+after each check has run at least once.
 
 .. _setup-first-pr:
 
