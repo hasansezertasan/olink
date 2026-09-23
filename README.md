@@ -76,17 +76,6 @@ scoop bucket add hasansezertasan https://github.com/hasansezertasan/scoop-bucket
 scoop install hasansezertasan/olink
 ```
 
-### Verify the installation
-
-The package root is importable after installation:
-
-```pycon
->>> from olink import __doc__
->>> isinstance(__doc__, str)
-True
-
-```
-
 ## Usage
 
 ```bash
