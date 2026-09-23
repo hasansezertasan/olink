@@ -26,6 +26,29 @@ uv run pytest tests/test_cli.py::TestCLIDryRun
 uv run pytest tests/test_cli.py::TestCLIDryRun::test_dry_run_pypi
 ```
 
+## Package Structure
+
+**Do not create new top-level subpackages under `src/olink/`.**
+New feature code goes inside an existing layer:
+
+| What you are adding | Where it goes |
+| ------------------- | ------------- |
+| New target (URL for a service) | `core/targets.py` + `core/catalog.py` |
+| Project/ecosystem detection, parsing | `core/project.py` |
+| Business logic, domain models, app behavior | `core/` |
+| CLI command or option | `cli/app.py` |
+| TUI screen or widget | `tui/` |
+
+The layering is enforced in CI by import-linter (`[tool.importlinter]` in
+`pyproject.toml`), whose contract is **exhaustive**: a subpackage not listed in
+its `layers` fails `tox run -e style`.
+`tui` may import `core`.
+`cli` sits above them as the orchestrator: it lazy-imports the TUI to launch it
+when no target is given.
+
+Adding a top-level subpackage is an architecture change: propose it first, and if
+agreed, add it to the import-linter contract in the same PR.
+
 ## Code Style
 
 - **Formatting**: Follow PEP 8. Use `ruff` defaults if available (sorted imports, etc.).

@@ -22,6 +22,7 @@ class TargetRow(ListItem):
         super().__init__()
 
     def compose(self) -> ComposeResult:
+        """Render the pin marker, name and description as one styled line."""
         label = Text()
         marker = "★ " if self.item.pinned else "  "
         label.append(marker, style="yellow")
