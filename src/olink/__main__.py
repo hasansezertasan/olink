@@ -23,7 +23,10 @@ root to fall back on and no obvious way to read a Python stack trace.
 
 import importlib
 import sys
-from collections.abc import Callable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Each of these ships as a core dependency of this package, so a missing one
 # never means "install an extra" -- it means this environment is out of sync with
@@ -32,7 +35,7 @@ from collections.abc import Callable
 # environment that has not been re-synced would otherwise fail here with a bare
 # ``ModuleNotFoundError`` before any launcher code executes.
 _ROOT_DEPENDENCIES = ("typer",)
-_MISSING_ROOT_DEPENDENCY = "Error: The olink command requires the '{missing}' package, which is not installed. It ships with 'olink', so this usually means your environment is out of sync -- run `uv sync` (or reinstall the package) and try again."  # noqa: E501
+_MISSING_ROOT_DEPENDENCY = "Error: The olink command requires the '{missing}' package, which is not installed. It ships with 'olink', so this usually means your environment is out of sync -- run `uv sync` (or reinstall the package) and try again."
 
 
 def _preflight(module: str) -> None:
@@ -69,7 +72,7 @@ def _load_console_root() -> Callable[[], None]:
     try:
         for dependency in _ROOT_DEPENDENCIES:
             _preflight(dependency)
-        from olink.cli import app  # noqa: PLC0415
+        from olink.cli import app
     except ModuleNotFoundError as exc:
         missing = exc.name
         if missing is None or missing not in _ROOT_DEPENDENCIES:

@@ -82,10 +82,7 @@ class _NestedRootDependencyMissingFinder:
         self._target = target_module
 
     def find_spec(
-        self,
-        fullname: str,
-        path: Sequence[str] | None,
-        target: ModuleType | None = None,
+        self, fullname: str, path: Sequence[str] | None, target: ModuleType | None = None
     ) -> ModuleSpec | None:
         """Fail the preflight import with the nested dependency's name.
 
@@ -172,9 +169,7 @@ class _BrokenModuleFinder:
         return None
 
 
-def test_preflight_names_a_dependency_that_fails_to_import(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_preflight_names_a_dependency_that_fails_to_import(monkeypatch: pytest.MonkeyPatch) -> None:
     """A nameless ``ImportError`` is re-raised naming the preflighted module.
 
     Given:

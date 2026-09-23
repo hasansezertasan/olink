@@ -5,33 +5,25 @@ See https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 from __future__ import annotations
 
-<<<<<<< before updating
-from datetime import UTC, datetime
-=======
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
->>>>>>> after updating
 
 # -- Project information -----------------------------------------------------
 project = "olink"
 author = "Hasan Sezer Taşan"
-<<<<<<< before updating
-copyright = f"{datetime.now(tz=UTC):%Y}, Hasan Sezer Taşan"  # noqa: A001
-=======
 # Reproducible builds: honor SOURCE_DATE_EPOCH (https://reproducible-builds.org/)
 # so the stamped copyright year is a function of the source (e.g. the last
 # commit date, as exported by the CI docs steps) rather than the clock. Local
 # `tox` runs leave it unset and fall back to the current year below.
 _source_date_epoch = os.environ.get("SOURCE_DATE_EPOCH")
 _build_date = (
-    datetime.fromtimestamp(int(_source_date_epoch), tz=timezone.utc)
+    datetime.fromtimestamp(int(_source_date_epoch), tz=UTC)
     if _source_date_epoch
-    else datetime.now(tz=timezone.utc)
+    else datetime.now(tz=UTC)
 )
 copyright = f"{_build_date:%Y}, Hasan Sezer Taşan"  # noqa: A001
->>>>>>> after updating
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -53,17 +45,11 @@ extensions = [
 
 # Both reStructuredText and (via MyST) Markdown source files are supported.
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
-<<<<<<< before updating
-# ``superpowers/**`` holds internal design specs and plans (MyST .md). They are
-# not public API docs, so keep them out of the built/published site (they would
-# otherwise be discovered via source_suffix ".md" and rendered to GitHub Pages).
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "superpowers/**"]
-=======
 # ``_generated`` holds machine-generated reference material (CLI Markdown, etc.)
 # that is ``{include}``d/``literalinclude``d into real pages; exclude it so those
-# fragments are not also built as standalone orphan documents.
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "_generated"]
->>>>>>> after updating
+# fragments are not also built as standalone orphan documents. ``superpowers/**``
+# holds internal design specs and plans (MyST .md) that must stay off GitHub Pages.
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "superpowers/**", "_generated"]
 
 # autosectionlabel can emit duplicate-label warnings across documents; the
 # document prefix keeps them unique, so no blanket suppression is needed.

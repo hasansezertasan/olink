@@ -40,8 +40,7 @@ DEFAULT_VERSION_GRANULARITY = "minor"
 # and repoint `latest` at the duplicate. Unset everywhere else, so a normal
 # release build uses the answer above.
 VERSION_GRANULARITY = (
-    os.environ.get("DOCS_VERSION_GRANULARITY", "").strip()
-    or DEFAULT_VERSION_GRANULARITY
+    os.environ.get("DOCS_VERSION_GRANULARITY", "").strip() or DEFAULT_VERSION_GRANULARITY
 )
 
 DOCS_DIR = Path("docs")
@@ -209,9 +208,7 @@ def build_sphinx() -> None:
     )
 
 
-def preserve_from_gh_pages(
-    name: str, out: Path, ref: str, *, required: bool = True
-) -> None:
+def preserve_from_gh_pages(name: str, out: Path, ref: str, *, required: bool = True) -> None:
     """Extract the ``name`` subtree from gh-pages into ``out`` (keeping prefix).
 
     Args:

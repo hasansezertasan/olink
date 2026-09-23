@@ -164,7 +164,6 @@ Common tasks are exposed as mise tasks (`mise run test`, `mise run style`,
 lint/type-check suite is `uv run --locked tox run -e style`, and the fast git
 hook gate is `uv run --locked tox run -e prek`.
 
-<<<<<<< before updating
 A few project-specific notes:
 
 - olink targets **Python 3.14+** — make sure a 3.14 interpreter is available
@@ -174,14 +173,10 @@ A few project-specific notes:
 - There are **no external services, databases, or environment variables** to
   configure — olink reads local project files (`.git/config`, `pyproject.toml`,
   `package.json`, …) directly.
-=======
+
 GitHub Copilot's coding agent runs `.github/workflows/copilot-setup-steps.yml`
 before it starts work, which installs this same toolchain and syncs dependencies
-in its ephemeral environment. The first sync creates `uv.lock` for a newly
-generated project.
-
-<!-- TODO @hasansezertasan: add any project-specific setup (IDE, services, env vars) -->
->>>>>>> after updating
+in its ephemeral environment.
 
 ### Debugging
 

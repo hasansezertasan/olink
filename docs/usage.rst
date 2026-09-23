@@ -55,14 +55,4 @@ Run ``olink`` with no target to launch the interactive terminal user interface
 
 .. code-block:: sh
 
-<<<<<<< before updating
    olink
-=======
-   olink interactive
-
-Retrieve the info message without starting the TUI:
-
-.. literalinclude:: examples/tui_usage.py
-   :language: python
-   :caption: examples/tui_usage.py
->>>>>>> after updating

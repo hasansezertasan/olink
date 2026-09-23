@@ -13,7 +13,9 @@
 [![linting - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hasansezertasan/olink/badge)](https://scorecard.dev/viewer/?uri=github.com/hasansezertasan/olink)
 <!-- prettier-ignore-start -->
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/github/all-contributors/hasansezertasan/olink?color=ee8449&style=flat-square)](#contributors)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- prettier-ignore-end -->
 [![GitHub Tag](https://img.shields.io/github/tag/hasansezertasan/olink?include_prereleases=&sort=semver&color=black)](https://github.com/hasansezertasan/olink/releases/)
 
@@ -85,16 +87,6 @@ True
 
 ```
 
-<!--
-TODO @hasansezertasan: Add project-specific, runnable examples here.
-
-pytest runs the pycon examples in this file (--doctest-glob=README.md).
-doctest cannot see Markdown and ends an example's expected output at the first
-blank line, so leave a blank line before every closing fence -- as the example
-above does. Without it the closing delimiter is read as part of the expected
-output and the example fails ("Expected: 2 / Got: 2"). Examples with no output
-line at all need the blank line too.
--->
 ## Usage
 
 ```bash
@@ -237,7 +229,6 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 ## Examples
 
 ```bash
-<<<<<<< before updating
 # Open the GitHub repo for your project
 olink origin
 
@@ -278,9 +269,6 @@ olink -d ~/projects/other-project origin
 
 # See which targets work for your project
 olink --list
-=======
-olink interactive
->>>>>>> after updating
 ```
 
 ## Interactive TUI

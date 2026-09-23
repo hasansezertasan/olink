@@ -2,6 +2,7 @@
 
 Git note: This module reads .git/config directly instead of calling git commands.
 This is faster but has limitations:
+
 - Supports [url "..."].insteadOf rewrites (longest-match prefix wins).
 - Does not support [include] directives in git config (no recursive merging).
 - Recognized platforms: github, gitlab, bitbucket, gitea, forgejo (incl. codeberg).
@@ -268,7 +269,7 @@ class EcosystemConfig:
     `config_file` is the canonical filename (or glob) used by the simple existence
     check. `extra_signals` lists additional filename globs that also count as
     "ecosystem present" — used for ecosystems where multiple, equally-valid
-    metadata layouts exist (e.g. CPAN's Makefile.PL / dist.ini / lib/*.pm).
+    metadata layouts exist (e.g. CPAN's ``Makefile.PL`` / ``dist.ini`` / ``lib/*.pm``).
     """
 
     name: str

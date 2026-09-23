@@ -16,7 +16,9 @@ python = "3.14.6"
 # backend (Renovate-tracked) and invoked as `mise exec -- cobo` by the
 # gitignore-check task and the gitignore-drift.yml workflow. 0.4.0+ ships the
 # `--eol` policy the block was sealed with.
-"pipx:cobo" = "0.5.0"
+# cobo requires Python >=3.14; pin the interpreter for both installers so a CI
+# runner without uv does not fall back to pipx on the system Python.
+"pipx:cobo" = { version = "0.5.0", uvx_args = "--python 3.14", pipx_args = "--python python3.14" }
 # all-contributors is a JS CLI delivered via mise's npm backend, so its version
 # is pinned here (Renovate-tracked) and invoked as `mise exec -- all-contributors`
 # by the all-contributors.yml workflow — mirroring ghalint above. mise installs it

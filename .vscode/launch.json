@@ -49,11 +49,7 @@
       "request": "launch",
       "justMyCode": true,
       "module": "uv",
-<<<<<<< before updating
-      "args": ["run", "olink"]
-=======
       "args": ["run", "olink", "interactive"]
->>>>>>> after updating
     },
     
     

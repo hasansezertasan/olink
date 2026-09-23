@@ -63,12 +63,8 @@ def main() -> int:
         ``0`` when the emitted warnings exactly match the allowlist, ``1`` when
         there are unexpected or missing warnings.
     """
-    emitted = (
-        normalize(EMITTED.read_text(encoding="utf-8")) if EMITTED.exists() else set()
-    )
-    expected = (
-        normalize(EXPECTED.read_text(encoding="utf-8")) if EXPECTED.exists() else set()
-    )
+    emitted = normalize(EMITTED.read_text(encoding="utf-8")) if EMITTED.exists() else set()
+    expected = normalize(EXPECTED.read_text(encoding="utf-8")) if EXPECTED.exists() else set()
     unexpected = emitted - expected
     missing = expected - emitted
     for warning in sorted(unexpected):

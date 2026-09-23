@@ -723,7 +723,7 @@ class GoDocsTarget(Target):
 
 
 class GemsTarget(Target):
-    """Open rubygems.org gem page. Requires *.gemspec with `spec.name = "..."`."""
+    """Open rubygems.org gem page. Requires ``*.gemspec`` with ``spec.name = "..."``."""
 
     name = "gems"
     description = "Open the RubyGems page"
@@ -794,7 +794,7 @@ class HexTarget(Target):
 
 
 class NuGetTarget(Target):
-    """Open NuGet (.NET) package page. Falls back to *.csproj filename when <PackageId> absent."""
+    """Open NuGet (.NET) package page. Falls back to ``*.csproj`` filename when ``<PackageId>`` absent."""
 
     name = "nuget"
     description = "Open the NuGet page (.NET)"

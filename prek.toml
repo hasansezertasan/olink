@@ -59,7 +59,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/astral-sh/uv-pre-commit"
-rev = "0.12.17"
+rev = "0.12.18"
 hooks = [{ id = "uv-lock", name = "Update the uv lockfile" }]
 
 # Runs before ruff so any `__all__` it inserts is sorted/formatted in the same pass.
@@ -131,14 +131,7 @@ hooks = [
   # src/). Without this, the hook passes every changed .py file, which surfaces
   # strict-decorator errors in tests/ that the canonical run never checks — not
   # part of the shipped, type-checked surface.
-<<<<<<< before updating
-  { id = "mypy", name = "Mypy Type Checker", files = "^src/", additional_dependencies = [
-    "typer",
-    "textual",
-  ] },
-=======
   { id = "mypy", files = "^src/", additional_dependencies = ["typer", "textual"] },
->>>>>>> after updating
 ]
 
 [[repos]]
@@ -161,7 +154,7 @@ hooks = [{ id = "validate-pyproject", name = "Validate pyproject.toml" }]
 
 [[repos]]
 repo = "https://github.com/python-jsonschema/check-jsonschema"
-rev = "0.38.0"
+rev = "0.38.1"
 hooks = [
   { id = "check-github-actions", name = "Validate GitHub Actions", args = [
     "--verbose",
@@ -186,14 +179,6 @@ hooks = [{ id = "zizmor", name = "Zizmor GitHub Actions Auditor" }]
 [[repos]]
 repo = "https://github.com/adrienverge/yamllint.git"
 rev = "v1.38.0"
-<<<<<<< before updating
-hooks = [
-  { id = "yamllint", name = "YAML Linter", args = [
-    "-c",
-    ".github/yamllint.yaml",
-  ] },
-]
-=======
 # `.copier-answers.yml` is excluded for the same reason the yamlfmt hook below
 # excludes it: copier owns the file ("NEVER EDIT MANUALLY") and writes block
 # sequences unindented, which yamllint's `indentation` rule rejects. The only
@@ -201,7 +186,6 @@ hooks = [
 # update` overwrites, so the gate can only ever produce an unfixable failure —
 # it fires the moment any answer is a list (e.g. `ai_rulez_presets`).
 hooks = [{ id = "yamllint", exclude = "^\\.copier-answers\\.yml$", args = ["-c", ".github/yamllint.yaml"] }]
->>>>>>> after updating
 
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
@@ -237,7 +221,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/commitizen-tools/commitizen"
-rev = "v4.18.1"
+rev = "v4.19.0"
 hooks = [
   { id = "commitizen", name = "Commitizen" },
   { id = "commitizen-branch", name = "Commitizen Branch", stages = [
