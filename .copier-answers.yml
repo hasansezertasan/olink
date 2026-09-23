@@ -30,7 +30,7 @@ include_postgres: false
 include_profiling: false
 include_pydantic_settings: false
 include_redis: false
-include_repo_ruleset: false
+include_repo_ruleset: true
 include_repo_settings: true
 include_scoop: true
 include_smokeshow: false
