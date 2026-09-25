@@ -66,7 +66,16 @@ data-aria-dark="Switch to auto color mode">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cli-reference.html">CLI reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Modules</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Maintainer guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../maintaining/setup.html">Repository setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../packaging/homebrew-tap/README.html">Homebrew tap setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../packaging/scoop-bucket/README.html">Scoop bucket setup</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -140,101 +149,102 @@ data-aria-dark="Switch to auto color mode">
 <div class="viewcode-block" id="TargetRow.compose">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.TargetRow.compose">[docs]</a>
 </span><span data-line="24">    <span class="k">def</span><span class="w"> </span><span class="nf">compose</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComposeResult</span><span class="p">:</span>
-</span><span data-line="25">        <span class="n">label</span> <span class="o">=</span> <span class="n">Text</span><span class="p">()</span>
-</span><span data-line="26">        <span class="n">marker</span> <span class="o">=</span> <span class="s2">"★ "</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">pinned</span> <span class="k">else</span> <span class="s2">"  "</span>
-</span><span data-line="27">        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">marker</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"yellow"</span><span class="p">)</span>
-</span><span data-line="28">        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"cyan"</span><span class="p">)</span>
-</span><span data-line="29">        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">" </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="30">        <span class="k">yield</span> <span class="n">Static</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
+</span><span data-line="25"><span class="w">        </span><span class="sd">"""Render the pin marker, name and description as one styled line."""</span>
+</span><span data-line="26">        <span class="n">label</span> <span class="o">=</span> <span class="n">Text</span><span class="p">()</span>
+</span><span data-line="27">        <span class="n">marker</span> <span class="o">=</span> <span class="s2">"★ "</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">pinned</span> <span class="k">else</span> <span class="s2">"  "</span>
+</span><span data-line="28">        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">marker</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"yellow"</span><span class="p">)</span>
+</span><span data-line="29">        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">"cyan"</span><span class="p">)</span>
+</span><span data-line="30">        <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">" </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="31">        <span class="k">yield</span> <span class="n">Static</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
 </div>
 
-</span><span data-line="31">
 </span><span data-line="32">
+</span><span data-line="33">
 <div class="viewcode-block" id="TargetListWidget">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.TargetListWidget">[docs]</a>
-</span><span data-line="33"><span class="k">class</span><span class="w"> </span><span class="nc">TargetListWidget</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
-</span><span data-line="34"><span class="w">    </span><span class="sd">"""Scrollable list of targets."""</span>
-</span><span data-line="35">
-</span><span data-line="36">    <span class="n">BINDINGS</span> <span class="o">=</span> <span class="p">[</span>
-</span><span data-line="37">        <span class="n">Binding</span><span class="p">(</span><span class="s2">"j"</span><span class="p">,</span> <span class="s2">"cursor_down"</span><span class="p">,</span> <span class="s2">"Down"</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-</span><span data-line="38">        <span class="n">Binding</span><span class="p">(</span><span class="s2">"k"</span><span class="p">,</span> <span class="s2">"cursor_up"</span><span class="p">,</span> <span class="s2">"Up"</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
-</span><span data-line="39">    <span class="p">]</span>
-</span><span data-line="40">
-</span><span data-line="41">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="42">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span data-line="43">
+</span><span data-line="34"><span class="k">class</span><span class="w"> </span><span class="nc">TargetListWidget</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
+</span><span data-line="35"><span class="w">    </span><span class="sd">"""Scrollable list of targets."""</span>
+</span><span data-line="36">
+</span><span data-line="37">    <span class="n">BINDINGS</span> <span class="o">=</span> <span class="p">[</span>
+</span><span data-line="38">        <span class="n">Binding</span><span class="p">(</span><span class="s2">"j"</span><span class="p">,</span> <span class="s2">"cursor_down"</span><span class="p">,</span> <span class="s2">"Down"</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+</span><span data-line="39">        <span class="n">Binding</span><span class="p">(</span><span class="s2">"k"</span><span class="p">,</span> <span class="s2">"cursor_up"</span><span class="p">,</span> <span class="s2">"Up"</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+</span><span data-line="40">    <span class="p">]</span>
+</span><span data-line="41">
+</span><span data-line="42">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="43">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span data-line="44">
 <div class="viewcode-block" id="TargetListWidget.get_selected_item">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.TargetListWidget.get_selected_item">[docs]</a>
-</span><span data-line="44">    <span class="k">def</span><span class="w"> </span><span class="nf">get_selected_item</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetItem</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="45"><span class="w">        </span><span class="sd">"""Get the currently highlighted target item."""</span>
-</span><span data-line="46">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">highlighted_child</span><span class="p">,</span> <span class="n">TargetRow</span><span class="p">):</span>
-</span><span data-line="47">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">highlighted_child</span><span class="o">.</span><span class="n">item</span>
-</span><span data-line="48">        <span class="k">return</span> <span class="kc">None</span></div>
+</span><span data-line="45">    <span class="k">def</span><span class="w"> </span><span class="nf">get_selected_item</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetItem</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="46"><span class="w">        </span><span class="sd">"""Get the currently highlighted target item."""</span>
+</span><span data-line="47">        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">highlighted_child</span><span class="p">,</span> <span class="n">TargetRow</span><span class="p">):</span>
+</span><span data-line="48">            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">highlighted_child</span><span class="o">.</span><span class="n">item</span>
+</span><span data-line="49">        <span class="k">return</span> <span class="kc">None</span></div>
 
-</span><span data-line="49">
+</span><span data-line="50">
 <div class="viewcode-block" id="TargetListWidget.update_items">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.TargetListWidget.update_items">[docs]</a>
-</span><span data-line="50">    <span class="k">def</span><span class="w"> </span><span class="nf">update_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TargetItem</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="51"><span class="w">        </span><span class="sd">"""Replace the list contents."""</span>
-</span><span data-line="52">        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span data-line="53">        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
-</span><span data-line="54">            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TargetRow</span><span class="p">(</span><span class="n">item</span><span class="p">))</span></div>
+</span><span data-line="51">    <span class="k">def</span><span class="w"> </span><span class="nf">update_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TargetItem</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="52"><span class="w">        </span><span class="sd">"""Replace the list contents."""</span>
+</span><span data-line="53">        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span data-line="54">        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+</span><span data-line="55">            <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TargetRow</span><span class="p">(</span><span class="n">item</span><span class="p">))</span></div>
 </div>
 
-</span><span data-line="55">
 </span><span data-line="56">
+</span><span data-line="57">
 <div class="viewcode-block" id="SearchInput">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.SearchInput">[docs]</a>
-</span><span data-line="57"><span class="k">class</span><span class="w"> </span><span class="nc">SearchInput</span><span class="p">(</span><span class="n">Input</span><span class="p">):</span>
-</span><span data-line="58"><span class="w">    </span><span class="sd">"""Search bar that appears when / is pressed."""</span>
-</span><span data-line="59">
-</span><span data-line="60">    <span class="n">DEFAULT_CSS</span> <span class="o">=</span> <span class="s2">"""</span>
-</span><span data-line="61"><span class="s2">    SearchInput {</span>
-</span><span data-line="62"><span class="s2">        dock: bottom;</span>
-</span><span data-line="63"><span class="s2">        height: 1;</span>
-</span><span data-line="64"><span class="s2">        display: none;</span>
-</span><span data-line="65"><span class="s2">    }</span>
-</span><span data-line="66"><span class="s2">    """</span>
-</span><span data-line="67">
-</span><span data-line="68">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="69">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">placeholder</span><span class="o">=</span><span class="s2">"Search…"</span><span class="p">)</span></div>
+</span><span data-line="58"><span class="k">class</span><span class="w"> </span><span class="nc">SearchInput</span><span class="p">(</span><span class="n">Input</span><span class="p">):</span>
+</span><span data-line="59"><span class="w">    </span><span class="sd">"""Search bar that appears when / is pressed."""</span>
+</span><span data-line="60">
+</span><span data-line="61">    <span class="n">DEFAULT_CSS</span> <span class="o">=</span> <span class="s2">"""</span>
+</span><span data-line="62"><span class="s2">    SearchInput {</span>
+</span><span data-line="63"><span class="s2">        dock: bottom;</span>
+</span><span data-line="64"><span class="s2">        height: 1;</span>
+</span><span data-line="65"><span class="s2">        display: none;</span>
+</span><span data-line="66"><span class="s2">    }</span>
+</span><span data-line="67"><span class="s2">    """</span>
+</span><span data-line="68">
+</span><span data-line="69">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="70">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">placeholder</span><span class="o">=</span><span class="s2">"Search…"</span><span class="p">)</span></div>
 
-</span><span data-line="70">
 </span><span data-line="71">
+</span><span data-line="72">
 <div class="viewcode-block" id="StatusBar">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.StatusBar">[docs]</a>
-</span><span data-line="72"><span class="k">class</span><span class="w"> </span><span class="nc">StatusBar</span><span class="p">(</span><span class="n">Static</span><span class="p">):</span>
-</span><span data-line="73"><span class="w">    </span><span class="sd">"""Bottom status bar showing mode, count, and messages."""</span>
-</span><span data-line="74">
-</span><span data-line="75">    <span class="k">def</span><span class="w"> </span><span class="nf">on_mount</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="76">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="s2">"darkblue"</span>
-</span><span data-line="77">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"white"</span>
-</span><span data-line="78">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span data-line="79">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">dock</span> <span class="o">=</span> <span class="s2">"bottom"</span>
-</span><span data-line="80">
+</span><span data-line="73"><span class="k">class</span><span class="w"> </span><span class="nc">StatusBar</span><span class="p">(</span><span class="n">Static</span><span class="p">):</span>
+</span><span data-line="74"><span class="w">    </span><span class="sd">"""Bottom status bar showing mode, count, and messages."""</span>
+</span><span data-line="75">
+</span><span data-line="76">    <span class="k">def</span><span class="w"> </span><span class="nf">on_mount</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="77">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="s2">"darkblue"</span>
+</span><span data-line="78">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"white"</span>
+</span><span data-line="79">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span data-line="80">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">dock</span> <span class="o">=</span> <span class="s2">"bottom"</span>
+</span><span data-line="81">
 <div class="viewcode-block" id="StatusBar.status_update">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.StatusBar.status_update">[docs]</a>
-</span><span data-line="81">    <span class="k">def</span><span class="w"> </span><span class="nf">status_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">total</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="82"><span class="w">        </span><span class="sd">"""Update the status bar content."""</span>
-</span><span data-line="83">        <span class="n">mode_label</span> <span class="o">=</span> <span class="s2">"Available"</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"available"</span> <span class="k">else</span> <span class="s2">"All"</span>
-</span><span data-line="84">        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">mode_label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
-</span><span data-line="85">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"white"</span></div>
+</span><span data-line="82">    <span class="k">def</span><span class="w"> </span><span class="nf">status_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">total</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="83"><span class="w">        </span><span class="sd">"""Update the status bar content."""</span>
+</span><span data-line="84">        <span class="n">mode_label</span> <span class="o">=</span> <span class="s2">"Available"</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"available"</span> <span class="k">else</span> <span class="s2">"All"</span>
+</span><span data-line="85">        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">mode_label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
+</span><span data-line="86">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"white"</span></div>
 
-</span><span data-line="86">
+</span><span data-line="87">
 <div class="viewcode-block" id="StatusBar.set_error">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.StatusBar.set_error">[docs]</a>
-</span><span data-line="87">    <span class="k">def</span><span class="w"> </span><span class="nf">set_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="88"><span class="w">        </span><span class="sd">"""Show an error message."""</span>
-</span><span data-line="89">        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">" </span><span class="se">\u2717</span><span class="s2"> </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="90">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"red"</span></div>
+</span><span data-line="88">    <span class="k">def</span><span class="w"> </span><span class="nf">set_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="89"><span class="w">        </span><span class="sd">"""Show an error message."""</span>
+</span><span data-line="90">        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">" </span><span class="se">\u2717</span><span class="s2"> </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="91">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"red"</span></div>
 
-</span><span data-line="91">
+</span><span data-line="92">
 <div class="viewcode-block" id="StatusBar.set_success">
 <a class="viewcode-back" href="../../../modules.html#olink.tui.widgets.StatusBar.set_success">[docs]</a>
-</span><span data-line="92">    <span class="k">def</span><span class="w"> </span><span class="nf">set_success</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span data-line="93"><span class="w">        </span><span class="sd">"""Show a success message."""</span>
-</span><span data-line="94">        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">" </span><span class="se">\u2713</span><span class="s2"> </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-</span><span data-line="95">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"green"</span></div>
+</span><span data-line="93">    <span class="k">def</span><span class="w"> </span><span class="nf">set_success</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span data-line="94"><span class="w">        </span><span class="sd">"""Show a success message."""</span>
+</span><span data-line="95">        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="sa">f</span><span class="s2">" </span><span class="se">\u2713</span><span class="s2"> </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="96">        <span class="bp">self</span><span class="o">.</span><span class="n">styles</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="s2">"green"</span></div>
 </div>
 
 </span></pre></div>

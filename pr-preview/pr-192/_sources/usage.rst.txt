@@ -4,11 +4,20 @@ Usage
 As a library
 ------------
 
-To use ``olink`` in a project:
+Look up the installed distribution version:
 
-.. code-block:: python
+.. literalinclude:: examples/version_lookup.py
+   :language: python
+   :caption: examples/version_lookup.py
 
-   import olink
+For short interactive snippets embedded in prose, the ``docs-doctest`` task
+executes ``>>>`` blocks too:
+
+.. doctest::
+
+   >>> from olink.__metadata__ import PROJECT_NAME
+   >>> PROJECT_NAME
+   'olink'
 
 As a command-line tool
 ----------------------
@@ -31,6 +40,12 @@ Pass ``-n``/``--dry-run`` to print the resolved URL instead of opening it, and
 
    olink -n pypi
    olink -d /path/to/project issues
+
+Or invoke it programmatically from Python:
+
+.. literalinclude:: examples/cli_usage.py
+   :language: python
+   :caption: examples/cli_usage.py
 
 As a TUI
 --------
