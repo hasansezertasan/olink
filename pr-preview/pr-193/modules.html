@@ -2,7 +2,7 @@
 <html lang="en" data-accent-color="amber" data-content_root="./">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Modules - olink</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="prev" title="Usage" href="usage.html" /><script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Modules - olink</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Repository setup" href="maintaining/setup.html" /><link rel="prev" title="CLI reference" href="cli-reference.html" /><script>
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
@@ -66,7 +66,16 @@ data-aria-dark="Switch to auto color mode">
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli-reference.html">CLI reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Modules</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Maintainer guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maintaining/setup.html">Repository setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="packaging/homebrew-tap/README.html">Homebrew tap setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="packaging/scoop-bucket/README.html">Scoop bucket setup</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -373,15 +382,13 @@ The API reference below is generated automatically from the source docstrings.</
 target registry, custom exceptions, and pinned-target persistence.</p>
 <p id="module-olink.core.project">Project metadata: git remotes, ecosystem detection, package name extraction.</p>
 <p>Git note: This module reads .git/config directly instead of calling git commands.
-This is faster but has limitations:
-- Supports [url “…”].insteadOf rewrites (longest-match prefix wins).
-- Does not support [include] directives in git config (no recursive merging).
-- Recognized platforms: github, gitlab, bitbucket, gitea, forgejo (incl. codeberg).</p>
-<blockquote>
-<div><p>Hostname heuristic falls back when host is not the canonical SaaS one
-(self-hosted GitHub Enterprise, GitLab CE, Gitea, Forgejo).</p>
-</div></blockquote>
+This is faster but has limitations:</p>
 <ul class="simple">
+<li><p>Supports [url “…”].insteadOf rewrites (longest-match prefix wins).</p></li>
+<li><p>Does not support [include] directives in git config (no recursive merging).</p></li>
+<li><p>Recognized platforms: github, gitlab, bitbucket, gitea, forgejo (incl. codeberg).
+Hostname heuristic falls back when host is not the canonical SaaS one
+(self-hosted GitHub Enterprise, GitLab CE, Gitea, Forgejo).</p></li>
 <li><p>GitLab subgroups (e.g., group/subgroup/repo) are parsed as owner=”group”
 and repo=”subgroup/repo”. The generated URL <a class="reference external" href="https://host/group/subgroup/repo">https://host/group/subgroup/repo</a>
 is correct for GitLab, but may not work for other platforms with nested paths.</p></li>
@@ -394,7 +401,7 @@ is correct for GitLab, but may not work for other platforms with nested paths.</
 <p><cite>config_file</cite> is the canonical filename (or glob) used by the simple existence
 check. <cite>extra_signals</cite> lists additional filename globs that also count as
 “ecosystem present” — used for ecosystems where multiple, equally-valid
-metadata layouts exist (e.g. CPAN’s Makefile.PL / dist.ini / lib/<a href="#id1"><span class="problematic" id="id2">*</span></a>.pm).</p>
+metadata layouts exist (e.g. CPAN’s <code class="docutils literal notranslate"><span class="pre">Makefile.PL</span></code> / <code class="docutils literal notranslate"><span class="pre">dist.ini</span></code> / <code class="docutils literal notranslate"><span class="pre">lib/*.pm</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -770,7 +777,7 @@ emit a 404 URL.</p>
 <dt class="sig sig-object py" id="olink.core.targets.GemsTarget">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">olink.core.targets.</span></span><span class="sig-name descname"><span class="pre">GemsTarget</span></span><a class="reference internal" href="_modules/olink/core/targets.html#GemsTarget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.GemsTarget" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#olink.core.targets.Target" title="olink.core.targets.Target"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a></p>
-<p>Open rubygems.org gem page. Requires <a href="#id3"><span class="problematic" id="id4">*</span></a>.gemspec with <cite>spec.name = “…”</cite>.</p>
+<p>Open rubygems.org gem page. Requires <code class="docutils literal notranslate"><span class="pre">*.gemspec</span></code> with <code class="docutils literal notranslate"><span class="pre">spec.name</span> <span class="pre">=</span> <span class="pre">&quot;...&quot;</span></code>.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="olink.core.targets.GemsTarget.get_url">
 <span class="sig-name descname"><span class="pre">get_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/core/targets.html#GemsTarget.get_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.GemsTarget.get_url" title="Link to this definition">#</a></dt>
@@ -1121,7 +1128,7 @@ e.g., snyk:pypi, deps:npm, libraries-io:cargo</p>
 <dt class="sig sig-object py" id="olink.core.targets.NuGetTarget">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">olink.core.targets.</span></span><span class="sig-name descname"><span class="pre">NuGetTarget</span></span><a class="reference internal" href="_modules/olink/core/targets.html#NuGetTarget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.NuGetTarget" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#olink.core.targets.Target" title="olink.core.targets.Target"><code class="xref py py-class docutils literal notranslate"><span class="pre">Target</span></code></a></p>
-<p>Open NuGet (.NET) package page. Falls back to <a href="#id5"><span class="problematic" id="id6">*</span></a>.csproj filename when &lt;PackageId&gt; absent.</p>
+<p>Open NuGet (.NET) package page. Falls back to <code class="docutils literal notranslate"><span class="pre">*.csproj</span></code> filename when <code class="docutils literal notranslate"><span class="pre">&lt;PackageId&gt;</span></code> absent.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="olink.core.targets.NuGetTarget.get_url">
 <span class="sig-name descname"><span class="pre">get_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cwd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/core/targets.html#NuGetTarget.get_url"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.core.targets.NuGetTarget.get_url" title="Link to this definition">#</a></dt>
@@ -2329,20 +2336,7 @@ validation for all messages.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="olink.tui.widgets.TargetRow.compose">
 <span class="sig-name descname"><span class="pre">compose</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/olink/tui/widgets.html#TargetRow.compose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#olink.tui.widgets.TargetRow.compose" title="Link to this definition">#</a></dt>
-<dd><p>Called by Textual to create child widgets.</p>
-<p>This method is called when a widget is mounted or by setting <cite>recompose=True</cite> when
-calling [<cite>refresh()</cite>][textual.widget.Widget.refresh].</p>
-<p>Note that you don’t typically need to explicitly call this method.</p>
-<p class="rubric">Example</p>
-<p><a href="#id7"><span class="problematic" id="id8">``</span></a><a href="#id9"><span class="problematic" id="id10">`</span></a>python
-def compose(self) -&gt; ComposeResult:</p>
-<blockquote>
-<div><p>yield Header()
-yield Label(“Press the button below:”)
-yield Button()
-yield Footer()</p>
-</div></blockquote>
-<p><a href="#id11"><span class="problematic" id="id12">``</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a></p>
+<dd><p>Render the pin marker, name and description as one styled line.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>[<em>Widget</em>]</p>
@@ -2373,10 +2367,18 @@ yield Footer()</p>
   </svg>
   <span>Back to top</span>
 </button><div class="navigation flex print:hidden"><div class="navigation-prev">
-    <a href="usage.html">
+    <a href="cli-reference.html">
       <i class="i-lucide chevron-left"></i>
       <div class="page-info">
-        <span>Previous</span><div class="title">Usage</div></div>
+        <span>Previous</span><div class="title">CLI reference</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="maintaining/setup.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">Repository setup</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
     </a>
   </div></div></div>
     </div>
