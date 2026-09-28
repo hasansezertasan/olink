@@ -11,7 +11,7 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 Six Renovate PRs were red for three separate reasons:
 
 - **`check` gate vs. path filters.** `test-cli`/`test-tui` and their coverage gates
-  only run when their component (or `core`) changed. alls-green counts a skipped
+  only run when their component (or `core`) changed. The gate action counts a skipped
   job as a failure unless it is allowed, so any PR that touches only a workflow or
   `prek.toml` (codeql, uv-pre-commit and typos hook bumps) failed `check`.
 - **ruff 0.16.9 import formatting.** 0.16.9 collapses a single-name parenthesised
