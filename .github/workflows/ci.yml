@@ -630,6 +630,7 @@ jobs:
     permissions: {}
     steps:
       - name: Decide whether the needed jobs succeeded or failed
+<<<<<<< before updating
         uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35  # release/v1
         with:
           # The cli/tui jobs are path-filtered, and the gate action counts a skip as a
@@ -638,4 +639,12 @@ jobs:
           # other reason (an upstream failure) still fails the gate.
           allowed-skips: >-
             ${{ !(needs.changes.outputs.cli == 'true' || needs.changes.outputs.core == 'true') && 'test-cli, coverage-cli' || '' }}, ${{ !(needs.changes.outputs.tui == 'true' || needs.changes.outputs.core == 'true') && 'test-tui, coverage-tui' || '' }}
+=======
+        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe  # v1.2.2
+        with:
+          # The gate counts a skipped job as a failure unless it is listed
+          # here. These jobs are path-gated by `changes`, so they skip whenever
+          # their component (and core) is untouched. Real failures still fail.
+          allowed-skips: test-cli, coverage-cli, test-tui, coverage-tui
+>>>>>>> after updating
           jobs: ${{ toJSON(needs) }}
