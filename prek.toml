@@ -141,7 +141,7 @@ hooks = [{ id = "vulture" }]
 
 [[repos]]
 repo = "https://github.com/crate-ci/typos"
-rev = "v1.50.2"
+rev = "v1.50.3"
 hooks = [{ id = "typos", name = "Typos Linter" }]
 
 # validate-pyproject checks pyproject.toml against its schema. The upstream hook
