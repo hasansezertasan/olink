@@ -4,6 +4,36 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-09-28 — Unblock Failing Renovate PRs
+
+### Context
+
+Six Renovate PRs were red for three separate reasons:
+
+- **`check` gate vs. path filters.** `test-cli`/`test-tui` and their coverage gates
+  only run when their component (or `core`) changed. The gate action counts a skipped
+  job as a failure unless it is allowed, so any PR that touches only a workflow or
+  `prek.toml` (codeql, uv-pre-commit and typos hook bumps) failed `check`.
+- **ruff 0.16.9 import formatting.** 0.16.9 collapses a single-name parenthesised
+  import that carries a long trailing `noqa` rationale; 0.16.5 re-expands it. No
+  layout of that shape satisfies both versions, so neither the `ruff` dependency
+  bump nor the `ruff-pre-commit` hook bump could land on its own.
+- **semgrep bump.** Renovate's `uv lock` ran before prek 0.5.4 was resolvable. That
+  was transient and needed only a Renovate retry, not a code change.
+
+### Decisions
+
+- **Conditional `allowed-skips`.** `check` allows the cli/tui skips only when the
+  `changes` outputs say that component did not need to run. A skip for any other
+  reason still fails the gate. A failed `changes` job also still fails it, because
+  `changes` itself is required.
+- **Rationale above the import, `noqa` trailing.** Moved each runtime-import
+  explanation to a comment line above its import and left only the short
+  `# noqa: TC00x` on the line. Verified that `ruff check` and `ruff format --check`
+  pass on both 0.16.5 and 0.16.9, so either bump can merge in any order.
+
+---
+
 ## 2026-08-04 — Adopt copier-pyproject README Idioms
 
 ### Context

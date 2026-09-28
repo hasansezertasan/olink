@@ -18,9 +18,9 @@ import json
 import logging
 import re
 import tomllib
-from collections.abc import (
-    Callable,  # noqa: TC003  # runtime import: EcosystemConfig's field annotation is read by Sphinx autodoc / get_type_hints
-)
+
+# Runtime import: EcosystemConfig's field annotation is read by Sphinx autodoc / get_type_hints.
+from collections.abc import Callable  # noqa: TC003
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING

@@ -632,4 +632,10 @@ jobs:
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35  # release/v1
         with:
+          # The cli/tui jobs are path-filtered, and the gate action counts a skip as a
+          # failure unless it is allowed. Allow a component's skip only when the
+          # `changes` filter decided it did not need to run, so a skip for any
+          # other reason (an upstream failure) still fails the gate.
+          allowed-skips: >-
+            ${{ !(needs.changes.outputs.cli == 'true' || needs.changes.outputs.core == 'true') && 'test-cli, coverage-cli' || '' }}, ${{ !(needs.changes.outputs.tui == 'true' || needs.changes.outputs.core == 'true') && 'test-tui, coverage-tui' || '' }}
           jobs: ${{ toJSON(needs) }}
