@@ -141,9 +141,9 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="18"><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 </span><span data-line="19"><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 </span><span data-line="20"><span class="kn">import</span><span class="w"> </span><span class="nn">tomllib</span>
-</span><span data-line="21"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span data-line="22">    <span class="n">Callable</span><span class="p">,</span>  <span class="c1"># noqa: TC003  # runtime import: EcosystemConfig's field annotation is read by Sphinx autodoc / get_type_hints</span>
-</span><span data-line="23"><span class="p">)</span>
+</span><span data-line="21">
+</span><span data-line="22"><span class="c1"># Runtime import: EcosystemConfig's field annotation is read by Sphinx autodoc / get_type_hints.</span>
+</span><span data-line="23"><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>  <span class="c1"># noqa: TC003</span>
 </span><span data-line="24"><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 </span><span data-line="25"><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 </span><span data-line="26"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
