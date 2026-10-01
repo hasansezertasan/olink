@@ -99,7 +99,11 @@ class _NestedRootDependencyMissingFinder:
 def test_console_root_reports_missing_nested_root_dependency(
     dependency: str, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """A nested failure while preflighting a root dependency is attributed to it."""
+    """A nested failure while preflighting a root dependency is attributed to it.
+
+    The dependency itself is installed here, so the message must not claim
+    otherwise.
+    """
     main_module = importlib.import_module("olink.__main__")
     finder = _NestedRootDependencyMissingFinder(dependency)
     # The stub intercepts only its own target, so an unrelated import still
@@ -117,6 +121,8 @@ def test_console_root_reports_missing_nested_root_dependency(
     assert excinfo.value.code == 1
     err = capsys.readouterr().err
     assert dependency in err
+    assert "could not be imported" in err
+    assert "not installed" not in err
     assert "uv sync" in err
     assert "Traceback" not in err
 

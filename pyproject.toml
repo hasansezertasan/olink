@@ -286,6 +286,7 @@ ignore_decorators = [
 # pydantic-settings, ``logger`` is imported only by optional components, the MCP
 # ``arguments`` parameter is mandated by the call_tool signature, the Textual
 # names (CSS/compose/on_mount/title/BINDINGS) are invoked by the TUI framework,
+<<<<<<< before updating
 # and ``pytestmark`` is consumed by pytest at collection time.
 ignore_names = [
   "CONFIG_FILE_PATH",
@@ -303,6 +304,12 @@ ignore_names = [
 # 60 surfaces Textual's dynamic style assignments (self.styles.background = ...)
 # and framework hooks as false positives; 70 is the project's long-standing floor.
 min_confidence = 70
+=======
+# and ``pytestmark``/``pytest_*`` (conftest hooks) are consumed by pytest at
+# collection time.
+ignore_names = ["CONFIG_FILE_PATH", "logger", "main", "model_config", "pytest_*", "collect_ignore_glob", "CSS", "compose", "on_mount", "title", "BINDINGS"]
+min_confidence = 60
+>>>>>>> after updating
 paths = ["src", "tests"]
 
 

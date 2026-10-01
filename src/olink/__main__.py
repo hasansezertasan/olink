@@ -35,7 +35,11 @@ if TYPE_CHECKING:
 # environment that has not been re-synced would otherwise fail here with a bare
 # ``ModuleNotFoundError`` before any launcher code executes.
 _ROOT_DEPENDENCIES = ("typer",)
+<<<<<<< before updating
 _MISSING_ROOT_DEPENDENCY = "Error: The olink command requires the '{missing}' package, which is not installed. It ships with 'olink', so this usually means your environment is out of sync -- run `uv sync` (or reinstall the package) and try again."
+=======
+_MISSING_ROOT_DEPENDENCY = "Error: The olink command requires the '{missing}' package, which could not be imported. It ships with 'olink', so this usually means your environment is out of sync -- run `uv sync` (or reinstall the package) and try again."  # noqa: E501
+>>>>>>> after updating
 
 
 def _preflight(module: str) -> None:
