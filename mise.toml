@@ -19,7 +19,7 @@ python = "{{ get_env(name='PYTHON_VERSION', default=read_file(path=config_root ~
 # `--eol` policy the block was sealed with.
 # cobo requires Python >=3.14; pin the interpreter for both installers so a CI
 # runner without uv does not fall back to pipx on the system Python.
-"pipx:cobo" = { version = "0.5.1", uvx_args = "--python 3.14", pipx_args = "--python python3.14" }
+"pipx:cobo" = { version = "0.6.0", uvx_args = "--python 3.14", pipx_args = "--python python3.14" }
 # all-contributors is a JS CLI delivered via mise's npm backend, so its version
 # is pinned here (Renovate-tracked) and invoked as `mise exec -- all-contributors`
 # by the all-contributors.yml workflow — mirroring ghalint above. mise installs it
