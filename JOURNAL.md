@@ -4,6 +4,31 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-10-08 — CLI flags become commands, add `--json`
+
+### Context
+
+Every mode was a flag on one callback (`--list`, `--list-all`, `-n`), so there was no
+per-action `--help` or `--json`, and a positional target couldn't coexist with
+subcommands. Agents also had no parseable output and no way to branch on failures.
+
+### Decision
+
+Adopted the copier-pyproject CLI shape: `open`, `url`, `list [--all]`, `interactive`,
+`version`, `info`; `no_args_is_help=True`. Clean break (breaking `feat!`), no alias for
+`olink <target>`, since a fallback would need a custom Typer group (metaprogramming).
+`--json` keeps stdout to one JSON document, errors included; each `OlinkError` subclass
+maps to its own exit code (`EXIT_CODES` in `cli/app.py`). `-d` lives on each command, not
+the root, so `olink open pypi -d x` works. Added `InvalidDirectoryError` so directory
+validation goes through the same error path.
+
+### Outcome
+
+Bare `olink` no longer launches the TUI (use `olink interactive`). The pre-existing TUI
+test `test_get_selected_item_returns_highlighted` fails on `main` too and is unrelated.
+
+---
+
 ## 2026-09-28 — Unblock Failing Renovate PRs
 
 ### Context
