@@ -4,6 +4,16 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-10-08 — PR #281 type-check follow-up
+
+The CI type gate rejected explicit `Any` in the JSON emitter and the deprecated
+`Iterator` annotation on a context manager. Accept a read-only `Mapping[str, object]`
+for output payloads and annotate the context manager as `Generator[None]`.
+Renamed the browser command's local URL to avoid shadowing the `url` command,
+which the subsequent pylint gate flagged.
+
+---
+
 ## 2026-10-08 — CLI flags become commands, add `--json`
 
 ### Context

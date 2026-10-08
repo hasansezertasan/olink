@@ -10,7 +10,7 @@ import json
 import logging
 import platform
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 
@@ -28,7 +28,7 @@ from olink.core.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Generator, Mapping
 
 __all__ = ["main"]
 
@@ -72,12 +72,12 @@ _Target = Annotated[
 ]
 
 
-def _emit(payload: dict[str, Any]) -> None:
+def _emit(payload: Mapping[str, object]) -> None:
     typer.echo(json.dumps(payload, indent=2))
 
 
 @contextlib.contextmanager
-def _reporting(*, as_json: bool) -> Iterator[None]:
+def _reporting(*, as_json: bool) -> Generator[None]:
     """Turn an OlinkError into a typed exit code, as JSON or text."""
     try:
         yield
@@ -127,12 +127,12 @@ def root(
 def open_target(target: _Target, directory: _Directory = None, as_json: _Json = False) -> None:
     """Open a target's URL in the browser."""
     with _reporting(as_json=as_json):
-        url = get_target(target).get_url(_resolve_directory(directory))
-    opened = typer.launch(url) == 0
+        resolved_url = get_target(target).get_url(_resolve_directory(directory))
+    opened = typer.launch(resolved_url) == 0
     if as_json:
-        _emit({"target": target, "url": url, "opened": opened})
+        _emit({"target": target, "url": resolved_url, "opened": opened})
     else:
-        typer.echo(f"Opening: {url}")
+        typer.echo(f"Opening: {resolved_url}")
 
 
 @app.command()
