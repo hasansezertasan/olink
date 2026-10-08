@@ -4,6 +4,16 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-10-08 — PR #281 parser and public API follow-up
+
+Added JSON-aware group error handling for usage failures raised before command
+callbacks run, retaining Click's usage exit code 2 and ordinary text errors when
+`--json` is absent. The option terminator `--` prevents a literal target named
+`--json` from activating machine-readable mode. Re-exported
+`InvalidDirectoryError` alongside the other public core exceptions.
+
+---
+
 ## 2026-10-08 — PR #281 CLI coverage gate
 
 CI passed the CLI tests but rejected 98% subtree coverage because the new

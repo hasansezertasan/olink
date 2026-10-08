@@ -293,6 +293,32 @@ class TestCLIEntryPoint:
 class TestCLIJson:
     """Tests for the machine-readable `--json` contract."""
 
+    def test_parser_errors_json(self) -> None:
+        for arguments in (
+            ["url", "--json"],
+            ["open", "--json"],
+            ["list", "--json", "--unknown-option"],
+            ["url", "origin", "--json", "-d"],
+        ):
+            result = runner.invoke(app, arguments)
+            assert result.exit_code == 2
+            error = json.loads(result.stdout)["error"]
+            assert error["type"] in {"MissingParameter", "NoSuchOption", "BadOptionUsage"}
+            assert error["message"]
+            assert not result.stderr
+
+    def test_parser_errors_text(self) -> None:
+        result = runner.invoke(app, ["url"])
+        assert result.exit_code == 2
+        assert "Missing argument" in result.stderr
+        assert not result.stdout
+
+    def test_json_after_separator_is_target(self) -> None:
+        result = runner.invoke(app, ["url", "--", "--json"])
+        assert result.exit_code == 3
+        assert "Unknown target" in result.stderr
+        assert not result.stdout
+
     def test_url_json(self, temp_git_repo: str) -> None:
         result = runner.invoke(app, ["url", "origin", "-d", temp_git_repo, "--json"])
         assert result.exit_code == 0

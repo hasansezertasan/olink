@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 
 import typer
+from typer._click.exceptions import UsageError  # noqa: PLC2701 - Typer uses its bundled Click
+from typer.core import TyperGroup
 
 from olink import __version__
 from olink.core.catalog import get_target, list_available_targets, list_targets
@@ -29,6 +31,8 @@ from olink.core.exceptions import (
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
+
+    from typer._click.core import Context
 
 __all__ = ["main"]
 
@@ -49,8 +53,29 @@ EXIT_CODES: dict[type[OlinkError], int] = {
     UnknownPlatformError: 9,
 }
 
+
+class _JsonGroup(TyperGroup):
+    """Preserve machine-readable errors before command callbacks are entered."""
+
+    def invoke(self, ctx: Context) -> object:
+        arguments = ctx.args
+        if "--" in arguments:
+            arguments = arguments[: arguments.index("--")]
+        as_json = "--json" in arguments
+        try:
+            return super().invoke(ctx)
+        except UsageError as error:
+            if not as_json:
+                raise
+            _emit({"error": {"type": type(error).__name__, "message": error.format_message()}})
+            raise typer.Exit(error.exit_code) from error
+
+
 app = typer.Typer(
-    name="olink", help="Open external URLs related to your project.", no_args_is_help=True
+    name="olink",
+    help="Open external URLs related to your project.",
+    no_args_is_help=True,
+    cls=_JsonGroup,
 )
 
 _Directory = Annotated[

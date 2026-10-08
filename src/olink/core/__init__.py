@@ -2,6 +2,7 @@
 
 from olink.core.catalog import REGISTRY, get_target, list_targets
 from olink.core.exceptions import (
+    InvalidDirectoryError,
     NoRemoteError,
     NotGitRepoError,
     OlinkError,
@@ -15,6 +16,7 @@ from olink.core.targets import GitPageTarget, MultiEcosystemTarget, Target
 __all__ = [
     "REGISTRY",
     "GitPageTarget",
+    "InvalidDirectoryError",
     "MultiEcosystemTarget",
     "NoRemoteError",
     "NotGitRepoError",
