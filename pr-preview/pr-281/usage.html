@@ -166,8 +166,10 @@ executes <code class="docutils literal notranslate"><span class="pre">&gt;&gt;&g
 </span><span data-line="8">olink<span class="w"> </span>--version<span class="w">       </span><span class="c1"># Show the olink version</span>
 </span></pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">open</span></code>, <code class="docutils literal notranslate"><span class="pre">url</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code> and <code class="docutils literal notranslate"><span class="pre">interactive</span></code> accept <code class="docutils literal notranslate"><span class="pre">-d</span></code>/<code class="docutils literal notranslate"><span class="pre">--directory</span></code> to point olink at a different
+<p>Every command accepts <code class="docutils literal notranslate"><span class="pre">-d</span></code>/<code class="docutils literal notranslate"><span class="pre">--directory</span></code> to point olink at a different
 project directory:</p>
+<p><code class="docutils literal notranslate"><span class="pre">version</span></code> and <code class="docutils literal notranslate"><span class="pre">info</span></code> accept the option for consistent invocation but ignore
+it because their output does not depend on a project.</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span data-line="1">olink<span class="w"> </span>open<span class="w"> </span>-d<span class="w"> </span>/path/to/project<span class="w"> </span>issues
 </span></pre></div>
 </div>

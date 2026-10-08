@@ -35,8 +35,11 @@ Open the page you want for the current project by naming a target:
    olink interactive     # Launch the TUI (needs the ``tui`` extra)
    olink --version       # Show the olink version
 
-``open``, ``url``, ``list`` and ``interactive`` accept ``-d``/``--directory`` to point olink at a different
+Every command accepts ``-d``/``--directory`` to point olink at a different
 project directory:
+
+``version`` and ``info`` accept the option for consistent invocation but ignore
+it because their output does not depend on a project.
 
 .. code-block:: sh
 
