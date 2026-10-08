@@ -17,7 +17,7 @@ area:tui:
       - any-glob-to-any-file: ['src/olink/tui/**', 'tests/tui/**']
 area:docs:
   - changed-files:
-      - any-glob-to-any-file: ['docs/**', '*.md', '*.rst']
+      - any-glob-to-any-file: ['docs/**', '**/*.md', '**/*.rst']
 area:ci:
   - changed-files:
       - any-glob-to-any-file: .github/workflows/**
