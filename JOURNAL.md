@@ -4,6 +4,15 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-10-08 — PR #281 CLI coverage gate
+
+CI passed the CLI tests but rejected 98% subtree coverage because the new
+`version` and `info` text-output paths had no assertions. Added a public-command
+test checking the reported package version, Python version and platform against
+the machine-readable metadata output.
+
+---
+
 ## 2026-10-08 — PR #281 review follow-up
 
 Kept available-target enumeration inside the CLI error-reporting context so an

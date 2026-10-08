@@ -19,6 +19,19 @@ runner = CliRunner()
 class TestCLIHelp:
     """Tests for CLI help and basic commands."""
 
+    def test_metadata_commands_text(self) -> None:
+        metadata = json.loads(runner.invoke(app, ["info", "--json"]).stdout)
+
+        version = runner.invoke(app, ["version"])
+        info = runner.invoke(app, ["info"])
+
+        assert version.exit_code == 0
+        assert version.stdout.strip() == f"olink {metadata['version']}"
+        assert info.exit_code == 0
+        assert f"olink Version: {metadata['version']}" in info.stdout
+        assert f"Python Version: {metadata['python']}" in info.stdout
+        assert f"Platform: {metadata['platform']}" in info.stdout
+
     def test_help_shows_usage(self) -> None:
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
