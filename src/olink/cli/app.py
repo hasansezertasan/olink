@@ -205,7 +205,7 @@ def interactive(directory: _Directory = None) -> None:
 
 
 @app.command()
-def version(as_json: _Json = False) -> None:
+def version(_directory: _Directory = None, as_json: _Json = False) -> None:
     """Show the olink version."""
     if as_json:
         _emit({"version": __version__})
@@ -214,7 +214,7 @@ def version(as_json: _Json = False) -> None:
 
 
 @app.command()
-def info(as_json: _Json = False) -> None:
+def info(_directory: _Directory = None, as_json: _Json = False) -> None:
     """Show version, Python and platform details (useful in bug reports)."""
     payload = {
         "version": __version__,

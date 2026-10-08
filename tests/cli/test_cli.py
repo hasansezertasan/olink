@@ -349,3 +349,11 @@ class TestCLIJson:
         info = json.loads(runner.invoke(app, ["info", "--json"]).stdout)
         assert version["version"] == info["version"]
         assert {"python", "platform"} <= set(info)
+
+    def test_metadata_commands_accept_directory(self) -> None:
+        for command in ("version", "info"):
+            expected = runner.invoke(app, [command, "--json"])
+            for option in ("-d", "--directory"):
+                result = runner.invoke(app, [command, option, "/nonexistent/path", "--json"])
+                assert result.exit_code == 0
+                assert json.loads(result.stdout) == json.loads(expected.stdout)

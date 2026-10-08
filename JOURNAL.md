@@ -12,6 +12,9 @@ Added a real-repository regression test for that failure path.
 Updated remaining README, usage-guide and agent-guide examples for the new
 subcommands. Retained the deliberate breaking change that bare `olink` displays
 help and the TUI is launched with `olink interactive`.
+The linked issue explicitly requires `-d` on every command, so `version` and
+`info` now accept and ignore it; tests verify both option spellings preserve
+their JSON output even when the directory does not exist.
 
 ---
 
