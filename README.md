@@ -413,6 +413,15 @@ Versioning and releases are automated with [release-please](https://github.com/g
 
 Pause merges that change `.github/workflows/`, including Renovate action-pin updates, from merging a release PR until the entire Release run finishes. Workflow differences between the release commit and current `main` can block tag or release creation with a 403 when using `GITHUB_TOKEN`. See [Release recovery](./docs/maintaining/setup.rst#keep-workflow-changes-out-of-an-active-release) for prevention and recovery steps.
 
+For adoption or template-update reconciliation, ask your agent to "audit this
+template adoption/update against our existing project behavior".
+The shipped [template-adoption skill](./.claude/skills/template-adoption/SKILL.md)
+also supports audits after an update was applied. It compares workflow behavior,
+required checks, custom tooling, and documentation, and asks before consequential
+cleanup. Its prek-workflow example shows why duplicate commands alone do not
+justify removing a workflow. Use the sibling `repo-setup` skill for repository
+settings and release setup.
+
 ## Author :person_with_crown:
 
 This project is maintained by [Hasan Sezer Taşan][author]. It's me :wave:
