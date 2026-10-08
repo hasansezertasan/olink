@@ -266,13 +266,13 @@ olink open releases
 olink open codecov
 
 # Preview URL without opening browser
-olink -n pulls
+olink url pulls
 
 # Open origin for a different project
-olink -d ~/projects/other-project origin
+olink open origin -d ~/projects/other-project
 
 # See which targets work for your project
-olink --list
+olink list
 ```
 
 ## Interactive TUI
@@ -280,7 +280,7 @@ olink --list
 Launch the interactive target browser with:
 
 ```bash
-olink                # Open TUI (requires [tui] extra)
+olink interactive    # Open TUI (requires [tui] extra)
 ```
 
 The TUI lets you browse, search, open, and pin targets interactively. Keybindings:

@@ -35,7 +35,7 @@ Open the page you want for the current project by naming a target:
    olink interactive     # Launch the TUI (needs the ``tui`` extra)
    olink --version       # Show the olink version
 
-Every command accepts ``-d``/``--directory`` to point olink at a different
+``open``, ``url``, ``list`` and ``interactive`` accept ``-d``/``--directory`` to point olink at a different
 project directory:
 
 .. code-block:: sh
@@ -63,9 +63,9 @@ Or invoke it programmatically from Python:
 As a TUI
 --------
 
-Run ``olink`` with no target to launch the interactive terminal user interface
+Run ``olink interactive`` to launch the interactive terminal user interface
 (requires the ``tui`` extra — install with ``uv tool install 'olink[tui]'``):
 
 .. code-block:: sh
 
-   olink
+   olink interactive

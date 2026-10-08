@@ -165,10 +165,10 @@ def list_(
     else:
         with _reporting(as_json=as_json):
             cwd = _resolve_directory(directory)
-        rows = [
-            {"name": name, "description": description, "ecosystem": ecosystem}
-            for name, description, _, ecosystem in list_available_targets(cwd)
-        ]
+            rows = [
+                {"name": name, "description": description, "ecosystem": ecosystem}
+                for name, description, _, ecosystem in list_available_targets(cwd)
+            ]
 
     if as_json:
         _emit({"scope": "all" if all_targets else "available", "count": len(rows), "targets": rows})

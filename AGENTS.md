@@ -13,7 +13,7 @@ Guidelines for AI coding agents working in this repository.
 
 ```bash
 uv sync                 # Install dependencies
-uv run olink <target>   # Run CLI
+uv run olink open <target>   # Run CLI
 uv run pytest           # Run all tests
 uv run pytest -v        # Verbose output
 ```
@@ -44,7 +44,7 @@ The layering is enforced in CI by import-linter (`[tool.importlinter]` in
 its `layers` fails `tox run -e style`.
 `tui` may import `core`.
 `cli` sits above them as the orchestrator: it lazy-imports the TUI to launch it
-when no target is given.
+for the `interactive` subcommand. A bare invocation displays help.
 
 Adding a top-level subpackage is an architecture change: propose it first, and if
 agreed, add it to the import-linter contract in the same PR.

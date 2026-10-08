@@ -4,6 +4,17 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-10-08 — PR #281 review follow-up
+
+Kept available-target enumeration inside the CLI error-reporting context so an
+unknown git host produces the documented JSON error and exit code 9.
+Added a real-repository regression test for that failure path.
+Updated remaining README, usage-guide and agent-guide examples for the new
+subcommands. Retained the deliberate breaking change that bare `olink` displays
+help and the TUI is launched with `olink interactive`.
+
+---
+
 ## 2026-10-08 — PR #281 type-check follow-up
 
 The CI type gate rejected explicit `Any` in the JSON emitter and the deprecated

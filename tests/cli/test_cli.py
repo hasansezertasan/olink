@@ -334,6 +334,16 @@ class TestCLIJson:
         assert result.exit_code == 4
         assert json.loads(result.stdout)["error"]["type"] == "InvalidDirectoryError"
 
+    def test_list_unknown_host_json(self, temp_git_repo: str) -> None:
+        config = pathlib.Path(temp_git_repo) / ".git" / "config"
+        config.write_text(config.read_text().replace("github.com", "unknown.example"))
+
+        result = runner.invoke(app, ["list", "-d", temp_git_repo, "--json"])
+
+        assert result.exit_code == 9
+        assert json.loads(result.stdout)["error"]["type"] == "UnknownPlatformError"
+        assert not result.stderr
+
     def test_version_and_info_json(self) -> None:
         version = json.loads(runner.invoke(app, ["version", "--json"]).stdout)
         info = json.loads(runner.invoke(app, ["info", "--json"]).stdout)
