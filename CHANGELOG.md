@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0](https://github.com/hasansezertasan/olink/compare/v0.2.0...v0.3.0) (2026-10-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* turn CLI flags into subcommands and add --json output ([#281](https://github.com/hasansezertasan/olink/issues/281))
+
+### 🚀 Features
+
+* turn CLI flags into subcommands and add --json output ([#281](https://github.com/hasansezertasan/olink/issues/281)) ([f5e016c](https://github.com/hasansezertasan/olink/commit/f5e016cdea3ac8fd39016f19ffdace1d055b31f6))
+
+
+### 🐛 Bug Fixes
+
+* **ci:** unblock failing Renovate PRs ([#255](https://github.com/hasansezertasan/olink/issues/255)) ([2465140](https://github.com/hasansezertasan/olink/commit/2465140087f96397fa825a154009e12b798a3077))
+* **deps:** update dependency typer to v0.27.2 ([#179](https://github.com/hasansezertasan/olink/issues/179)) ([fc75ed9](https://github.com/hasansezertasan/olink/commit/fc75ed900a36f1624b9c9682bd471b29a441db01))
+* **renovate:** resolve copier template git-tags lookup failure ([#114](https://github.com/hasansezertasan/olink/issues/114)) ([6ced01e](https://github.com/hasansezertasan/olink/commit/6ced01e7ca35f595ce791af57c91dd27be55c7fb))
+
 ## [0.2.0](https://github.com/hasansezertasan/olink/compare/v0.1.0...v0.2.0) (2026-08-04)
 
 
