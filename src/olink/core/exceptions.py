@@ -1,6 +1,7 @@
 """Custom exceptions for olink."""
 
 __all__ = [
+    "InvalidDirectoryError",
     "NoRemoteError",
     "NotGitRepoError",
     "OlinkError",
@@ -37,3 +38,7 @@ class ProjectMetadataError(OlinkError):
 
 class UnsupportedFeatureError(OlinkError):
     """Feature not available on this platform."""
+
+
+class InvalidDirectoryError(OlinkError):
+    """Project directory is missing or is not a directory."""

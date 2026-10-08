@@ -4,6 +4,74 @@ Chronological record of decisions, attempts (including failures), and outcomes. 
 
 ---
 
+## 2026-10-08 — PR #281 parser and public API follow-up
+
+Added JSON-aware group error handling for usage failures raised before command
+callbacks run, retaining Click's usage exit code 2 and ordinary text errors when
+`--json` is absent. The option terminator `--` prevents a literal target named
+`--json` from activating machine-readable mode. Re-exported
+`InvalidDirectoryError` alongside the other public core exceptions.
+
+---
+
+## 2026-10-08 — PR #281 CLI coverage gate
+
+CI passed the CLI tests but rejected 98% subtree coverage because the new
+`version` and `info` text-output paths had no assertions. Added a public-command
+test checking the reported package version, Python version and platform against
+the machine-readable metadata output.
+
+---
+
+## 2026-10-08 — PR #281 review follow-up
+
+Kept available-target enumeration inside the CLI error-reporting context so an
+unknown git host produces the documented JSON error and exit code 9.
+Added a real-repository regression test for that failure path.
+Updated remaining README, usage-guide and agent-guide examples for the new
+subcommands. Retained the deliberate breaking change that bare `olink` displays
+help and the TUI is launched with `olink interactive`.
+The linked issue explicitly requires `-d` on every command, so `version` and
+`info` now accept and ignore it; tests verify both option spellings preserve
+their JSON output even when the directory does not exist.
+
+---
+
+## 2026-10-08 — PR #281 type-check follow-up
+
+The CI type gate rejected explicit `Any` in the JSON emitter and the deprecated
+`Iterator` annotation on a context manager. Accept a read-only `Mapping[str, object]`
+for output payloads and annotate the context manager as `Generator[None]`.
+Renamed the browser command's local URL to avoid shadowing the `url` command,
+which the subsequent pylint gate flagged.
+
+---
+
+## 2026-10-08 — CLI flags become commands, add `--json`
+
+### Context
+
+Every mode was a flag on one callback (`--list`, `--list-all`, `-n`), so there was no
+per-action `--help` or `--json`, and a positional target couldn't coexist with
+subcommands. Agents also had no parseable output and no way to branch on failures.
+
+### Decision
+
+Adopted the copier-pyproject CLI shape: `open`, `url`, `list [--all]`, `interactive`,
+`version`, `info`; `no_args_is_help=True`. Clean break (breaking `feat!`), no alias for
+`olink <target>`, since a fallback would need a custom Typer group (metaprogramming).
+`--json` keeps stdout to one JSON document, errors included; each `OlinkError` subclass
+maps to its own exit code (`EXIT_CODES` in `cli/app.py`). `-d` lives on each command, not
+the root, so `olink open pypi -d x` works. Added `InvalidDirectoryError` so directory
+validation goes through the same error path.
+
+### Outcome
+
+Bare `olink` no longer launches the TUI (use `olink interactive`). The pre-existing TUI
+test `test_get_selected_item_returns_highlighted` fails on `main` too and is unrelated.
+
+---
+
 ## 2026-09-28 — Unblock Failing Renovate PRs
 
 ### Context

@@ -79,13 +79,28 @@ scoop install hasansezertasan/olink
 ## Usage
 
 ```bash
-olink <target>              # Open a target URL
-olink -n <target>           # Dry-run: print URL without opening
-olink -d /path <target>     # Use a different project directory
-olink --list                # List targets available for current project
-olink --list-all            # List all targets
+olink open <target>         # Open a target URL in the browser
+olink url <target>          # Print the URL without opening it
+olink list                  # List targets available for current project
+olink list --all            # List all targets
+olink interactive           # Launch the TUI (needs the `tui` extra)
+olink info                  # Version, Python and platform details
 olink --version             # Show olink version
 ```
+
+Every command accepts `-d/--directory` to use a different project directory, and
+`open`, `url`, `list`, `version` and `info` accept `--json` for scripts and agents:
+
+```bash
+olink url pypi --json       # {"target": "pypi", "url": "https://pypi.org/project/olink/"}
+olink list --json           # {"scope": "available", "count": 26, "targets": [...]}
+```
+
+Under `--json`, stdout is always exactly one JSON document, including errors
+(`{"error": {"type": "UnknownTargetError", "message": "..."}}`). Failures exit
+with a distinct code: `1` generic, `3` unknown target, `4` bad directory,
+`5` not a git repo, `6` no remote, `7` missing project metadata,
+`8` unsupported on this platform, `9` unknown git host. Bare `olink` prints help.
 
 ## Available Targets
 
@@ -159,9 +174,9 @@ These services support multiple ecosystems (Python, npm, Rust, Go).
 **Suffix Notation:** For projects with multiple ecosystems, use `target:ecosystem`:
 
 ```bash
-olink snyk:pypi     # Explicit Python
-olink snyk:npm      # Explicit npm
-olink deps:cargo    # Explicit Rust
+olink open snyk:pypi     # Explicit Python
+olink open snyk:npm      # Explicit npm
+olink open deps:cargo    # Explicit Rust
 ```
 
 If only one ecosystem is detected, the suffix is optional and auto-detection is used.
@@ -219,45 +234,45 @@ If only one ecosystem is detected, the suffix is optional and auto-detection is 
 
 ```bash
 # Open the GitHub repo for your project
-olink origin
+olink open origin
 
 # Open issues page
-olink issues
+olink open issues
 
 # Check the PyPI page for your package
-olink pypi
+olink open pypi
 
 # View download stats on PePy
-olink pepy
+olink open pepy
 
 # Check security vulnerabilities on Snyk
-olink snyk
+olink open snyk
 
 # In a monorepo with Python + npm, use explicit ecosystem
-olink snyk:pypi      # Check Python package on Snyk
-olink deps:npm       # View npm deps on deps.dev
-olink socket:npm     # Check npm package health on Socket.dev
+olink open snyk:pypi      # Check Python package on Snyk
+olink open deps:npm       # View npm deps on deps.dev
+olink open socket:npm     # Check npm package health on Socket.dev
 
 # View dependency graph on deps.dev
-olink deps
+olink open deps
 
 # Check npm bundle size
-olink bundlephobia
+olink open bundlephobia
 
 # Open releases page
-olink releases
+olink open releases
 
 # Open code coverage
-olink codecov
+olink open codecov
 
 # Preview URL without opening browser
-olink -n pulls
+olink url pulls
 
 # Open origin for a different project
-olink -d ~/projects/other-project origin
+olink open origin -d ~/projects/other-project
 
 # See which targets work for your project
-olink --list
+olink list
 ```
 
 ## Interactive TUI
@@ -265,7 +280,7 @@ olink --list
 Launch the interactive target browser with:
 
 ```bash
-olink                # Open TUI (requires [tui] extra)
+olink interactive    # Open TUI (requires [tui] extra)
 ```
 
 The TUI lets you browse, search, open, and pin targets interactively. Keybindings:

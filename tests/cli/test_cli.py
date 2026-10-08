@@ -1,5 +1,6 @@
 """Tests for CLI interface."""
 
+import json
 import pathlib
 import subprocess
 from typing import TYPE_CHECKING, Any
@@ -17,6 +18,19 @@ runner = CliRunner()
 
 class TestCLIHelp:
     """Tests for CLI help and basic commands."""
+
+    def test_metadata_commands_text(self) -> None:
+        metadata = json.loads(runner.invoke(app, ["info", "--json"]).stdout)
+
+        version = runner.invoke(app, ["version"])
+        info = runner.invoke(app, ["info"])
+
+        assert version.exit_code == 0
+        assert version.stdout.strip() == f"olink {metadata['version']}"
+        assert info.exit_code == 0
+        assert f"olink Version: {metadata['version']}" in info.stdout
+        assert f"Python Version: {metadata['python']}" in info.stdout
+        assert f"Platform: {metadata['platform']}" in info.stdout
 
     def test_help_shows_usage(self) -> None:
         result = runner.invoke(app, ["--help"])
@@ -50,14 +64,14 @@ class TestCLIHelp:
         assert result.stdout.strip() == "olink 9.9.9"
 
     def test_list_all_targets(self) -> None:
-        result = runner.invoke(app, ["--list-all"])
+        result = runner.invoke(app, ["list", "--all"])
         assert result.exit_code == 0
         assert "origin" in result.stdout
         assert "pypi" in result.stdout
         assert "issues" in result.stdout
 
     def test_list_shows_only_working_targets(self, temp_pyproject: str) -> None:
-        result = runner.invoke(app, ["--list", "-d", temp_pyproject])
+        result = runner.invoke(app, ["list", "-d", temp_pyproject])
         assert result.exit_code == 0
         assert "pypi" in result.stdout
         assert "pepy" in result.stdout
@@ -66,7 +80,7 @@ class TestCLIHelp:
         assert "targets available)" in result.stdout
 
     def test_list_with_git_repo(self, temp_git_repo: str) -> None:
-        result = runner.invoke(app, ["--list", "-d", temp_git_repo])
+        result = runner.invoke(app, ["list", "-d", temp_git_repo])
         assert result.exit_code == 0
         assert "origin" in result.stdout
         assert "issues" in result.stdout
@@ -76,35 +90,35 @@ class TestCLIDryRun:
     """Tests for CLI dry-run mode."""
 
     def test_dry_run_pypi(self, temp_pyproject: str) -> None:
-        result = runner.invoke(app, ["-n", "-d", temp_pyproject, "pypi"])
+        result = runner.invoke(app, ["url", "-d", temp_pyproject, "pypi"])
         assert result.exit_code == 0
         assert "https://pypi.org/project/test-project/" in result.stdout
 
     def test_dry_run_piwheels(self, temp_pyproject: str) -> None:
         """Ensure dry-run mode reveals the exact piwheels URL before opening a browser."""
-        result = runner.invoke(app, ["-n", "-d", temp_pyproject, "piwheels"])
+        result = runner.invoke(app, ["url", "-d", temp_pyproject, "piwheels"])
         assert result.exit_code == 0
         assert "https://www.piwheels.org/project/test-project/" in result.stdout
 
     def test_dry_run_npm(self, temp_package_json: str) -> None:
-        result = runner.invoke(app, ["-n", "-d", temp_package_json, "npm"])
+        result = runner.invoke(app, ["url", "-d", temp_package_json, "npm"])
         assert result.exit_code == 0
         assert "npmjs.com/package/test-project" in result.stdout
 
     def test_dry_run_origin(self, temp_git_repo: str) -> None:
-        result = runner.invoke(app, ["-n", "-d", temp_git_repo, "origin"])
+        result = runner.invoke(app, ["url", "-d", temp_git_repo, "origin"])
         assert result.exit_code == 0
         assert "github.com/testuser/testrepo" in result.stdout
 
     def test_dry_run_issues(self, temp_git_repo: str) -> None:
-        result = runner.invoke(app, ["-n", "-d", temp_git_repo, "issues"])
+        result = runner.invoke(app, ["url", "-d", temp_git_repo, "issues"])
         assert result.exit_code == 0
         assert "github.com/testuser/testrepo/issues" in result.stdout
 
     def test_piwheels_without_pyproject(self, temp_dir: str) -> None:
         """Verify CLI errors stay actionable when piwheels is run outside Python projects."""
-        result = runner.invoke(app, ["-n", "-d", temp_dir, "piwheels"])
-        assert result.exit_code == 1
+        result = runner.invoke(app, ["url", "-d", temp_dir, "piwheels"])
+        assert result.exit_code == 7
         assert "No pyproject.toml found" in result.output
 
 
@@ -112,24 +126,24 @@ class TestCLIErrors:
     """Tests for CLI error handling."""
 
     def test_unknown_target(self) -> None:
-        result = runner.invoke(app, ["nonexistent"])
-        assert result.exit_code == 1
+        result = runner.invoke(app, ["url", "nonexistent"])
+        assert result.exit_code == 3
         assert "Unknown target" in result.output
 
     def test_no_origin_remote(self, temp_dir: str) -> None:
         subprocess.run(["git", "init"], cwd=temp_dir, capture_output=True, check=True)
-        result = runner.invoke(app, ["-d", temp_dir, "origin"])
-        assert result.exit_code == 1
+        result = runner.invoke(app, ["open", "-d", temp_dir, "origin"])
+        assert result.exit_code == 6
         assert "No 'origin' remote configured" in result.output
 
     def test_not_git_repo(self, temp_dir: str) -> None:
-        result = runner.invoke(app, ["-d", temp_dir, "origin"])
-        assert result.exit_code == 1
+        result = runner.invoke(app, ["open", "-d", temp_dir, "origin"])
+        assert result.exit_code == 5
         assert "not inside a git repository" in result.output
 
     def test_nonexistent_directory(self) -> None:
-        result = runner.invoke(app, ["-d", "/nonexistent/path", "origin"])
-        assert result.exit_code == 1
+        result = runner.invoke(app, ["open", "-d", "/nonexistent/path", "origin"])
+        assert result.exit_code == 4
         assert "Directory does not exist" in result.output
 
     def test_directory_is_file(self, temp_dir: str) -> None:
@@ -137,12 +151,12 @@ class TestCLIErrors:
 
         filepath = os.path.join(temp_dir, "afile.txt")
         pathlib.Path(filepath).write_text("hello", encoding="utf-8")
-        result = runner.invoke(app, ["-d", filepath, "origin"])
-        assert result.exit_code == 1
+        result = runner.invoke(app, ["open", "-d", filepath, "origin"])
+        assert result.exit_code == 4
         assert "Not a directory" in result.output
 
     def test_list_no_targets_available(self, temp_dir: str) -> None:
-        result = runner.invoke(app, ["--list", "-d", temp_dir])
+        result = runner.invoke(app, ["list", "-d", temp_dir])
         assert result.exit_code == 0
         assert "No targets available for this project." in result.stdout
 
@@ -151,7 +165,7 @@ class TestCLIErrors:
 
         Earlier silent-bad-URL behavior would have erroneously listed it.
         """
-        result = runner.invoke(app, ["--list", "-d", temp_git_repo_gitea])
+        result = runner.invoke(app, ["list", "-d", temp_git_repo_gitea])
         assert result.exit_code == 0
         assert "codecov" not in result.stdout
         assert "coveralls" not in result.stdout
@@ -159,7 +173,7 @@ class TestCLIErrors:
 
     def test_list_excludes_codecov_on_forgejo(self, temp_git_repo_forgejo: str) -> None:
         """Mirror of the gitea exclusion test for forgejo. Guards platform-detection drift."""
-        result = runner.invoke(app, ["--list", "-d", temp_git_repo_forgejo])
+        result = runner.invoke(app, ["list", "-d", temp_git_repo_forgejo])
         assert result.exit_code == 0
         assert "codecov" not in result.stdout
         assert "coveralls" not in result.stdout
@@ -167,7 +181,7 @@ class TestCLIErrors:
 
     def test_list_excludes_codecov_on_codeberg(self, temp_git_repo_codeberg: str) -> None:
         """Codeberg resolves to forgejo platform and must inherit the same exclusion."""
-        result = runner.invoke(app, ["--list", "-d", temp_git_repo_codeberg])
+        result = runner.invoke(app, ["list", "-d", temp_git_repo_codeberg])
         assert result.exit_code == 0
         assert "codecov" not in result.stdout
         assert "coveralls" not in result.stdout
@@ -183,8 +197,8 @@ class TestCLIErrors:
 
         subdir = os.path.join(temp_pyproject, "src")
         pathlib.Path(subdir).mkdir(parents=True)
-        result = runner.invoke(app, ["-n", "-d", subdir, "pypi"])
-        assert result.exit_code == 1
+        result = runner.invoke(app, ["url", "-d", subdir, "pypi"])
+        assert result.exit_code == 7
         assert "No pyproject.toml found" in result.output
 
 
@@ -193,14 +207,14 @@ class TestCLIOpenBrowser:
 
     @patch("typer.launch")
     def test_opens_browser(self, mock_launch: MagicMock, temp_pyproject: str) -> None:
-        result = runner.invoke(app, ["-d", temp_pyproject, "pypi"])
+        result = runner.invoke(app, ["open", "-d", temp_pyproject, "pypi"])
         assert result.exit_code == 0
         assert "Opening:" in result.stdout
         mock_launch.assert_called_once()
 
     @patch("typer.launch")
     def test_opens_correct_url(self, mock_launch: MagicMock, temp_git_repo: str) -> None:
-        runner.invoke(app, ["-d", temp_git_repo, "origin"])
+        runner.invoke(app, ["open", "-d", temp_git_repo, "origin"])
         mock_launch.assert_called_with("https://github.com/testuser/testrepo")
 
 
@@ -208,14 +222,21 @@ class TestCLITUILaunch:
     """Tests for TUI launch path."""
 
     @patch("olink.tui.launch_tui")
-    def test_no_target_launches_tui(self, mock_tui: MagicMock, temp_dir: str) -> None:
-        result = runner.invoke(app, ["-d", temp_dir])
+    def test_interactive_launches_tui(self, mock_tui: MagicMock, temp_dir: str) -> None:
+        result = runner.invoke(app, ["interactive", "-d", temp_dir])
         assert result.exit_code == 0
         mock_tui.assert_called_once()
 
+    @patch("olink.tui.launch_tui")
+    def test_bare_olink_shows_help_not_tui(self, mock_tui: MagicMock) -> None:
+        """Bare `olink` must never block on an interactive screen (agent-safe)."""
+        result = runner.invoke(app, [])
+        assert "Commands" in result.output
+        mock_tui.assert_not_called()
+
     @patch("olink.tui.launch_tui", side_effect=KeyboardInterrupt)
     def test_tui_keyboard_interrupt_handled(self, mock_tui: MagicMock, temp_dir: str) -> None:
-        result = runner.invoke(app, ["-d", temp_dir])
+        result = runner.invoke(app, ["interactive", "-d", temp_dir])
         assert result.exit_code == 0
 
     def test_tui_missing_optional_deps_shows_hint(
@@ -233,7 +254,7 @@ class TestCLITUILaunch:
             return real_import(name, *args, **kwargs)
 
         monkeypatch.setattr(builtins, "__import__", fake_import)
-        result = runner.invoke(app, ["-d", temp_dir])
+        result = runner.invoke(app, ["interactive", "-d", temp_dir])
         assert result.exit_code == 1
         assert "requires extra dependencies" in result.output
 
@@ -252,7 +273,7 @@ class TestCLITUILaunch:
             return real_import(name, *args, **kwargs)
 
         monkeypatch.setattr(builtins, "__import__", fake_import)
-        result = runner.invoke(app, ["-d", temp_dir])
+        result = runner.invoke(app, ["interactive", "-d", temp_dir])
         assert isinstance(result.exception, ImportError)
 
 
@@ -267,3 +288,111 @@ class TestCLIEntryPoint:
         monkeypatch.setattr(app_module, "app", lambda: called.append(True))
         app_module.main()
         assert called == [True]
+
+
+class TestCLIJson:
+    """Tests for the machine-readable `--json` contract."""
+
+    def test_parser_errors_json(self) -> None:
+        for arguments in (
+            ["url", "--json"],
+            ["open", "--json"],
+            ["list", "--json", "--unknown-option"],
+            ["url", "origin", "--json", "-d"],
+        ):
+            result = runner.invoke(app, arguments)
+            assert result.exit_code == 2
+            error = json.loads(result.stdout)["error"]
+            assert error["type"] in {"MissingParameter", "NoSuchOption", "BadOptionUsage"}
+            assert error["message"]
+            assert not result.stderr
+
+    def test_parser_errors_text(self) -> None:
+        result = runner.invoke(app, ["url"])
+        assert result.exit_code == 2
+        assert "Missing argument" in result.stderr
+        assert not result.stdout
+
+    def test_json_after_separator_is_target(self) -> None:
+        result = runner.invoke(app, ["url", "--", "--json"])
+        assert result.exit_code == 3
+        assert "Unknown target" in result.stderr
+        assert not result.stdout
+
+    def test_url_json(self, temp_git_repo: str) -> None:
+        result = runner.invoke(app, ["url", "origin", "-d", temp_git_repo, "--json"])
+        assert result.exit_code == 0
+        assert json.loads(result.stdout) == {
+            "target": "origin",
+            "url": "https://github.com/testuser/testrepo",
+        }
+
+    @patch("typer.launch", return_value=0)
+    def test_open_json_keeps_stdout_parseable(
+        self, mock_launch: MagicMock, temp_git_repo: str
+    ) -> None:
+        result = runner.invoke(app, ["open", "origin", "-d", temp_git_repo, "--json"])
+        assert result.exit_code == 0
+        assert json.loads(result.stdout) == {
+            "target": "origin",
+            "url": "https://github.com/testuser/testrepo",
+            "opened": True,
+        }
+        mock_launch.assert_called_once()
+
+    def test_list_json_available(self, temp_pyproject: str) -> None:
+        result = runner.invoke(app, ["list", "-d", temp_pyproject, "--json"])
+        assert result.exit_code == 0
+        payload = json.loads(result.stdout)
+        assert payload["scope"] == "available"
+        assert payload["count"] == len(payload["targets"])
+        pypi = next(t for t in payload["targets"] if t["name"] == "pypi")
+        assert set(pypi) == {"name", "description", "ecosystem"}
+
+    def test_list_json_all(self) -> None:
+        result = runner.invoke(app, ["list", "--all", "--json"])
+        assert result.exit_code == 0
+        payload = json.loads(result.stdout)
+        assert payload["scope"] == "all"
+        assert {"origin", "pypi"} <= {t["name"] for t in payload["targets"]}
+
+    def test_list_json_empty_is_valid_document(self, temp_dir: str) -> None:
+        result = runner.invoke(app, ["list", "-d", temp_dir, "--json"])
+        assert result.exit_code == 0
+        assert json.loads(result.stdout)["targets"] == []
+
+    def test_error_json_on_stdout_with_typed_exit_code(self) -> None:
+        result = runner.invoke(app, ["url", "nonexistent", "--json"])
+        assert result.exit_code == 3
+        error = json.loads(result.stdout)["error"]
+        assert error["type"] == "UnknownTargetError"
+        assert "Unknown target" in error["message"]
+
+    def test_invalid_directory_json(self) -> None:
+        result = runner.invoke(app, ["list", "-d", "/nonexistent/path", "--json"])
+        assert result.exit_code == 4
+        assert json.loads(result.stdout)["error"]["type"] == "InvalidDirectoryError"
+
+    def test_list_unknown_host_json(self, temp_git_repo: str) -> None:
+        config = pathlib.Path(temp_git_repo) / ".git" / "config"
+        config.write_text(config.read_text().replace("github.com", "unknown.example"))
+
+        result = runner.invoke(app, ["list", "-d", temp_git_repo, "--json"])
+
+        assert result.exit_code == 9
+        assert json.loads(result.stdout)["error"]["type"] == "UnknownPlatformError"
+        assert not result.stderr
+
+    def test_version_and_info_json(self) -> None:
+        version = json.loads(runner.invoke(app, ["version", "--json"]).stdout)
+        info = json.loads(runner.invoke(app, ["info", "--json"]).stdout)
+        assert version["version"] == info["version"]
+        assert {"python", "platform"} <= set(info)
+
+    def test_metadata_commands_accept_directory(self) -> None:
+        for command in ("version", "info"):
+            expected = runner.invoke(app, [command, "--json"])
+            for option in ("-d", "--directory"):
+                result = runner.invoke(app, [command, option, "/nonexistent/path", "--json"])
+                assert result.exit_code == 0
+                assert json.loads(result.stdout) == json.loads(expected.stdout)

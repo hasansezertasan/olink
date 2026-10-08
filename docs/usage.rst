@@ -26,20 +26,36 @@ Open the page you want for the current project by naming a target:
 
 .. code-block:: sh
 
-   olink origin          # Open the remote's homepage
-   olink issues          # Open the issues page
-   olink pypi            # Open the PyPI project page
-   olink --list          # List targets available for the current project
-   olink --list-all      # List every known target
+   olink open origin     # Open the remote's homepage
+   olink open issues     # Open the issues page
+   olink open pypi       # Open the PyPI project page
+   olink url pypi        # Print the URL without opening it
+   olink list            # List targets available for the current project
+   olink list --all      # List every known target
+   olink interactive     # Launch the TUI (needs the ``tui`` extra)
    olink --version       # Show the olink version
 
-Pass ``-n``/``--dry-run`` to print the resolved URL instead of opening it, and
-``-d``/``--directory`` to point olink at a different project directory:
+Every command accepts ``-d``/``--directory`` to point olink at a different
+project directory:
+
+``version`` and ``info`` accept the option for consistent invocation but ignore
+it because their output does not depend on a project.
 
 .. code-block:: sh
 
-   olink -n pypi
-   olink -d /path/to/project issues
+   olink open -d /path/to/project issues
+
+``open``, ``url``, ``list``, ``version`` and ``info`` accept ``--json`` for
+scripts and agents. Stdout is then exactly one JSON document, errors included
+(``{"error": {"type": ..., "message": ...}}``), and failures exit with a
+distinct code per error type: ``3`` unknown target, ``4`` bad directory, ``5``
+not a git repo, ``6`` no remote, ``7`` missing project metadata, ``8``
+unsupported on this platform, ``9`` unknown git host.
+
+.. code-block:: sh
+
+   olink url pypi --json
+   olink list --json
 
 Or invoke it programmatically from Python:
 
@@ -50,9 +66,9 @@ Or invoke it programmatically from Python:
 As a TUI
 --------
 
-Run ``olink`` with no target to launch the interactive terminal user interface
+Run ``olink interactive`` to launch the interactive terminal user interface
 (requires the ``tui`` extra — install with ``uv tool install 'olink[tui]'``):
 
 .. code-block:: sh
 
-   olink
+   olink interactive
