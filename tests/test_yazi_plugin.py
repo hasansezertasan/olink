@@ -68,6 +68,7 @@ class _HarnessOptions:
     copy: bool = False
     fail_list: bool = False
     fail_first: bool = False
+    empty_first: bool = False
     which_idx: int | None = 1
     confirm: bool = True
 
@@ -104,6 +105,7 @@ def _run_harness(
     env["COPY"] = opts.copy
     env["FAIL_LIST"] = opts.fail_list
     env["FAIL_FIRST"] = opts.fail_first
+    env["EMPTY_FIRST"] = opts.empty_first
     env["TEST_EXISTS"] = exists if exists is not None else (lambda path: Path(path).exists())
     runtime.execute(HARNESS.read_text(encoding="utf-8"))
     seen = env["OBS"]
@@ -243,6 +245,16 @@ class TestYaziPluginLua:
         assert notice is not None
         assert "boom" in notice
         assert obs.emit_cmd is None
+
+    def test_retries_past_empty_target_list(self, tmp_path: Path, fixture_project: str) -> None:
+        """An exit-zero empty list must retry upward like a failure does."""
+        inner = Path(fixture_project) / "sub" / "inner"
+        inner.mkdir(parents=True)
+        (inner / "pyproject.toml").write_text("[project]\n", encoding="utf-8")
+        canned = tmp_path / "canned.lua"
+        names = _write_canned(canned, fixture_project)
+        obs = _run_harness(str(inner), canned, _HarnessOptions(empty_first=True))
+        assert obs.emit_cmd == f"olink open '{names[0]}' -d '{fixture_project}'"
 
     def test_menu_cap_notifies(self, tmp_path: Path, fixture_project: str) -> None:
         """Beyond the key pool the menu must admit what it omits."""

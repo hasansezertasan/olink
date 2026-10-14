@@ -131,7 +131,9 @@ end
 --- directory is a repository boundary: if olink rejects it, that error is
 --- reported rather than silently opening a parent repository's links.
 --- Manifest-only directories that olink rejects are skipped upward; the
---- first error is kept for the final report.
+--- first error is kept for the final report. Note an empty list still exits
+--- successfully, so success alone is not acceptance: zero parsed targets
+--- counts as unusable too.
 local function find_usable(start)
 	local dir = start
 	local first_err = nil
@@ -141,14 +143,15 @@ local function find_usable(start)
 			return nil, first_err or "no project root found above the current directory"
 		end
 		local text, lerr = olink({ "list", "-d", root })
-		if text ~= nil then
+		if text ~= nil and #parse_list(text) > 0 then
 			return root, text
 		end
+		local uerr = lerr or ("no olink targets available for " .. root)
 		if first_err == nil then
-			first_err = lerr
+			first_err = uerr
 		end
 		if exists(Url(root):join(".git")) then
-			return nil, lerr
+			return nil, uerr
 		end
 		dir = parent_dir(root)
 	end
@@ -162,10 +165,6 @@ local function entry(self, job)
 	end
 
 	local rows = parse_list(text)
-	if #rows == 0 then
-		fail("no olink targets available for " .. root)
-		return
-	end
 
 	local picked = pick_row(rows)
 	if picked == nil then

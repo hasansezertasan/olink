@@ -56,6 +56,9 @@ local CANNED = dofile(CANNED_PATH)
 -- over then recover so the ancestor retry is exercised.
 local failed_once = false
 
+-- Same for a successful-but-empty list, the other retry trigger.
+local emptied_once = false
+
 Command = setmetatable({ PIPED = {}, NULL = {}, INHERIT = {} }, {
 	__call = function(_, prog)
 		local c = { _prog = prog, _args = {} }
@@ -81,6 +84,10 @@ Command = setmetatable({ PIPED = {}, NULL = {}, INHERIT = {} }, {
 			if FAIL_LIST or (FAIL_FIRST and not failed_once) then
 				failed_once = true
 				return { status = { success = false, code = 5 }, stdout = "", stderr = "Error: boom" }, nil
+			end
+			if EMPTY_FIRST and not emptied_once then
+				emptied_once = true
+				return { status = { success = true, code = 0 }, stdout = "No targets available for this project.\n", stderr = "" }, nil
 			end
 			return { status = { success = true, code = 0 }, stdout = CANNED.list, stderr = "" }, nil
 		elseif self._args[1] == "url" then
