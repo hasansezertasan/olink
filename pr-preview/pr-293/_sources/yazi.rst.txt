@@ -77,8 +77,9 @@ Testing
   ``olink list`` / ``olink url`` output from a fixture project — covering
   the open path with its confirm dialog, dialog dismissal, ``--copy``,
   menu dismissal, the no-project-root case, olink failure, the Windows
-  root walk, retry past a broken manifest, the ``.git`` retry boundary,
-  the menu cap notice, and multi-ecosystem suffix passthrough.
+  root walk, retry past a broken manifest, retry past an empty target
+  list, the ``.git`` retry boundary, the menu cap notice, and
+  multi-ecosystem suffix passthrough.
 
 Notes
 -----
