@@ -96,7 +96,7 @@ agreed, add it to the import-linter contract in the same PR.
 1. **Regenerability**: Write code so files can be rewritten from scratch without breaking the system. Minimize coupling.
 2. **Structure**: Group code by feature. Avoid shared utilities unless absolutely necessary.
 3. **Simplicity**: Prefer flat, explicit code over abstractions. No metaprogramming.
-4. **Journal**: Record rationale via the Keep the Why skill into `context/` (see below), not `JOURNAL.md` — that file is a frozen historical log.
+4. **Journal**: Record rationale via the Keep the Why skill into `context/` (see below).
 5. **Proactiveness**: Fix implied issues, but confirm ambiguity.
 
 ## Project Structure
