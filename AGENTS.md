@@ -96,7 +96,7 @@ agreed, add it to the import-linter contract in the same PR.
 1. **Regenerability**: Write code so files can be rewritten from scratch without breaking the system. Minimize coupling.
 2. **Structure**: Group code by feature. Avoid shared utilities unless absolutely necessary.
 3. **Simplicity**: Prefer flat, explicit code over abstractions. No metaprogramming.
-4. **Journal**: Update `JOURNAL.md` chronologically with decisions and outcomes.
+4. **Journal**: Record rationale via the Keep the Why skill into `context/` (see below), not `JOURNAL.md` — that file is a frozen historical log.
 5. **Proactiveness**: Fix implied issues, but confirm ambiguity.
 
 ## Project Structure
@@ -151,3 +151,13 @@ before opening one:
   body) unless it carries the `no-issue` label. Enforced by
   `check-linked-issues.yml`, which auto-skips PRs opened by a bot account (login
   ending in `[bot]`) — don't fabricate an issue reference for those.
+
+## Keep the Why
+
+This project records the reasoning behind its code with the Keep the Why
+skill (https://keepthewhy.com) — the `.keep-the-why` file at the project
+root is its config. Before doing anything else in a session, whatever the
+first request is about, load the skill: invoke the `keep-the-why` skill
+if your agent has a skill tool; otherwise read
+`.agents/skills/keep-the-why/SKILL.md` and follow it, including the
+`references/*.md` files it points to for the situation at hand.

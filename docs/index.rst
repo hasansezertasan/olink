@@ -9,6 +9,7 @@ A CLI tool that opens external URLs related to your project.
 
    installation
    usage
+   yazi
    cli-reference
    modules
 

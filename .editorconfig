@@ -26,6 +26,10 @@ indent_size = unset
 indent_style = tab
 end_of_line = crlf
 
+# Lua follows its community convention (tabs), matching yazi's own plugins
+[*.lua]
+indent_style = tab
+
 # HTML, CSS, JavaScript, JSON(C), CFF, Markdown, Shell, YAML, TOML files use 2
 # spaces for indentation. `.jsonc` (JSON-with-comments configs) and `.cff`
 # (Citation File Format, which is YAML) are variants of json/yaml and share

@@ -22,6 +22,7 @@
 [![Downloads](https://pepy.tech/badge/olink)](https://pepy.tech/project/olink)
 [![Downloads/Month](https://pepy.tech/badge/olink/month)](https://pepy.tech/project/olink)
 [![Downloads/Week](https://pepy.tech/badge/olink/week)](https://pepy.tech/project/olink)
+[![Keep the Why](https://keepthewhy.com/assets/badge.svg)](https://keepthewhy.com)
 
 > A CLI tool that opens external URLs related to your project.
 

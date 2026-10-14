@@ -2,6 +2,10 @@
 
 Chronological record of decisions, attempts (including failures), and outcomes. Newest entries at top.
 
+> Frozen 2026-10-14: rationale now lives in `context/` via Keep the Why.
+> Older entries below are kept as-is; the 2026-10-14 yazi/Keep-the-Why
+> setup note moved to `context/yazi.md`.
+
 ---
 
 ## 2026-10-08 — PR #281 parser and public API follow-up
