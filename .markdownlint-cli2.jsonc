@@ -5,6 +5,20 @@
   "fix": true,
   // docs/superpowers holds internal design specs/plans (also excluded from the
   // Sphinx build); they are not published prose, so keep them out of the lint set.
-  "globs": ["**/*.md", "**/*.markdown", "!CHANGELOG.md", "!docs/superpowers/**"],
+  // .agents holds vendored third-party skills whose upstream docs follow their
+  // own conventions; the project's prose rules don't apply to them.
+  // context/README.md, context/AGENTS.md and context/CLAUDE.md carry
+  // skill-mandated exact content (logo block, guard instructions) that cannot
+  // take headings; topic entries stay linted.
+  "globs": [
+    "**/*.md",
+    "**/*.markdown",
+    "!CHANGELOG.md",
+    "!docs/superpowers/**",
+    "!.agents/**",
+    "!context/README.md",
+    "!context/AGENTS.md",
+    "!context/CLAUDE.md"
+  ],
   "gitignore": true,
 }

@@ -112,6 +112,7 @@ test = [
   "dirty-equals",
   "inline-snapshot",
   "pytest-deadfixtures==3.1.0",
+  "lupa==2.8",
 ]
 docs = [
   "sphinx==9.1.0",

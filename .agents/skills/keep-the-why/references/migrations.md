@@ -1,0 +1,403 @@
+# Migrations
+
+What changed in each version that an existing project may need to know about or act on — not limited to changes to the `context/` entry *format*. Also covers structural/placement conventions (e.g. how `context/index.md` is ordered) and config defaults added to the config files (`.keep-the-why`, the personal file; before 0.10.0, blocks in `AGENTS.md`/`AGENTS.local.md`). Not every release needs an entry here — only ones with something an existing project should check. See `setup.md` for how and when this file gets consulted; note that "consulted" doesn't always mean "asks the user to act" — a purely informational entry (e.g. a config field silently backfilled to a default) is recorded here for completeness but needs no prompt.
+
+"Do it now", "mechanical" and "one pass by the agent" below say how a migration runs once the person has chosen to migrate now (`setup.md`, "Context schema and migrations") — completely, not left for the next touch. They never skip that question. The one exception is the 0.10.0 relocation of a legacy config block, and it says so.
+
+Entries below assume 0.2.0 as the starting point — nothing before it tracked a `context-schema` at all, and 0.2.0 itself introduced no `context/` entry format change.
+
+## 0.20.2 — the dashboard export's path is `keep-the-why-dashboard/` (informational, no action required)
+
+**What changed:** the path `references/ci-linting.md` and `setup.md` give the dashboard export on a project's site is `<site>/keep-the-why-dashboard/` — the badge, `dashboard-state` and the snippets for a docs build, GitHub Pages and GitLab Pages with it. It was `<site>/dashboard/live/`: a generic name that can collide with a dashboard of the project's own, and says nothing about what is there.
+
+**Existing projects:** nothing to migrate. An export already published under `/dashboard/live/` stays where it is — the path is a convention, `dashboard-state` and the badge name whatever path a project uses, and nothing reads the old one by name. Advance `context-schema` to 0.20.2 as usual.
+
+## 0.20.1 — a sentence for projects that keep ADRs; the dashboard on GitLab Pages (informational, no action required)
+
+**What changed:** `references/help.md` and `references/repository-structure.md` carry the sentence for a project that already keeps ADRs — *"Carry the decisions from our ADRs into `context/` — leave the ADR files untouched."* — and what it does: one entry per record, `Source` naming the record's file, the records themselves untouched. `references/ci-linting.md` shows the dashboard on GitLab Pages. The dashboard went from 0.7.x to 0.10.0 in the meantime (timeline clock and stage, authors across projects, previews on the graph page, Esc as reset) — its own package, no schema change.
+
+**Existing projects:** nothing to migrate. Advance `context-schema` to 0.20.1 as usual.
+
+## 0.20.0 — the skill explains itself; steadier wording; the eval judge on Opus (informational, no action required)
+
+**What changed:** `references/help.md` says what Keep the Why is — the format, the skill, the linter, the dashboard, the registry; what is required and what optional — and lists the sentences that start each mode, setup, an update and each optional component; the skill reads it before explaining itself, and its description names questions about how it works. Wording measured on `claude-sonnet-5-5`: the description opens with its scope, the pending-confirmation check may say "nothing pending" in one short line, a correction gets its own `CHANGELOG.md` line, an invalid or contradictory `confirmation-flow` is asked about alone, the project wizard always lists the CI-linting question. The eval judge is Claude Opus. A context cache is read with read commands only — not even a test file to probe whether it could be written.
+
+**Existing projects:** nothing to migrate. Advance `context-schema` to 0.20.0 as usual.
+
+## 0.19.0 — the optional components are offered, set up on request; a request can answer the wizards (informational, no action required)
+
+**What changed:** the skill names three optional components — the linter in CI, the dashboard on the project's site (now also through a GitHub Pages workflow of its own, where no docs build exists), and a listing in the registry — and sets each one up only on a yes or a request (`references/ci-linting.md`, "Optional components"). The project wizard's question about the linter in CI defaults to *no* (it defaulted to yes where GitHub or GitLab was detected), the dashboard question defaults to *no* and is asked wherever the remote is on GitHub, and the start mode defaults to capture from now on. A setup request that already gives the answers ("with default settings") is the answer to both wizards: no list is shown, the reply lists every value written. Also: `SKILL.md` carries the local linter's install order itself, and its pointers to a procedure in a reference file are phrased as read-before triggers; behaviour the references already described, nothing a project has to do.
+
+**Existing projects:** nothing to migrate. A wizard default applies to a new setup only: a project whose CI already runs the linter keeps its workflow, and nothing is added to one that has none. Any of the components can be asked for at any time. Advance `context-schema` to 0.19.0 as usual.
+
+## 0.18.2 — an `Id` is lowercase, whatever the OS command printed; the live badge is `badge-entries.svg` (two mechanical checks)
+
+**What changed:** the format has asked for a lowercase UUID since 0.18.0 and `keep-the-why-lint` has enforced it (`E115`), but the skill named `uuidgen` without saying that macOS's prints capitals — an agent on macOS wrote Ids the linter then rejected, and the finding pointed back at `uuidgen`. The skill now says to lowercase what the command prints, and that lowercasing an Id already written in capitals corrects its spelling without changing the Id. `keep-the-why-lint` 0.18.2.0 tells the two cases apart: a UUID in capitals is reported as one, with its lowercase form, in an `Id` (`E115`) and in a `See` or `Superseded by` (`E117`). Nothing that passed before fails now, and nothing that failed passes. Apart from that: `keep-the-why-dashboard` 0.4.0 writes the live badge as `badge-entries.svg` (Keep the Why's style) and `badge-entries-flat.svg` (the flat style) and no `badge.svg` any more, and the wizard and the CI snippet name the new files; the skill directory is also published to npm as `keep-the-why` (`pi install npm:keep-the-why`), one more install route and nothing to act on.
+
+**Existing projects:**
+
+1. If the linter reports `E115` for an Id written in capitals, lowercase it in place, and with it every `See` and `Superseded by` line that cites it; a project that cites it from another repository corrects its own line the same way. No new Id is generated. A project whose Ids are lowercase has nothing to do.
+2. If the README carries the live badge as `<site>/dashboard/live/badge.svg`, name `badge-entries.svg` (or `badge-entries-flat.svg`) instead — from `keep-the-why-dashboard` 0.4.0 on the export no longer writes `badge.svg`, and the old address shows a broken image.
+
+Advance `context-schema` to 0.18.2 as usual.
+
+## 0.18.1 — the `context/README.md` names `Id`, `See` and `Superseded by`; a cross-project locator is exactly a `canonical` (one mechanical step)
+
+**What changed:** the `context/README.md` the wizard writes lists `Id` under "Reading the entries" — the entry's permanent address, which `See` and `Superseded by` point at. The 0.18.0 migration added the fields to the entries but left the README's list as it was, so a project set up or migrated before this version still explains only `Type`, `Status` and `Evidence`. `keep-the-why-lint` checks the locator of a `See` or `Superseded by` into another project for the exact form of a `canonical` — the repository URL, no file path, anchor, query, `.git` suffix or trailing slash (`E117`); before, anything starting with `https://` passed. A `canonical` field and a family location with a query or fragment are `E003`. The skill's references were corrected against the linter and the recorded decisions without changing behaviour (`CHANGELOG.md`).
+
+**Existing projects:**
+
+1. Project-wide, once: if `context/README.md`'s "Reading the entries" list doesn't mention `Id`, add the line from `references/setup.md`'s current template.
+2. If the linter reports `E117` on a cross-project `See` or `Superseded by`, replace the locator with the target project's `canonical` as its `.keep-the-why` records it; the Id and the date stay.
+
+Advance `context-schema` to 0.18.1 as usual.
+
+## 0.18.0 — entry identity (`Id`, `See`, `Superseded by`) and which project, and where it lives (one mechanical step)
+
+**What changed, entries:** every entry carries `**Id:**`, a UUID version 4 as its first header line — made by an OS command (`uuidgen`, `cat /proc/sys/kernel/random/uuid`, PowerShell's `[guid]::NewGuid()`), never composed from memory, never changed. Two fields build on it: `**See:**` cites another entry as `<locator> — <uuid> — as of <date>` (inside the project `<file>.md#<anchor>`, in another project that project's `canonical` alone), and `**Superseded by:**`, required on every `Status: superseded` entry, names the successor's Id, a cross-project reference, or `none — <why nothing replaced it>`. `specification.md` §9.1 has the grammar. The linter: from `context-schema` 0.18.0 on, a missing `Id` is `E114`, a malformed one `E115`, a duplicate `E116`, a `See`/`Superseded by` outside its shape `E117`, an Id no entry carries `E118`, a stale local `See` locator `E119`, `superseded` without a successor `E120`, `Superseded by` elsewhere `E121`. Below 0.18.0 the three fields are ignored, so a project can add them before it advances.
+
+**Existing projects, one pass by the agent** (the linter verifies, it never writes): for every entry without an `Id`, generate a UUID with the OS command and insert the line before `Type`; for every `Status: superseded` entry, add `Superseded by` — the successor's Id where the replacement was recorded, `none — <reason>` where the supersession was an event and no entry replaced it, and where a successor should exist but was never written, write it now as a one-line entry rather than pointing at nothing. In the same pass, an existing reference to another entry becomes a `See` line: where a body means one specific entry — a heading link (`incidents.md#duplicate-state-after-cold-start-2025-11`), a topic file that holds only that entry, or a file or family member together with what the sentence says about it, when exactly one entry there fits ("the conda-forge indexing rule in `release-workflow.md`") — add `**See:** <locator> — <that entry's Id> — as of <today>` with the header lines, one line per entry cited, and leave the prose as it is. A reference that leaves a doubt which entry is meant — a file with several entries the sentence does not tell apart, a project and nothing more — stays prose, with no `See` (rule 1: a `See` is a claim about which entry is meant, so it is made only where the text makes it). An entry in a family member is cited only when that member can be read here, as a working tree or a cache; otherwise the reference stays prose until a session with the member at hand. Before this rule the pass left body links alone and added a `See` only when an entry was next touched; a project migrated that way runs this part of the pass on its own. Then advance `context-schema` to 0.18.0 and run the linter: `E114`–`E121` name what the pass missed. Scale at the time of writing: 85 entries in this skill's own repository took one session.
+
+**What changed, family:** a project can be part of a larger one. The child carries `parent` (the parent's `canonical`, or its relative path inside the same repository); the parent carries a `children` block — one line per child, `<name>: <location> — <scope>`, the scope one-liner required, since it is the routing (`specification.md` §3.3). A family can nest (a child with children of its own); routing then follows the parent chain, each level's block routing among its own children and what is wider than a level going one level up, to the root at most. At step 5 the agent routes an entry by those blocks — up the chain, to the child whose scope names the subject, or here — and may write into a family member that has a local working tree (the same repository, or a sibling checkout carrying the named `canonical`), under that project's own `capture-confirmation`; nothing outside the family, nothing cloned ("Family: routing and writing across projects" in `setup.md`). The linter checks a local link both ways (`E015`), a missing config at a path location (`E016`), a malformed line or a missing scope (`E014`), a path leaving the repository (`E009`).
+
+**What changed, resolution:** where projects live on a machine is recorded in `~/.keep-the-why/projects.json` (`specification.md` §5.2), written by the setup check on every session and by the dashboard when a project is opened; the dashboard's own `dashboard-history.json` is folded into it on first use and removed. A family member that is not checked out is fetched only after a question — a full clone, or a read-only *context cache* under `~/.keep-the-why/cache/<id>/` (the member's `.keep-the-why` and context directory, nothing else), refreshed on a timer (`cache-refresh`, `cache-offline` in the global config, `~/.keep-the-why/cache/<id>.md` per cache, §5.1). With several working trees of one repository, `last_seen` never decides a write: one → use it, several → the one beside the family, else ask. The dashboard's export writes `badge.svg` next to `state.json`, and the wizard offers the export step and the live badge where a docs build exists (`ci-linting.md`, "The dashboard export"), writing `dashboard-state` — the published `state.json`'s URL — into `.keep-the-why`; that line is what another dashboard reads in its *public* mode to browse the project without a checkout.
+
+**Existing projects, family:** nothing happens on its own — `parent` absent means no parent, and no question is asked. A project that *is* part of a larger one declares it by hand or on request: the `parent` line here, the child's line in the parent's `children` block, both staged like any other setup write.
+
+**What changed, project:** the project is now defined — the tree under the nearest `.keep-the-why` walking up from the working directory, minus the trees under any deeper one — and a directory above several projects is not a project: the agent takes the one the request names or asks ("Which project" in `setup.md`). Four layouts have names (`repository-structure.md`, "Layouts"): shared context mono repo, isolated context mono repo, multi repo, single repo. Two config fields join `.keep-the-why`: `canonical`, the repository's normalized published-remote URL (`upstream` in a fork checkout, else `origin`) as a stored locator, and `root`, the path of a `.keep-the-why` below its Git toplevel (an isolated-context mono repo), whose `id` appends that path as a slug so two instances in one repository never share a personal file. `keep-the-why-lint` knows both fields from 0.18.0.0: a malformed `canonical` or a `root` on a toplevel is `E003`, a `root` that would leave the repository is `E009`.
+
+**Existing projects, config:** one silent backfill. `canonical` is derived from the published remote on the next setup check — `upstream` in a fork checkout, else `origin`; ask when the remotes leave it unclear — and written into `.keep-the-why` — a documented derivation, not a guess; a project without a remote gets no line. `root` absent means the file is at the toplevel, which is every project set up before this version, so nothing is written; the one exception — a `.keep-the-why` that already sits below its toplevel — is named and asked about, because its `id` predates the slug rule. No `context/` entry changes. Advance `context-schema` to 0.18.0 as usual.
+
+## 0.17.1 — a Claude Code plugin route, and the docs say what using the skill takes (informational, no action required)
+
+**What changed:** the repository is its own one-plugin marketplace for Claude Code (`.claude-plugin/marketplace.json`), so the skill installs with `claude plugin marketplace add` and `claude plugin install`; this is the first release tag that carries the file. In the skill's references, `specification.md` says who writes the files it defines — the skill; by hand only to change a setting — and what `capture-mode: proactive` means, and `setup.md` no longer explains `capture-mode` by way of a missing autostart hook. No behaviour, format or default changed; the linter knows the version and gates nothing new.
+
+**Existing projects:** nothing to migrate. A skill installed by any other route stays as it is. Advance `context-schema` to 0.17.1 as usual.
+
+## 0.17.0 — ask-versus-write as a table, wording for twice-seen eval forms (informational, no action required)
+
+**What changed:** `SKILL.md` step 5 decides ask-versus-write from a table — six situations, first match wins, one column per `capture-confirmation` value — with four modifiers under it, in place of six prose bullets. Two rows say something the prose did not: a reason the person stated or agreed to in the conversation is written under `automatic` and `confirm-when-unsure` without a permission question, and a reason the agent read out of the code alone is never turned into an entry on the back of a plain question. A missing `context-schema` is backfilled to `0.2.0` as its own edit, never to the installed version. Under `confirmation-flow: sequential` the first candidate is the first thing the person sees. The pending-confirmation check names the entries it finds and still answers the request. `superseded` is reached by a person or by a replacement decision recorded in `context/` on their instruction. A workaround's procedure is not repeated in the entry under a `**Workaround:**` label; the `**Type:** workaround` line stays. Nothing in the `context/` format, the config files or the index changed; the linter knows the version and gates nothing new.
+
+**Existing projects:** nothing to migrate. Advance `context-schema` to 0.17.0 as usual.
+
+## 0.16.3 — the why layer, said so in the `context/README.md` (informational, no action required)
+
+**What changed:** the `context/README.md` the wizard writes opens with "This directory is the why layer of the project's memory" instead of "the project's memory": the repository already holds what a project is, how it works and what changed; `context/` is the layer it was missing. Nothing else in the skill changed; the linter knows the version.
+
+**Existing projects:** nothing to migrate. A `context/README.md` written by an earlier version may take the new first sentence when next touched — optional wording, no structure involved. Advance `context-schema` to 0.16.3 as usual.
+
+## 0.16.2 — a silent setup check, the source question before the write, the dashboard named (informational, no action required)
+
+**What changed:** the setup check says nothing when every check comes back clean and goes on to the request in the same turn — a setup summary is not a response; a wizard question ends the turn, a flagged value does not. The `source-reference` question is asked before the entry is written, never after it, and a direct request to record does not skip it. A step-by-step procedure is not repeated inside a `context/` entry, not even as a `Workaround:` field. `Type` lines are one per value, never a comma-separated list. And the skill now names `keep-the-why-dashboard` — a separate, read-only viewer over `context/` and its Git history — once at the end of project setup and when someone asks how to look at what was recorded; it never installs or starts it. The `context/README.md` the wizard writes gained a short *Tools* section naming the linter and the dashboard — what each does, that both are optional, that the skill installs neither — and its opening paragraphs now say what the site says: project memory for the people and the coding agents working here, the Changelog/Why line, one sentence on the schema.
+
+**Existing projects:** nothing to migrate mechanically. A `context/README.md` written by an earlier version may gain the *Tools* section when next touched — optional, it is a convenience for whoever opens the folder cold; the section is in `references/setup.md`, step 4. Advance `context-schema` to 0.16.2 as usual.
+
+## 0.16.1 — one `Evidence` word, `Source` without persons, a Cursor plugin (informational, no action required)
+
+**What changed:** the specification says what was implicit: `Evidence` is one word per entry, and when an entry's parts stand differently (a confirmed new reason beside a lost original one) the weakest grade wins and the body says which part is which; `Source` names a kind of source, never a person's name, handle or e-mail address. The repository is also installable as a Cursor plugin (`.cursor-plugin/plugin.json` plus one rule that loads the skill in a workspace carrying `.keep-the-why`), and the skill's description names complaints and settings changes about the skill itself so a session about those loads it.
+
+**Existing projects:** nothing to migrate mechanically. An existing entry whose `Evidence` overstates a mixed standing, or whose `Source` names a person, is corrected when next touched — the linter has no gate for either, since both are judgement, not format. Advance `context-schema` to 0.16.1 as usual.
+
+## 0.16.0 — a Codex plugin install route, and the two wizards as two messages (informational, no action required)
+
+**What changed:** the repository is installable as a Codex plugin (`.codex-plugin/plugin.json` plus a one-plugin marketplace), a third install route beside the skill directory and the Claude Code plugin. And the first-setup wizards are stated as two messages: the project list ends the turn, the personal list is the next message after the project answer, under `batch` as under `sequential`.
+
+**Existing projects and developers:** nothing changes. A project set up by any route keeps its `.keep-the-why` and `context/` untouched; the wizards don't run again. A Codex user who installed by path may switch to the plugin route at any time — same skill, same files — but nothing requires it.
+
+## 0.15.0 — wizard defaults are the fully integrated values (informational, no action required)
+
+**What changed:** three wizard defaults, for new setups only. `confirmation-flow` proposes `batch` instead of `sequential`, so a first setup is one list per wizard with the defaults filled in and one answer, not one question per message. `local-lint` proposes `auto` instead of `ask`: the personal wizard names the install in its question, and the answer — "defaults" included — is the go-ahead, so a default setup installs `keep-the-why-lint` from PyPI in the same turn. The project wizard's activation question defaults to *the project asks* instead of *only when a developer asks*: the "Keep the Why" section goes into the entry-point file, plus the project-scoped hook where `autostart.md` has a verified example for the current platform. Everything else keeps its default — `capture-confirmation` stays `confirm-when-unsure`, `pending-confirmation-check` stays `no`, no `personal-defaults` block unless asked for. The reasoning: the one-word "defaults" answer should be a complete, fully integrated setup, and whoever wants less picks less. "Project init wizard" and "Personal preferences wizard" in `setup.md`.
+
+**Existing projects and developers:** nothing changes. A wizard default is what a new setup gets; a file that already exists keeps its values, and a line that is absent keeps its absent-field rule — `confirmation-flow` absent is still asked once, `local-lint` absent is still `ask` (a skill update never installs a package on an existing machine on its own), no `capture-confirmation` backfill changed. A project set up before 0.15.0 that wants the new defaults changes the lines by hand or asks the agent to; the activation section and hook are added the same way as before (`autostart.md`).
+
+## 0.14.0 — `local-lint`: the linter as the agent's own check (informational, no action required)
+
+**What changed:** a personal setting, `local-lint: auto | ask | no` (default `ask`), in `~/.keep-the-why/<id>.md` and offerable through a project's `personal-defaults`. With `auto` or `ask`, the skill runs `keep-the-why-lint` after every write to the context location or `.keep-the-why`, and with `--setup` after a settings change — the two home files a CI run never sees. The linter's version must be at least the skill's: `auto` installs or updates it from PyPI without asking, `ask` asks first. Findings in files written this session are fixed and the run repeated; findings elsewhere are reported and left. `context-schema` is never lowered to satisfy an older linter. The personal wizard asks it as its fifth question; "Local linting" in `setup.md` has the whole rule. Purely additive: no entry-format change, nothing an existing project or developer must do.
+
+**Existing developers:** the personal wizard doesn't run again; a personal file without the line means `ask`, the documented default. Nothing happens until the next write to `context/`; then, with no linter at the skill's version on the machine, the agent asks once whether to install it — a yes installs and runs it, a no is recorded as `local-lint: no` in the personal file so the question doesn't return. Nothing is ever installed without that yes. To skip the question, add `- local-lint: auto` or `- local-lint: no` to `~/.keep-the-why/<id>.md` by hand or ask the agent to. A project that wants to suggest it for new developers adds the same line to its `personal-defaults` block. `keep-the-why-lint` accepts the field from 0.14.0.0 on; `--setup` exists from the same version.
+
+## 0.13.0 — `pending-confirmation` Status, two optional settings, and an `index.md` letter skeleton (one mechanical step)
+
+**What changed:** a new `Status` value, `pending-confirmation`, for an entry written during an unattended session — one declared so by the task or by `session: unattended` in `~/.keep-the-why/config` (or, per project, in the personal file, which wins), never inferred — at a point where the project's `capture-confirmation` setting would normally require asking permission first. Rather than inventing confidence to skip the ask, or dropping the information because there was no one to ask, the entry gets written with `Status: pending-confirmation` standing in for whatever Status it would otherwise carry. See Core rule 5 and step 5 in `SKILL.md`, `references/repository-structure.md`, and "Unattended sessions" under the confirmation model in `references/setup.md`. Two settings come with it, both optional, both defaulting to the old behavior: `session: attended | unattended` in `~/.keep-the-why/config`, overridable per project by the same line in the personal file (default `attended`), and `pending-confirmation-check: on-start | no` in the personal file (default `no`) — when on, a session starts by listing entries that still wait for a first confirmation, silently when there are none. The check also runs on request at any time.
+
+**New value (see `references/repository-structure.md`):**
+
+- **Status:** `pending-confirmation` — never got a first human confirmation because no one was present to give one during an unattended session. Distinct from `needs-review`: that flags an entry that was current until a `Revisit when` trigger fired, whatever its Evidence; this flags a claim that never got a first confirmation at all. Resolving it replaces the flag with `active`, `superseded`, or `open`.
+
+**Migrating an existing project:** informational, not a backfill pass — this doesn't touch any existing entry's recorded Status, and neither setting has to be written anywhere. An existing project only sees the value going forward, the first time a declared-unattended session actually hits a would-need-to-ask point. `keep-the-why-lint` accepts the value from `context-schema` 0.13.0 on (`E113` below it) and knows `pending-confirmation-check` as a `personal-defaults` field.
+
+**Example:**
+
+```markdown
+**Status:** pending-confirmation
+**Evidence:** inferred
+```
+
+**Also new, since 0.13.1 — `references/specification.md`:** the normative definition of the config files, the context directory, the index and the entry format in one place; `repository-structure.md` keeps the worked examples and routing. Nothing to do — it documents what already holds.
+
+**Also changed — `context/index.md` gets a fixed letter skeleton:** thirty-six level-2 headings, `## 0` through `## 9` then `## A` through `## Z`, always all of them, and every topic file listed under the heading of its filename's first character, sorted within the section — see `references/specification.md` and [#194](https://github.com/oliver-zehentleitner/keep-the-why/issues/194). The 0.10.0 sort order stays; the headings add a separator line between any two letters, so two pull requests adding differently-named topic files can no longer collide, however small the index.
+
+**Migrating an existing project (index):** rebuild `context/index.md` into the skeleton fully, once — keep the title and any intro line, then the thirty-six headings in order with each existing entry moved under its letter. Mechanical, no per-entry judgment; do it now rather than next time touched, same reasoning as the 0.10.0 resort: the protection only exists once every entry sits under its heading. `keep-the-why-lint` reports a missing or misordered heading as `E205` and an entry under the wrong heading as `E206` from `context-schema` 0.13.0 on.
+
+**Example — after:**
+
+```markdown
+# Context index
+
+## 0
+
+…
+
+## 9
+
+## A
+
+- [architecture.md](architecture.md) — …
+
+## B
+
+…
+
+## Z
+```
+
+## 0.13.0 — `id` is a file name; configured paths stay inside the project (one mechanical check)
+
+**What changed:** the three filesystem locations `.keep-the-why` can name are each confined to one directory, and the skill now says so instead of leaving it to the linter. `id` is letters, digits, `.`, `_`, `-` only — it names `~/.keep-the-why/<id>.md`, and anything else could make that file land elsewhere. The uuid form's `<folder-name>` is slugified like the repo name (`My Cool Project` → `My-Cool-Project`). `context` and `pinned-path` are relative and resolve inside the project; a pinned `SKILL.md` is followed only if it says `name: keep-the-why` at the pinned version. A value outside its boundary is not read, written or followed — the skill names it and asks; `keep-the-why-lint` reports `E009`/`E010`. Details: `setup.md`, "Project config" and "Pinned versions"; `trust-model.md`, "Paths named by configuration".
+
+**Existing projects:** check the `id` line once. Every id the skill generated from a git remote already fits; one generated from a folder name containing a space or another character outside the alphabet does not (`123e4567-…---My Cool Project`) — rewrite it in `.keep-the-why` and rename the matching `~/.keep-the-why/<id>.md` on every machine that has one, same content. Mechanical, do it now rather than next time touched — the linter fails on it. Nothing to do for `context` or `pinned-path` unless they leave the project, which a working setup never had.
+
+## 0.12.0 — start paths, ephemeral environments, action refs (informational, no action required)
+
+**What changed:** three additions an existing project can adopt, none of which changes `.keep-the-why`, the personal file, or the `context/` entry format.
+
+- **Start paths.** `references/autostart.md` now defines three ways the skill gets loaded at session start — every session machine-wide (a developer-level hook), the project asks (a project-scoped hook and/or a "Keep the Why" section in the project's entry-point file, `AGENTS.md` or its equivalent), or only when a developer asks — with per-agent sections stating what is verified how (Claude Code, Codex CLI, opencode, Cline by eval; Hermes live). The project init wizard asks about this as its last question for *new* projects.
+- **Ephemeral environments.** `references/setup.md`, "Ephemeral environments": how a devcontainer, Codespace or CI agent answers the personal wizard once, in the image — by baking the personal file, or by baking `~/.keep-the-why/config` with `personal-defaults-policy: auto-accept` and letting the project's `personal-defaults` block supply the values. Both mechanisms existed since 0.10.0; the recipe is new.
+- **Action refs.** The GitHub Action now installs the linter its own ref belongs to: `@lint-latest` keeps rolling, `@lint-v<version>` and `@<commit-sha>` pin action and linter together. Older tags keep their old `action.yml`, so nothing already pinned changes behavior.
+
+**Existing projects:** all optional. A project that wants the skill loaded without anyone asking picks a start path from `autostart.md` and, for the entry-point route, pastes the section into its `AGENTS.md` (or equivalent) — the wizard's step 2 wording, by hand or by asking the agent. A project whose developers work in throwaway environments bakes one of the two files. A project on `@lint-latest` does nothing; one that pinned the action for reproducibility now gets the reproducibility it pinned for on its next bump.
+
+## 0.12.0 — `init: declined` retired (informational; one optional deletion)
+
+**What changed:** a setup request that is called off no longer writes `init: declined` to a new `.keep-the-why` — it writes nothing at all. The flag dated from the time an organic activation could propose setup and needed a "don't ask again" marker; since 0.10.0 setup only ever starts from an explicit request, so there was nothing left for the flag to suppress, while the file it created made every `.keep-the-why`-gated autostart hook fire on a project that had just said no.
+
+**Existing projects:** a `.keep-the-why` whose config block carries `init: declined` (and nothing but the `id`) is a leftover of a setup that never happened — delete the file. The skill has no special handling for the value anymore: it's an unrecognized `init` value, so the setup check names the valid option (`complete`) and asks, rather than guessing; `keep-the-why-lint` reports it as an invalid value. Both point at the same one-line fix.
+
+## 0.11.0 — CI linting available (informational, no action required)
+
+**What changed:** the project init wizard now offers to wire `keep-the-why-lint` — a structural linter for `.keep-the-why` and the context directory, gated by the project's `context-schema` — into the project's CI (GitHub Actions or GitLab CI, detected from the repository) and, where pre-commit is already in use, into pre-commit. Purely additive: no config field, no entry-format change, nothing an existing project must do.
+
+**Existing projects:** optional. To add it, apply the same detection rules and snippets as the wizard would — `references/ci-linting.md` — by hand or by asking the agent. The workflow file's presence is the only state there is.
+
+**Already wired with `@latest`?** The first published snippet referenced `uses: oliver-zehentleitner/keep-the-why@latest`; that tag follows *skill* releases and didn't carry `action.yml` until the next one, so the job fails at setup ("Can't find 'action.yml'"). Switch the ref to `@lint-latest` (moves with every linter publish) or `@lint-v<version>` — a one-word mechanical fix, do it now rather than next time touched.
+
+## 0.11.0 — Core rules renumbered (15 → 11)
+
+**What changed:** `SKILL.md`'s 15 core rules were merged down to 11 — no rule's logic changed, but most rule *numbers* did. Merges: old 1+14 → 1 (never invent / clarify ambiguity), old 3+4+5 → 3 (adapt to what exists), old 9+10 → 7 (privacy / don't commit unasked). Full old → new map:
+
+```text
+1 → 1    4 → 3    7 → 5    10 → 7    13 → 10
+2 → 2    5 → 3    8 → 6    11 → 8    14 → 1
+3 → 3    6 → 4    9 → 7    12 → 9    15 → 11
+```
+
+**Migrating an existing project:** informational for most — nothing in `.keep-the-why` or the `context/` entry format changed. But a project whose own files quote rule numbers (a `context/` entry citing "rule 13's proportionality gate", a `CONTRIBUTING.md` pointing at "rule 10") now points at the wrong rule. One mechanical pass, once: grep the project for `rule <number>` references to this skill's core rules and remap them per the table — cheap, complete, and a stale number actively misleads, so don't defer it to "next touched". `CHANGELOG.md`-style historical records keep the numbering that was current at the time; only living documents (context entries, docs, contributor guides) get remapped.
+
+## 0.10.0 — Project/personal config moves into dedicated `.keep-the-why` files
+
+**What changed:** the project config block (`<!-- keep-the-why:config -->`) moves out of the entry-point file (`AGENTS.md`, or whatever a project already uses) into a dedicated `.keep-the-why` file at the project root. The personal config block (`<!-- keep-the-why:local -->`) moves out of `AGENTS.local.md` into a dedicated, non-project file at `~/.keep-the-why/<id>.md`, keyed by a new `id` field the project file now carries. See "Why dedicated files, not entry-point blocks" in `context/config-format.md` for the reasoning, and `references/setup.md` for the full format and detection logic. Three optional additions ship alongside the relocation, none of which existing projects are required to adopt: a `personal-defaults` block a project can offer new developers (plus a machine-wide `~/.keep-the-why/config` policy governing whether that's asked about or auto-applied), `pinned-version`/`pinned-path` fields for pinning to a vendored skill copy, and `context/AGENTS.md` + `context/CLAUDE.md` guard files. Not a `context/` entry-format change — existing entries are untouched — but it needs real action from an existing project, not a silent backfill.
+
+**Migrating an existing project (do this now, not on next touch — the whole point only holds once it's actually done):** steps 1, 3 and 4 are a mechanical relocation of state the project already opted into — perform them directly in the session that finds the legacy block, no "shall I migrate?" question first; step 2 is the only question in this list.
+
+1. Generate the project's `id` (see "Project config" in `setup.md`) and create `.keep-the-why`, with the header line every `.keep-the-why` gets (see `setup.md`), carrying over every existing field from the old `AGENTS.md` block verbatim (`context`, `init`, `context-schema`, `capture-confirmation`, `source-reference`), plus the new `id` field. Verbatim includes `context-schema`: the relocation step itself copies the old value (say, `0.9.2`) — it is not a schema migration. The normal behind-schema comparison (`setup.md`, "Context schema and migrations") then runs against the new file exactly as it would have against the old block, and advances the field the way it always does: right away when nothing between the two versions applies to this project, otherwise only after the applicable migration has actually been done or explicitly deferred by the user.
+2. Ask whether the project wants to add a `personal-defaults` block for future developers — same question the project init wizard now asks, framed the same way.
+3. Remove the `<!-- keep-the-why:config -->` block from the entry-point file, along with any prose that specifically pointed at it or at `AGENTS.local.md` for this skill's own state — don't replace it with a general "this project uses Keep the Why" mention; that's the project's own editorial call (a README section, the badge), not this skill's to add. **Do leave one line noting the project was migrated and that any Keep the Why skill installation reading this file needs to be at `metadata.version` 0.10.0 or later.** This is the one exception to "don't write pointers into the entry-point file": an older installed skill won't know to look for `.keep-the-why` at all, but it's still an LLM reading the whole file, not a program doing a literal marker match — a plain-English note left where it's already looking is something it can actually notice and act on, unlike a change to detection logic it was never taught.
+4. If `context/` doesn't already have `AGENTS.md` and `CLAUDE.md` guard files (see "Guarding `context/` itself" in `setup.md`), add them now, in the same pass.
+5. Separately, per developer, the *next* time each one activates the skill in this checkout (this doesn't happen all at once for everyone the moment the project-level part above lands, and that's fine — it's driven by local file presence, not by anything shared or git-tracked): if this checkout still has a `<!-- keep-the-why:local -->` block in `AGENTS.local.md`, carry its values and `last:` timestamps over verbatim into `~/.keep-the-why/<id>.md`, then remove the block from `AGENTS.local.md` — a pure relocation of that developer's own already-stated preferences, no questions needed. A developer who never had a personal block before this migration isn't affected by this step at all; they go through ordinary first-activation handling (personal wizard, or the project's `personal-defaults` if it offers one) exactly as if the project had always used `.keep-the-why`.
+
+**Known limitation:** an installed skill older than 0.10.0 has no way to know `.keep-the-why` exists — it looks for the config block in the entry-point file, doesn't find it (step 3 removed it), and could mistake an already-migrated project for one that was never set up. Not fixable retroactively (an old skill can't be taught a convention that didn't exist when it was released) — the one-line note step 3 leaves behind exists specifically to make this visible before it causes confusion, and updating the skill before opening an already-migrated project avoids it entirely.
+
+**Example — before (`AGENTS.md`):**
+
+```markdown
+<!-- keep-the-why:config -->
+- context: `context/`
+- init: complete
+- context-schema: 0.9.2
+- capture-confirmation: confirm-when-unsure
+- source-reference: never
+<!-- /keep-the-why:config -->
+```
+
+**Example — after (`.keep-the-why`, new file; `AGENTS.md` keeps only the version note):**
+
+```markdown
+This is machine-readable project state for the Keep the Why skill
+(https://keepthewhy.com). See context/index.md, or this project's own
+README, for what Keep the Why actually is.
+
+<!-- keep-the-why:config -->
+- id: acme---widget-service
+- context: `context/`
+- init: complete
+- context-schema: 0.9.2
+- capture-confirmation: confirm-when-unsure
+- source-reference: never
+<!-- /keep-the-why:config -->
+```
+
+`context-schema` is shown at `0.9.2` here on purpose: the relocation carries every field over verbatim (step 1) and doesn't stand in for the schema migrations between `0.9.2` and the installed version — those go through the normal "behind → check `migrations.md` → discuss now / defer / stop asking" flow (`setup.md`, "Context schema and migrations") in the same session, and `context-schema` advances when that check completes (immediately if nothing applies).
+
+```markdown
+Keep the Why's config for this project migrated to .keep-the-why on
+2026-08-31 — requires skill version 0.10.0 or later to read it.
+```
+
+## 0.10.0 — `context/index.md` entries sorted alphabetically
+
+**What changed:** new entries in `context/index.md` are inserted in alphabetical order by filename instead of appended at the end — see `context/entry-format.md` and [#194](https://github.com/oliver-zehentleitner/keep-the-why/issues/194). Not a `context/` entry-format change, but it does need action in an existing project: the merge-conflict reduction this convention exists for only works once the whole list is actually sorted.
+
+**Migrating an existing project:**
+
+1. Resort `context/index.md` fully, once, alphabetically by filename. Unlike a per-entry field backfill, this is mechanical (no per-entry judgment) and cheap even for a large index — do it now rather than waiting for entries to be touched individually.
+2. Insert any new entries in sorted position from that point on.
+
+**Example — before:**
+
+```markdown
+- [release-and-distribution.md](release-and-distribution.md) — ...
+- [config-format.md](config-format.md) — ...
+- [entry-format.md](entry-format.md) — ...
+```
+
+**Example — after:**
+
+```markdown
+- [config-format.md](config-format.md) — ...
+- [entry-format.md](entry-format.md) — ...
+- [release-and-distribution.md](release-and-distribution.md) — ...
+```
+
+## 0.9.0 — `Type` accepts multiple values
+
+**What changed:** an entry that genuinely documents more than one kind of thing now gets one `**Type:**` line per applicable value, instead of being forced to pick a single one. Supersedes point 2 of the 0.7.0 migration below — that guidance said to pick whichever value a future search is more likely to be about when an entry straddles two; the current guidance is to add a line for each value that genuinely applies instead. `undefined` stays exclusive — it never combines with the other four, since it means none of them fit.
+
+**Changed guidance (see `references/repository-structure.md` and `context/entry-format.md`):**
+
+- **Type:** one line per value that genuinely applies (`decision` | `workaround` | `incident` | `constraint`) — most entries still get exactly one; `undefined — <reason>` stays a single, exclusive line used only when none of the four fit.
+
+**Migrating an existing entry:**
+
+1. Not a backfill pass. An entry that already picked one value under the old "pick whichever" guidance doesn't need a dedicated pass to recover the value it left out — same "next time touched" rule as the 0.7.0 and 0.8.0 migrations below.
+2. When you do touch such an entry, add a second `**Type:**` line if a second value genuinely applies now — don't add one just because the field technically allows it if the original single value still covers the entry fully.
+3. Project-wide, once: check `context/README.md`'s "Reading the entries" Type line — it already describes Type generically ("what kind of thing it is: decision, workaround, incident, or constraint") without claiming single-valued, so no wording change is required there. Nothing to do for this step.
+
+**Example — before:**
+
+```markdown
+**Type:** workaround
+**Status:** active
+**Evidence:** confirmed
+```
+
+**Example — after (only once a second value genuinely applies):**
+
+```markdown
+**Type:** workaround
+**Type:** incident
+**Status:** active
+**Evidence:** confirmed
+```
+
+## 0.8.0 — `undefined` Type value added
+
+**What changed:** entries where none of the four Type values (`decision` | `workaround` | `incident` | `constraint`) cleanly fit now record `**Type:** undefined — <reason>` instead of leaving the field blank. Supersedes point 3 of the 0.7.0 migration below — that guidance said to leave Type out when nothing fits; the current guidance is to mark it `undefined` with a reason instead, so misfit cases stay filterable rather than indistinguishable from entries that never considered Type at all.
+
+**New value (see `references/repository-structure.md`):**
+
+- **Type:** `undefined` — used only after actively confirming none of the four values fit; always followed by `— <short reason>`.
+
+**Migrating an existing entry:**
+
+1. Not a backfill pass. Entries that currently skip Type because nothing fit don't need a dedicated pass — same "next time touched" rule as the 0.7.0 migration below.
+2. When you do touch one and confirm none of the four values fit, add `**Type:** undefined — <short reason>` rather than leaving the field blank.
+3. Project-wide, once: if `context/README.md`'s "Reading the entries" Type line doesn't mention `undefined`, update it to match `references/setup.md`'s current template.
+
+**Example — before:**
+
+```markdown
+**Status:** active
+**Evidence:** confirmed
+```
+
+**Example — after:**
+
+```markdown
+**Type:** undefined — documents a naming convention, not a decision/workaround/incident/constraint
+**Status:** active
+**Evidence:** confirmed
+```
+
+## 0.7.0 — Type field added
+
+**What changed:** entries can now carry a **Type** header field (`decision` | `workaround` | `incident` | `constraint`), placed before **Status**. It categorizes what kind of thing an entry is, independent of Status/Evidence, so a tool or agent can filter — "every incident," "every workaround" — without loading full topic files to find out.
+
+**New field (see `references/repository-structure.md`):**
+
+- **Type:** decision | workaround | incident | constraint — optional, filled in when one value clearly fits.
+
+**Migrating an existing entry:**
+
+1. Not a backfill pass. Add **Type** to an entry the next time it's touched anyway, same as any other maintenance edit — matches "Retrofitting an existing project" in `repository-structure.md`.
+2. If an entry genuinely straddles two values (a workaround adopted because of an incident), pick whichever a future search is more likely to be about. Don't split the entry or leave Type blank just because more than one value would fit.
+3. If nothing fits cleanly, leave it out rather than forcing a wrong-feeling value — Type is there to help filtering, not to gate whether an entry counts. (Superseded by the `undefined` value above — for a project migrating straight to the current version, apply that guidance instead of this step.)
+4. Project-wide, once: if `context/README.md`'s "Reading the entries" section doesn't mention Type at all, add it — same wording as `references/setup.md`'s current template.
+
+**Example — before:**
+
+```markdown
+**Status:** active
+**Evidence:** confirmed
+```
+
+**Example — after:**
+
+```markdown
+**Type:** workaround
+**Status:** active
+**Evidence:** confirmed
+```
+
+## 0.3.0 — Evidence split from Status
+
+**What changed:** `context/` entries previously classified evidence as one of confirmed, inferred, unknown, *or* superseded — treating "superseded" as if it were a fourth evidence level. It isn't: whether a decision is still current (Status) and how well it's evidenced (Evidence) are independent questions. A superseded decision can have been thoroughly confirmed when it was still active. Also added: an optional Source/Verification pair for confirmed entries whose claim is worth tracing or could be checked against other evidence.
+
+**New fields (see `SKILL.md` rules 2 and 5):**
+
+- **Status:** active | superseded | open | needs-review
+- **Evidence:** confirmed | inferred | unknown *(unchanged values, now its own field)*
+- **Source** and **Verification** (corroborated | uncorroborated | contradicted) — optional, only add where there's a real answer, per the proportionality principle. A `contradicted` verification must explain what contradicts it.
+
+**Migrating an existing entry:**
+
+1. If it currently has a single `Confirmed` / `Inferred` / `Unknown` marker with no mention of being superseded → that value becomes **Evidence**. Add **Status: active**.
+2. If it currently says `Superseded` (with or without a separate confirmed/inferred/unknown marker) → **Status: superseded**. If an evidence value was recorded alongside it, keep it as **Evidence**. If not, set **Evidence: unknown** and flag the entry for review — don't guess what the original evidence level was.
+3. Don't add **Source**/**Verification** retroactively just because the fields now exist — only add them where there's a genuine answer (rule 10's proportionality gate applies here too).
+4. `Superseded` annotations already in prose (e.g. `> Superseded 2026-03: see below`) don't need to be rewritten — that's still how supersession gets recorded; **Status: superseded** is the structured counterpart for anything that also carries an Evidence/Status header.
+
+**Example — before:**
+
+```markdown
+**Status:** active
+**Confirmed** (2026-03-14, via maintainer interview)
+```
+
+**Example — after:**
+
+```markdown
+**Status:** active
+**Evidence:** confirmed
+**Source:** maintainer interview, 2026-03-14
+```
+
+(Verification omitted here — nothing to corroborate or contradict this against; adding it would be filler, not signal.)

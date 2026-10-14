@@ -1,0 +1,14 @@
+# Gitleaks auto-discovers this file at the repository root (no workflow
+# wiring needed). Without [extend], a config file REPLACES the built-in
+# rules and the scan passes vacuously — keep the defaults and only add the
+# allowlists below.
+[extend]
+useDefault = true
+
+# One global allowlist (gitleaks 8.24 has no [[allowlist]] array form):
+# baselined hashes are not secrets, and the yazi sketch key pool is the
+# alphabet plus digits, not a credential.
+[allowlist]
+description = "baselined finding hashes and the alphabet key pool are not secrets"
+paths = ['''\.secrets\.baseline$''']
+regexes = ['''abcdefghijklmnopqrstuvwxyz0123456789''']
