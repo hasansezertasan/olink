@@ -1,0 +1,6 @@
+# Gitleaks auto-discovers this file at the repository root (no workflow
+# wiring needed). detect-secrets owns everything below; gitleaks owns the
+# rest — the two scanners must not fight over the same file.
+[allowlist]
+description = "detect-secrets baselines store hashes of findings, not the secrets themselves"
+paths = ['''^\.secrets\.baseline$''']
