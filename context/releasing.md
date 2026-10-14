@@ -39,3 +39,20 @@ release-please's `extra-files` rewriting. This was actually adopted first
 (June, matching a sibling project) and then reversed: rewriting a version
 literal from automation reintroduces the two-sources problem the tag
 derivation removes.
+
+## PyPI publishes via OIDC trusted publishing, not API tokens
+
+**Id:** 5ec8e40c-a4df-49d1-8b4c-cdb9e7a5736d
+**Type:** decision
+**Status:** active
+**Evidence:** confirmed
+**Source:** project journal, 2026-04-29; `release.yml` (`id-token: write`, `publish` environment)
+
+The publish job authenticates to PyPI with short-lived OIDC credentials
+scoped to the `publish` environment, minted per run.
+
+**Reason:** no long-lived secret stored in the repo or its settings, and
+credentials that expire on their own need no rotation discipline.
+
+**Rejected alternative:** a PyPI API token in secrets. Rejected as a
+standing credential with no expiry for a job that runs rarely.

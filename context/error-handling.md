@@ -21,3 +21,20 @@ instead of possibly masking an unrelated `KeyError`.
 **Rejected alternative:** standard `ValueError`/`RuntimeError`. Rejected
 because one shared type cannot separate expected user errors from bugs at
 the CLI boundary.
+
+## Fail loudly on unsupported platform features
+
+**Id:** a22aa067-3f00-4ce0-8a6d-2dc1481b95d8
+**Type:** decision
+**Status:** active
+**Evidence:** confirmed
+**Source:** project journal, 2026-04-29; `core/targets.py` (`UnsupportedFeatureError`)
+
+Services with no integration on a platform (Codecov/Coveralls on
+Gitea/Forgejo) raise `UnsupportedFeatureError` instead of emitting a URL.
+
+**Reason:** a constructed URL that 404s sends the user on a false errand;
+an explicit error names the actual state of the world.
+
+**Rejected alternative:** best-effort URLs for every platform. Rejected
+because a confident-looking broken link is worse than a refusal.

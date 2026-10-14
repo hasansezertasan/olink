@@ -1,5 +1,7 @@
 # Context index
 
+Sources naming `JOURNAL.md` refer to the former development journal, removed 2026-10 and recoverable via git history.
+
 ## 0
 
 ## 1
@@ -30,6 +32,7 @@
 
 ## D
 
+- [detection.md](detection.md) — CPAN fallback order and the Maven parent walk
 - [docs-testing.md](docs-testing.md) — why docs Lua runs under lupa, and the 5.5 key quirk
 
 ## E

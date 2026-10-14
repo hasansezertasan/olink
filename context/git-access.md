@@ -25,3 +25,20 @@ dependency weight; git's own edge-case handling was the thing lost, so the
 was added later (PR #8, hardened in the 2026-04-29 pass with longest-prefix
 matching per git's algorithm) so shorthand remotes like `github:owner/repo`
 resolve; `[include]` remains unsupported.
+
+## Hostname matching by label, not substring
+
+**Id:** 05b8ae6c-89c9-4d6e-ab01-f35fc7b9acfe
+**Type:** decision
+**Status:** active
+**Evidence:** confirmed
+**Source:** project journal, 2026-04-29; `core/project.py`
+
+Platform detection splits the remote hostname on `.` and matches whole
+labels (`gitlab` matches `gitlab.example.com`, not `gitlabby.example.com`).
+
+**Reason:** substring matching misidentified lookalike hosts as hosted
+platforms and generated URLs for the wrong forge.
+
+**Rejected alternative:** `"gitlab" in host` substring test. Rejected on
+the false-positive case above.
