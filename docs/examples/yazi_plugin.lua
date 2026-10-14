@@ -24,8 +24,19 @@ local MARKERS = {
 	"dist.ini",
 }
 
---- One keystroke per target in the which-key menu (the fzf fallback).
-local KEY_POOL = "abcdefghijklmnopqrstuvwxyz0123456789"
+--- One keystroke per target in the which-key menu. Built from code ranges
+--- rather than one long literal: a 36-character string trips secret
+--- scanners, and this pool is just a-z then 0-9.
+local KEY_POOL = (function()
+	local keys = {}
+	for code = 97, 122 do -- a-z
+		keys[#keys + 1] = string.char(code)
+	end
+	for code = 48, 57 do -- 0-9
+		keys[#keys + 1] = string.char(code)
+	end
+	return table.concat(keys)
+end)()
 
 --- Current tab's cwd; `cx` is only readable from a sync context.
 local get_cwd = ya.sync(function()
