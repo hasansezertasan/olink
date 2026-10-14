@@ -7,6 +7,7 @@ import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import lupa
 import pytest
@@ -14,6 +15,9 @@ from typer.testing import CliRunner
 
 from olink.cli.app import app
 from tests.conftest import copy_repo_fixture, init_git_with_config
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 DOCS_DIR = Path(__file__).parents[1] / "docs"
 YAZI_RST = DOCS_DIR / "yazi.rst"
@@ -80,7 +84,13 @@ class _Observations:
     confirm_body: str | None = None
 
 
-def _run_harness(cwd: str, canned: Path, options: _HarnessOptions | None = None) -> _Observations:
+def _run_harness(
+    cwd: str,
+    canned: Path,
+    options: _HarnessOptions | None = None,
+    *,
+    exists: Callable[[str], bool] | None = None,
+) -> _Observations:
     """Execute the harness with stubbed yazi globals; return flat observations."""
     opts = options if options is not None else _HarnessOptions()
     runtime = lupa.LuaRuntime()
@@ -92,7 +102,7 @@ def _run_harness(cwd: str, canned: Path, options: _HarnessOptions | None = None)
     env["CONFIRM"] = opts.confirm
     env["COPY"] = opts.copy
     env["FAIL_LIST"] = opts.fail_list
-    env["TEST_EXISTS"] = lambda path: Path(path).exists()
+    env["TEST_EXISTS"] = exists if exists is not None else (lambda path: Path(path).exists())
     runtime.execute(HARNESS.read_text(encoding="utf-8"))
     seen = env["OBS"]
     return _Observations(
@@ -195,6 +205,16 @@ class TestYaziPluginLua:
         obs = _run_harness(str(tmp_path), canned)
         assert obs.notify_level == "error"
         assert obs.emit_cmd is None
+
+    def test_windows_style_root_walk(self, tmp_path: Path) -> None:
+        """Backslash-separated paths must walk up to the project root too."""
+        canned = tmp_path / "canned.lua"
+        canned.write_text("return { list = '', urls = {} }\n", encoding="utf-8")
+        present = {"C:\\proj\\.git", "C:\\proj\\pyproject.toml"}
+        obs = _run_harness("C:\\proj\\src", canned, exists=lambda path: path in present)
+        notice = obs.notify_content
+        assert notice is not None
+        assert "no olink targets" in notice
 
     def test_olink_failure_notifies(self, tmp_path: Path, fixture_project: str) -> None:
         """A failing `olink list` must surface stderr, not an empty menu."""

@@ -155,7 +155,7 @@ before opening one:
 ## Keep the Why
 
 This project records the reasoning behind its code with the Keep the Why
-skill (https://keepthewhy.com) — the `.keep-the-why` file at the project
+skill (<https://keepthewhy.com>) — the `.keep-the-why` file at the project
 root is its config. Before doing anything else in a session, whatever the
 first request is about, load the skill: invoke the `keep-the-why` skill
 if your agent has a skill tool; otherwise read

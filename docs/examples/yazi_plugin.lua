@@ -34,7 +34,8 @@ local function exists(url)
 end
 
 --- olink only works from the project root, so walk up from `start`
---- until a directory carries a known marker.
+--- until a directory carries a known marker. (`parent` is yazi's own
+--- Url property, so separators are correct on every platform.)
 local function find_root(start)
 	local url = Url(start)
 	for _ = 1, 20 do

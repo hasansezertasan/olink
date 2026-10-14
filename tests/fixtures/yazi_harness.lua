@@ -24,9 +24,12 @@ local function make_url(p)
 		end,
 	})
 	function u:join(name)
-		return make_url(self._p .. "/" .. name)
+		-- Native separator like yazi's own Url.join, so mixed trees resolve.
+		local sep = self._p:find("\\", 1, true) and "\\" or "/"
+		return make_url(self._p .. sep .. name)
 	end
-	local parent_p = p:match("^(.*)/[^/]+$")
+	-- Both separators, mirroring yazi's own Url.parent on Windows.
+	local parent_p = p:match("^(.*)[/\\][^/\\]+$")
 	if parent_p == "" then
 		parent_p = nil
 	end
