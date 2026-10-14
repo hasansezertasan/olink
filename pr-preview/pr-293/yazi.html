@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" data-accent-color="amber" data-content_root="./">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Yazi integration - olink</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="CLI reference" href="cli-reference.html" /><link rel="prev" title="Usage" href="usage.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=2ceb65ce" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx_paramlinks.css" />
+    <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    
+  <meta property="og:type" content="website"/><meta property="og:title" content="Yazi integration"/>
+    <meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="index.html">
+      
+      
+      <strong>olink</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/hasansezertasan/olink" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Yazi integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli-reference.html">CLI reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
+</ul>
+<p class="caption" role="heading" aria-level="3"><span class="caption-text">Maintainer guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="maintaining/setup.html">Repository setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="packaging/homebrew-tap/README.html">Homebrew tap setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="packaging/scoop-bucket/README.html">Scoop bucket setup</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#how-it-works">How it works</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#install">Install</a></li>
+<li><a class="reference internal" href="#plugin-sketch">Plugin sketch</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="index.html"><span itemprop="name">olink</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Yazi integration</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <article class="yue" role="main">
+          <section id="yazi-integration">
+<h1>Yazi integration<a class="headerlink" href="#yazi-integration" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://yazi-rs.github.io/">yazi</a> is a terminal file manager with a Lua
+plugin system. olink maps well onto it as a thin <strong>wrapper</strong> plugin: the Lua
+side only discovers the project directory, shows a menu, and shells out to
+the <code class="docutils literal notranslate"><span class="pre">olink</span></code> binary. No URL logic is ported, so the plugin never drifts when
+new targets are added. Tested against yazi 26.9.1; the APIs used are
+<code class="docutils literal notranslate"><span class="pre">ya.sync</span></code>, <code class="docutils literal notranslate"><span class="pre">ya.which</span></code>, <code class="docutils literal notranslate"><span class="pre">ya.notify</span></code>, <code class="docutils literal notranslate"><span class="pre">ya.clipboard</span></code>, <code class="docutils literal notranslate"><span class="pre">ya.emit</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ya.quote</span></code>, <code class="docutils literal notranslate"><span class="pre">Command:output</span></code> and <code class="docutils literal notranslate"><span class="pre">fs.cha</span></code>.</p>
+<section id="how-it-works">
+<h2>How it works<a class="headerlink" href="#how-it-works" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Yazi gives the plugin the current tab’s directory (<code class="docutils literal notranslate"><span class="pre">cx.active.current.cwd</span></code>).</p></li>
+<li><p>The plugin walks up to the project root — olink only works from the root —
+and runs <code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">list</span> <span class="pre">-d</span> <span class="pre">&lt;root&gt;</span></code> to learn which targets exist there.</p></li>
+<li><p>The target names become a <code class="docutils literal notranslate"><span class="pre">ya.which</span></code> key menu (names always fit the
+menu’s column layout); the pick shows a confirm dialog with the full
+description and the resolved URL, and confirming runs
+<code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">open</span> <span class="pre">&lt;target&gt;</span> <span class="pre">-d</span> <span class="pre">&lt;root&gt;</span></code> (or <code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">url</span></code> + clipboard with
+<code class="docutils literal notranslate"><span class="pre">--copy</span></code>, no dialog).</p></li>
+</ol>
+</section>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">olink</span></code> CLI on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p></li>
+<li><p>A yazi new enough for <code class="docutils literal notranslate"><span class="pre">ya.which</span></code> (any recent release; 26.9.1 verified).</p></li>
+</ul>
+</section>
+<section id="install">
+<h2>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h2>
+<p>Copy the sketch below to <code class="docutils literal notranslate"><span class="pre">~/.config/yazi/plugins/olink.yazi/main.lua</span></code> and
+bind it in <code class="docutils literal notranslate"><span class="pre">~/.config/yazi/keymap.toml</span></code>:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">[[mgr.prepend_keymap]]</span>
+</span><span data-line="2"><span class="n">on</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"g"</span><span class="p">,</span><span class="w"> </span><span class="s2">"o"</span><span class="p">]</span>
+</span><span data-line="3"><span class="n">run</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"plugin olink"</span>
+</span><span data-line="4"><span class="n">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Open project links with olink"</span>
+</span><span data-line="5">
+</span><span data-line="6"><span class="k">[[mgr.prepend_keymap]]</span>
+</span><span data-line="7"><span class="n">on</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"g"</span><span class="p">,</span><span class="w"> </span><span class="s2">"O"</span><span class="p">]</span>
+</span><span data-line="8"><span class="n">run</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"plugin olink --copy"</span>
+</span><span data-line="9"><span class="n">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Copy project link URL with olink"</span>
+</span></pre></div>
+</div>
+<p>Press <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">o</span></code> while browsing a project to open a link, <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">O</span></code> to copy the
+URL instead. Outside a project (no root markers found) the plugin notifies
+instead of failing silently.</p>
+</section>
+<section id="plugin-sketch">
+<h2>Plugin sketch<a class="headerlink" href="#plugin-sketch" title="Link to this heading">#</a></h2>
+<p>The sketch below is the tested file <code class="docutils literal notranslate"><span class="pre">docs/examples/yazi_plugin.lua</span></code>,
+included verbatim — what you read here is what the tests execute:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">examples/yazi_plugin.lua</span><a class="headerlink" href="#id1" title="Link to this code">#</a></div>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1">-- ~/.config/yazi/plugins/olink.yazi/main.lua</span>
+</span><span data-line="2"><span class="c1">--</span>
+</span><span data-line="3"><span class="c1">-- Open olink targets (PyPI page, issues, CI, download stats, ...) for the</span>
+</span><span data-line="4"><span class="c1">-- project you are browsing, without leaving yazi.</span>
+</span><span data-line="5"><span class="c1">-- Requires the `olink` CLI on PATH (https://github.com/hasansezertasan/olink).</span>
+</span><span data-line="6"><span class="c1">-- Picks with the which-key menu, then confirms with the full description</span>
+</span><span data-line="7"><span class="c1">-- and resolved URL. Everything stays inside yazi's own UI.</span>
+</span><span data-line="8">
+</span><span data-line="9"><span class="c1">--- Files that mark a project root. Kept in sync with what olink reads</span>
+</span><span data-line="10"><span class="c1">--- (git remotes plus the per-ecosystem package manifests).</span>
+</span><span data-line="11"><span class="kd">local</span><span class="w"> </span><span class="nv">MARKERS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span data-line="12"><span class="w">	</span><span class="s2">".git"</span><span class="p">,</span>
+</span><span data-line="13"><span class="w">	</span><span class="s2">"pyproject.toml"</span><span class="p">,</span>
+</span><span data-line="14"><span class="w">	</span><span class="s2">"package.json"</span><span class="p">,</span>
+</span><span data-line="15"><span class="w">	</span><span class="s2">"Cargo.toml"</span><span class="p">,</span>
+</span><span data-line="16"><span class="w">	</span><span class="s2">"go.mod"</span><span class="p">,</span>
+</span><span data-line="17"><span class="w">	</span><span class="s2">"composer.json"</span><span class="p">,</span>
+</span><span data-line="18"><span class="w">	</span><span class="s2">"pubspec.yaml"</span><span class="p">,</span>
+</span><span data-line="19"><span class="w">	</span><span class="s2">"pom.xml"</span><span class="p">,</span>
+</span><span data-line="20"><span class="w">	</span><span class="s2">"mix.exs"</span><span class="p">,</span>
+</span><span data-line="21"><span class="p">}</span>
+</span><span data-line="22">
+</span><span data-line="23"><span class="c1">--- One keystroke per target in the which-key menu (the fzf fallback).</span>
+</span><span data-line="24"><span class="kd">local</span><span class="w"> </span><span class="nv">KEY_POOL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"abcdefghijklmnopqrstuvwxyz0123456789"</span>
+</span><span data-line="25">
+</span><span data-line="26"><span class="c1">--- Current tab's cwd; `cx` is only readable from a sync context.</span>
+</span><span data-line="27"><span class="kd">local</span><span class="w"> </span><span class="nv">get_cwd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ya</span><span class="p">.</span><span class="nf">sync</span><span class="p">(</span><span class="kr">function</span><span class="p">()</span>
+</span><span data-line="28"><span class="w">	</span><span class="kr">return</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">cx</span><span class="p">.</span><span class="py">active</span><span class="p">.</span><span class="py">current</span><span class="p">.</span><span class="py">cwd</span><span class="p">)</span>
+</span><span data-line="29"><span class="kr">end</span><span class="p">)</span>
+</span><span data-line="30">
+</span><span data-line="31"><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">exists</span><span class="p">(</span><span class="nv">url</span><span class="p">)</span>
+</span><span data-line="32"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">cha</span><span class="p">,</span><span class="w"> </span><span class="nv">_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">fs</span><span class="p">.</span><span class="nf">cha</span><span class="p">(</span><span class="nv">url</span><span class="p">)</span>
+</span><span data-line="33"><span class="w">	</span><span class="kr">return</span><span class="w"> </span><span class="nv">cha</span><span class="w"> </span><span class="o">~=</span><span class="w"> </span><span class="kc">nil</span>
+</span><span data-line="34"><span class="kr">end</span>
+</span><span data-line="35">
+</span><span data-line="36"><span class="c1">--- olink only works from the project root, so walk up from `start`</span>
+</span><span data-line="37"><span class="c1">--- until a directory carries a known marker.</span>
+</span><span data-line="38"><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">find_root</span><span class="p">(</span><span class="nv">start</span><span class="p">)</span>
+</span><span data-line="39"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">Url</span><span class="p">(</span><span class="nv">start</span><span class="p">)</span>
+</span><span data-line="40"><span class="w">	</span><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="kr">do</span>
+</span><span data-line="41"><span class="w">		</span><span class="kr">for</span><span class="w"> </span><span class="nv">_</span><span class="p">,</span><span class="w"> </span><span class="nv">marker</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nb">ipairs</span><span class="p">(</span><span class="nv">MARKERS</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+</span><span data-line="42"><span class="w">			</span><span class="kr">if</span><span class="w"> </span><span class="nf">exists</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span><span class="nf">join</span><span class="p">(</span><span class="nv">marker</span><span class="p">))</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="43"><span class="w">				</span><span class="kr">return</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">url</span><span class="p">)</span>
+</span><span data-line="44"><span class="w">			</span><span class="kr">end</span>
+</span><span data-line="45"><span class="w">		</span><span class="kr">end</span>
+</span><span data-line="46"><span class="w">		</span><span class="kd">local</span><span class="w"> </span><span class="nv">parent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">url</span><span class="p">.</span><span class="py">parent</span>
+</span><span data-line="47"><span class="w">		</span><span class="kr">if</span><span class="w"> </span><span class="nv">parent</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">parent</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">url</span><span class="p">)</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="48"><span class="w">			</span><span class="kr">return</span><span class="w"> </span><span class="kc">nil</span>
+</span><span data-line="49"><span class="w">		</span><span class="kr">end</span>
+</span><span data-line="50"><span class="w">		</span><span class="nv">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">parent</span>
+</span><span data-line="51"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="52"><span class="w">	</span><span class="kr">return</span><span class="w"> </span><span class="kc">nil</span>
+</span><span data-line="53"><span class="kr">end</span>
+</span><span data-line="54">
+</span><span data-line="55"><span class="c1">--- Run olink and return trimmed stdout, or nil plus an error message.</span>
+</span><span data-line="56"><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">olink</span><span class="p">(</span><span class="nv">args</span><span class="p">)</span>
+</span><span data-line="57"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">output</span><span class="p">,</span><span class="w"> </span><span class="nv">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">Command</span><span class="p">(</span><span class="s2">"olink"</span><span class="p">):</span><span class="nf">arg</span><span class="p">(</span><span class="nv">args</span><span class="p">):</span><span class="nf">output</span><span class="p">()</span>
+</span><span data-line="58"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">output</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="59"><span class="w">		</span><span class="kr">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nb">string.format</span><span class="p">(</span><span class="s2">"failed to start `olink`: %s"</span><span class="p">,</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">err</span><span class="p">))</span>
+</span><span data-line="60"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="61"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="nv">output</span><span class="p">.</span><span class="py">status</span><span class="p">.</span><span class="py">success</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="62"><span class="w">		</span><span class="kd">local</span><span class="w"> </span><span class="nv">msg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">output</span><span class="p">.</span><span class="py">stderr</span>
+</span><span data-line="63"><span class="w">		</span><span class="kr">if</span><span class="w"> </span><span class="nv">msg</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nv">msg</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="64"><span class="w">			</span><span class="nv">msg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"olink exited with code "</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nb">tostring</span><span class="p">(</span><span class="nv">output</span><span class="p">.</span><span class="py">status</span><span class="p">.</span><span class="py">code</span><span class="p">)</span>
+</span><span data-line="65"><span class="w">		</span><span class="kr">end</span>
+</span><span data-line="66"><span class="w">		</span><span class="kr">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nv">msg</span>
+</span><span data-line="67"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="68"><span class="w">	</span><span class="kr">return</span><span class="w"> </span><span class="p">(</span><span class="nv">output</span><span class="p">.</span><span class="py">stdout</span><span class="p">:</span><span class="nf">gsub</span><span class="p">(</span><span class="s2">"%s+$"</span><span class="p">,</span><span class="w"> </span><span class="s2">""</span><span class="p">)),</span><span class="w"> </span><span class="kc">nil</span>
+</span><span data-line="69"><span class="kr">end</span>
+</span><span data-line="70">
+</span><span data-line="71"><span class="c1">--- Parse the human-readable `olink list` output into { name, desc } rows.</span>
+</span><span data-line="72"><span class="c1">--- Each row looks like: `  pypi             - Open PyPI page`</span>
+</span><span data-line="73"><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">parse_list</span><span class="p">(</span><span class="nv">text</span><span class="p">)</span>
+</span><span data-line="74"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+</span><span data-line="75"><span class="w">	</span><span class="kr">for</span><span class="w"> </span><span class="nv">line</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nv">text</span><span class="p">:</span><span class="nf">gmatch</span><span class="p">(</span><span class="s2">"[^</span><span class="se">\r\n</span><span class="s2">]+"</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+</span><span data-line="76"><span class="w">		</span><span class="kd">local</span><span class="w"> </span><span class="nv">name</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">line</span><span class="p">:</span><span class="nf">match</span><span class="p">(</span><span class="s2">"^%s+(%S+)%s+%-%s+(.+)$"</span><span class="p">)</span>
+</span><span data-line="77"><span class="w">		</span><span class="kr">if</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">~=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">~=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="78"><span class="w">			</span><span class="nv">rows</span><span class="p">[</span><span class="o">#</span><span class="nv">rows</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">name</span><span class="p">,</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="p">}</span>
+</span><span data-line="79"><span class="w">		</span><span class="kr">end</span>
+</span><span data-line="80"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="81"><span class="w">	</span><span class="kr">return</span><span class="w"> </span><span class="nv">rows</span>
+</span><span data-line="82"><span class="kr">end</span>
+</span><span data-line="83">
+</span><span data-line="84"><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">fail</span><span class="p">(</span><span class="nv">message</span><span class="p">)</span>
+</span><span data-line="85"><span class="w">	</span><span class="nv">ya</span><span class="p">.</span><span class="nf">notify</span><span class="p">({</span><span class="w"> </span><span class="nv">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"olink"</span><span class="p">,</span><span class="w"> </span><span class="nv">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">message</span><span class="p">,</span><span class="w"> </span><span class="nv">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"error"</span><span class="p">,</span><span class="w"> </span><span class="nv">timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">})</span>
+</span><span data-line="86"><span class="kr">end</span>
+</span><span data-line="87">
+</span><span data-line="88"><span class="c1">--- Pick a target row with the which-key menu. Labels are names only: the</span>
+</span><span data-line="89"><span class="c1">--- menu lays candidates out in columns, so each cell only fits a couple</span>
+</span><span data-line="90"><span class="c1">--- dozen characters — names always fit, descriptions would chop mid-word.</span>
+</span><span data-line="91"><span class="c1">--- The full description is shown on the confirm dialog instead.</span>
+</span><span data-line="92"><span class="c1">--- Returns the row, or nil when dismissed.</span>
+</span><span data-line="93"><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">pick_row</span><span class="p">(</span><span class="nv">rows</span><span class="p">)</span>
+</span><span data-line="94"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">cands</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{}</span>
+</span><span data-line="95"><span class="w">	</span><span class="kr">for</span><span class="w"> </span><span class="nv">i</span><span class="p">,</span><span class="w"> </span><span class="nv">row</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nb">ipairs</span><span class="p">(</span><span class="nv">rows</span><span class="p">)</span><span class="w"> </span><span class="kr">do</span>
+</span><span data-line="96"><span class="w">		</span><span class="kr">if</span><span class="w"> </span><span class="nv">i</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">#</span><span class="nv">KEY_POOL</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="97"><span class="w">			</span><span class="kr">break</span>
+</span><span data-line="98"><span class="w">		</span><span class="kr">end</span>
+</span><span data-line="99"><span class="w">		</span><span class="nv">cands</span><span class="p">[</span><span class="nv">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">on</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">KEY_POOL</span><span class="p">:</span><span class="nf">sub</span><span class="p">(</span><span class="nv">i</span><span class="p">,</span><span class="w"> </span><span class="nv">i</span><span class="p">),</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">row</span><span class="p">.</span><span class="py">name</span><span class="w"> </span><span class="p">}</span>
+</span><span data-line="100"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="101">
+</span><span data-line="102"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ya</span><span class="p">.</span><span class="nf">which</span><span class="p">({</span><span class="w"> </span><span class="nv">cands</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">cands</span><span class="w"> </span><span class="p">})</span>
+</span><span data-line="103"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">idx</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="104"><span class="w">		</span><span class="kr">return</span><span class="w"> </span><span class="kc">nil</span>
+</span><span data-line="105"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="106"><span class="w">	</span><span class="kr">return</span><span class="w"> </span><span class="nv">rows</span><span class="p">[</span><span class="nv">idx</span><span class="p">]</span>
+</span><span data-line="107"><span class="kr">end</span>
+</span><span data-line="108">
+</span><span data-line="109"><span class="kd">local</span><span class="w"> </span><span class="kr">function</span><span class="w"> </span><span class="nf">entry</span><span class="p">(</span><span class="nv">self</span><span class="p">,</span><span class="w"> </span><span class="nv">job</span><span class="p">)</span>
+</span><span data-line="110"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">find_root</span><span class="p">(</span><span class="nf">get_cwd</span><span class="p">())</span>
+</span><span data-line="111"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">root</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="112"><span class="w">		</span><span class="nf">fail</span><span class="p">(</span><span class="s2">"no project root found above the current directory"</span><span class="p">)</span>
+</span><span data-line="113"><span class="w">		</span><span class="kr">return</span>
+</span><span data-line="114"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="115">
+</span><span data-line="116"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">text</span><span class="p">,</span><span class="w"> </span><span class="nv">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">olink</span><span class="p">({</span><span class="w"> </span><span class="s2">"list"</span><span class="p">,</span><span class="w"> </span><span class="s2">"-d"</span><span class="p">,</span><span class="w"> </span><span class="nv">root</span><span class="w"> </span><span class="p">})</span>
+</span><span data-line="117"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">text</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="118"><span class="w">		</span><span class="nf">fail</span><span class="p">(</span><span class="nv">err</span><span class="p">)</span>
+</span><span data-line="119"><span class="w">		</span><span class="kr">return</span>
+</span><span data-line="120"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="121">
+</span><span data-line="122"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">rows</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">parse_list</span><span class="p">(</span><span class="nv">text</span><span class="p">)</span>
+</span><span data-line="123"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="o">#</span><span class="nv">rows</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="124"><span class="w">		</span><span class="nf">fail</span><span class="p">(</span><span class="s2">"no olink targets available for "</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">root</span><span class="p">)</span>
+</span><span data-line="125"><span class="w">		</span><span class="kr">return</span>
+</span><span data-line="126"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="127">
+</span><span data-line="128"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">picked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">pick_row</span><span class="p">(</span><span class="nv">rows</span><span class="p">)</span>
+</span><span data-line="129"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">picked</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="130"><span class="w">		</span><span class="kr">return</span>
+</span><span data-line="131"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="132">
+</span><span data-line="133"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">url</span><span class="p">,</span><span class="w"> </span><span class="nv">uerr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">olink</span><span class="p">({</span><span class="w"> </span><span class="s2">"url"</span><span class="p">,</span><span class="w"> </span><span class="nv">picked</span><span class="p">.</span><span class="py">name</span><span class="p">,</span><span class="w"> </span><span class="s2">"-d"</span><span class="p">,</span><span class="w"> </span><span class="nv">root</span><span class="w"> </span><span class="p">})</span>
+</span><span data-line="134"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">url</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="135"><span class="w">		</span><span class="nf">fail</span><span class="p">(</span><span class="nv">uerr</span><span class="p">)</span>
+</span><span data-line="136"><span class="w">		</span><span class="kr">return</span>
+</span><span data-line="137"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="138">
+</span><span data-line="139"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">job</span><span class="p">.</span><span class="py">args</span><span class="p">.</span><span class="py">copy</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="140"><span class="w">		</span><span class="nv">ya</span><span class="p">.</span><span class="nf">clipboard</span><span class="p">(</span><span class="nv">url</span><span class="p">)</span>
+</span><span data-line="141"><span class="w">		</span><span class="nv">ya</span><span class="p">.</span><span class="nf">notify</span><span class="p">({</span><span class="w"> </span><span class="nv">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"olink"</span><span class="p">,</span><span class="w"> </span><span class="nv">content</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"copied: "</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">url</span><span class="p">,</span><span class="w"> </span><span class="nv">timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">})</span>
+</span><span data-line="142"><span class="w">		</span><span class="kr">return</span>
+</span><span data-line="143"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="144">
+</span><span data-line="145"><span class="w">	</span><span class="kd">local</span><span class="w"> </span><span class="nv">open_it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">ya</span><span class="p">.</span><span class="nf">confirm</span><span class="p">({</span>
+</span><span data-line="146"><span class="w">		</span><span class="nv">pos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">"center"</span><span class="p">,</span><span class="w"> </span><span class="nv">w</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">70</span><span class="p">,</span><span class="w"> </span><span class="nv">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">},</span>
+</span><span data-line="147"><span class="w">		</span><span class="nv">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">picked</span><span class="p">.</span><span class="py">name</span><span class="p">,</span>
+</span><span data-line="148"><span class="w">		</span><span class="nv">body</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">picked</span><span class="p">.</span><span class="py">desc</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="w"> </span><span class="o">..</span><span class="w"> </span><span class="nv">url</span><span class="p">,</span>
+</span><span data-line="149"><span class="w">	</span><span class="p">})</span>
+</span><span data-line="150"><span class="w">	</span><span class="kr">if</span><span class="w"> </span><span class="nv">open_it</span><span class="w"> </span><span class="kr">then</span>
+</span><span data-line="151"><span class="w">		</span><span class="nv">ya</span><span class="p">.</span><span class="nf">emit</span><span class="p">(</span><span class="s2">"shell"</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nb">string.format</span><span class="p">(</span><span class="s2">"olink open %s -d %s"</span><span class="p">,</span><span class="w"> </span><span class="nv">ya</span><span class="p">.</span><span class="nf">quote</span><span class="p">(</span><span class="nv">picked</span><span class="p">.</span><span class="py">name</span><span class="p">),</span><span class="w"> </span><span class="nv">ya</span><span class="p">.</span><span class="nf">quote</span><span class="p">(</span><span class="nv">root</span><span class="p">))</span><span class="w"> </span><span class="p">})</span>
+</span><span data-line="152"><span class="w">	</span><span class="kr">end</span>
+</span><span data-line="153"><span class="kr">end</span>
+</span><span data-line="154">
+</span><span data-line="155"><span class="kr">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nv">entry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">entry</span><span class="w"> </span><span class="p">}</span>
+</span></pre></div>
+</div>
+</div>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">tests/test_yazi_plugin.py</span></code> keeps this page honest:</p>
+<ul class="simple">
+<li><p>the <code class="docutils literal notranslate"><span class="pre">literalinclude</span></code> above must reference the example file, so docs and
+code cannot drift;</p></li>
+<li><p>the TOML keymap snippet must parse;</p></li>
+<li><p>the Lua file is compiled and its entry point is executed inside
+<a class="reference external" href="https://github.com/scoder/lupa">lupa</a> (an in-process Lua runtime, so
+this runs on every CI OS with no system dependency) against live
+<code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">list</span></code> / <code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">url</span></code> output from a fixture project — covering
+the open path with its confirm dialog, dialog dismissal, <code class="docutils literal notranslate"><span class="pre">--copy</span></code>,
+menu dismissal, the no-project-root case, and olink failure.</p></li>
+</ul>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Picker:</strong> the which-key menu shows target names only, because its
+column layout chops longer labels mid-word and nothing may be shortened
+by the plugin. The full description and resolved URL appear on the
+confirm dialog instead — everything stays inside yazi’s own UI.</p></li>
+<li><p><strong>Why parse the text output?</strong> <code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">list</span> <span class="pre">--json</span></code> exists, but decoding
+it in Lua needs either <code class="docutils literal notranslate"><span class="pre">jq</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code> or a JSON library; the
+<code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">-</span> <span class="pre">description</span></code> lines parse with one pattern and keep the plugin
+dependency-free. If olink ever changes that text layout, switch the
+<code class="docutils literal notranslate"><span class="pre">parse_list</span></code> step to <code class="docutils literal notranslate"><span class="pre">--json</span></code>.</p></li>
+<li><p><strong>Multi-ecosystem projects:</strong> the listed name (e.g. <code class="docutils literal notranslate"><span class="pre">deps</span></code>) opens fine
+when one ecosystem is detected; with several, pass the listed name through
+— explicit <code class="docutils literal notranslate"><span class="pre">target:ecosystem</span></code> suffixes from <code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">list</span> <span class="pre">--all</span></code> are a
+future refinement, not handled in this sketch.</p></li>
+<li><p><strong>More targets than keys:</strong> the menu caps at the key pool (36 entries);
+<code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">list</span></code> for one project stays well below that in practice.</p></li>
+<li><p><strong>No TUI here:</strong> <code class="docutils literal notranslate"><span class="pre">olink</span> <span class="pre">interactive</span></code> is replaced by yazi’s own
+<code class="docutils literal notranslate"><span class="pre">ya.which</span></code> menu — the right trade, since yazi <em>is</em> the interface.</p></li>
+</ul>
+</section>
+</section>
+
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="usage.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Usage</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="cli-reference.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">CLI reference</div>
+      </div>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
+    </div>
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026, Hasan Sezer Taşan</p>
+  
+  <p>
+    Made with
+    
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
+    
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+  <a href="https://github.com/hasansezertasan/olink" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div>
+    </div>
+  </div>
+</footer>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script>let toggleHintShow = 'Click to show';</script>
+      <script>let toggleHintHide = 'Click to hide';</script>
+      <script>let toggleOpenOnPrint = 'true';</script>
+      <script src="_static/togglebutton.js?v=b8b12719"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+      <script src="_static/shibuya.js?v=50760d75"></script></body>
+</html>
