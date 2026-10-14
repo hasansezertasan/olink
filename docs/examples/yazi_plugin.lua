@@ -7,7 +7,9 @@
 -- and resolved URL. Everything stays inside yazi's own UI.
 
 --- Files that mark a project root. Kept in sync with what olink reads
---- (git remotes plus the per-ecosystem package manifests).
+--- (git remotes plus the per-ecosystem package manifests). Exact names
+--- only: glob-based manifests (`*.gemspec`, `*.csproj`, `*.cabal`) have no
+--- existence check here and resolve through the `.git` marker instead.
 local MARKERS = {
 	".git",
 	"pyproject.toml",
@@ -18,6 +20,8 @@ local MARKERS = {
 	"pubspec.yaml",
 	"pom.xml",
 	"mix.exs",
+	"Makefile.PL",
+	"dist.ini",
 }
 
 --- One keystroke per target in the which-key menu (the fzf fallback).
@@ -33,22 +37,30 @@ local function exists(url)
 	return cha ~= nil
 end
 
+--- Parent directory of `path`, or nil at the filesystem root. No depth
+--- cap: every step shortens the path, so the walk always terminates.
+local function parent_dir(path)
+	local url = Url(path)
+	local parent = url.parent
+	if parent == nil or tostring(parent) == tostring(url) then
+		return nil
+	end
+	return tostring(parent)
+end
+
 --- olink only works from the project root, so walk up from `start`
 --- until a directory carries a known marker. (`parent` is yazi's own
 --- Url property, so separators are correct on every platform.)
 local function find_root(start)
-	local url = Url(start)
-	for _ = 1, 20 do
+	local dir = start
+	while dir ~= nil do
+		local url = Url(dir)
 		for _, marker in ipairs(MARKERS) do
 			if exists(url:join(marker)) then
-				return tostring(url)
+				return dir
 			end
 		end
-		local parent = url.parent
-		if parent == nil or tostring(parent) == tostring(url) then
-			return nil
-		end
-		url = parent
+		dir = parent_dir(dir)
 	end
 	return nil
 end
@@ -90,7 +102,8 @@ end
 --- menu lays candidates out in columns, so each cell only fits a couple
 --- dozen characters — names always fit, descriptions would chop mid-word.
 --- The full description is shown on the confirm dialog instead.
---- Returns the row, or nil when dismissed.
+--- Returns the row, or nil when dismissed. Beyond the key pool the menu
+--- cannot show everything, so a notice names the shortfall honestly.
 local function pick_row(rows)
 	local cands = {}
 	for i, row in ipairs(rows) do
@@ -98,6 +111,13 @@ local function pick_row(rows)
 			break
 		end
 		cands[i] = { on = KEY_POOL:sub(i, i), desc = row.name }
+	end
+	if #rows > #KEY_POOL then
+		ya.notify({
+			title = "olink",
+			content = string.format("showing %d of %d targets", #KEY_POOL, #rows),
+			timeout = 4,
+		})
 	end
 
 	local idx = ya.which({ cands = cands })
@@ -107,16 +127,37 @@ local function pick_row(rows)
 	return rows[idx]
 end
 
-local function entry(self, job)
-	local root = find_root(get_cwd())
-	if root == nil then
-		fail("no project root found above the current directory")
-		return
+--- Walk up to the nearest directory olink can actually list. A `.git`
+--- directory is a repository boundary: if olink rejects it, that error is
+--- reported rather than silently opening a parent repository's links.
+--- Manifest-only directories that olink rejects are skipped upward; the
+--- first error is kept for the final report.
+local function find_usable(start)
+	local dir = start
+	local first_err = nil
+	while true do
+		local root = find_root(dir)
+		if root == nil then
+			return nil, first_err or "no project root found above the current directory"
+		end
+		local text, lerr = olink({ "list", "-d", root })
+		if text ~= nil then
+			return root, text
+		end
+		if first_err == nil then
+			first_err = lerr
+		end
+		if exists(Url(root):join(".git")) then
+			return nil, lerr
+		end
+		dir = parent_dir(root)
 	end
+end
 
-	local text, err = olink({ "list", "-d", root })
-	if text == nil then
-		fail(err)
+local function entry(self, job)
+	local root, text = find_usable(get_cwd())
+	if root == nil then
+		fail(text)
 		return
 	end
 

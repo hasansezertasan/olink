@@ -52,6 +52,10 @@ fs = {
 
 local CANNED = dofile(CANNED_PATH)
 
+-- Set once the first stubbed `olink list` fails; lets one scenario fail
+-- over then recover so the ancestor retry is exercised.
+local failed_once = false
+
 Command = setmetatable({ PIPED = {}, NULL = {}, INHERIT = {} }, {
 	__call = function(_, prog)
 		local c = { _prog = prog, _args = {} }
@@ -74,7 +78,8 @@ Command = setmetatable({ PIPED = {}, NULL = {}, INHERIT = {} }, {
 	function c:output()
 		assert(self._prog == "olink", "unexpected program: " .. tostring(self._prog))
 		if self._args[1] == "list" then
-			if FAIL_LIST then
+			if FAIL_LIST or (FAIL_FIRST and not failed_once) then
+				failed_once = true
 				return { status = { success = false, code = 5 }, stdout = "", stderr = "Error: boom" }, nil
 			end
 			return { status = { success = true, code = 0 }, stdout = CANNED.list, stderr = "" }, nil

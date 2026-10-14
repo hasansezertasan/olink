@@ -42,8 +42,12 @@ bind it in ``~/.config/yazi/keymap.toml``:
 
    [[mgr.prepend_keymap]]
    on = ["g", "O"]
-   run = "plugin olink --copy"
+   run = "plugin olink -- --copy"
    desc = "Copy project link URL with olink"
+
+The ``--`` before ``--copy`` matters: Yazi only forwards arguments after
+the end-of-options separator to the plugin, so without it ``job.args.copy``
+stays unset and ``g O`` would open instead of copying.
 
 Press ``g o`` while browsing a project to open a link, ``g O`` to copy the
 URL instead. Outside a project (no root markers found) the plugin notifies
@@ -72,7 +76,9 @@ Testing
   this runs on every CI OS with no system dependency) against live
   ``olink list`` / ``olink url`` output from a fixture project — covering
   the open path with its confirm dialog, dialog dismissal, ``--copy``,
-  menu dismissal, the no-project-root case, and olink failure.
+  menu dismissal, the no-project-root case, olink failure, the Windows
+  root walk, retry past a broken manifest, the ``.git`` retry boundary,
+  the menu cap notice, and multi-ecosystem suffix passthrough.
 
 Notes
 -----
@@ -87,11 +93,14 @@ Notes
   ``name - description`` lines parse with one pattern and keep the plugin
   dependency-free. If olink ever changes that text layout, switch the
   ``parse_list`` step to ``--json``.
-- **Multi-ecosystem projects:** the listed name (e.g. ``deps``) opens fine
-  when one ecosystem is detected; with several, pass the listed name through
-  — explicit ``target:ecosystem`` suffixes from ``olink list --all`` are a
-  future refinement, not handled in this sketch.
+- **Multi-ecosystem projects:** the default ``olink list`` emits suffixed
+  names such as ``deps:npm`` when several ecosystems are detected, and the
+  plugin passes listed names through verbatim, so they open as-is.
 - **More targets than keys:** the menu caps at the key pool (36 entries);
-  ``olink list`` for one project stays well below that in practice.
+  beyond that it says how many it omits, so nothing vanishes silently.
+- **Root markers:** exact filenames only, including the Perl pair
+  (``Makefile.PL``, ``dist.ini``). Glob-based manifests (``*.gemspec``,
+  ``*.csproj``, ``*.cabal``) have no existence check and resolve through
+  the ``.git`` marker instead.
 - **No TUI here:** ``olink interactive`` is replaced by yazi's own
   ``ya.which`` menu — the right trade, since yazi *is* the interface.

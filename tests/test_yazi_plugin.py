@@ -67,6 +67,7 @@ class _HarnessOptions:
 
     copy: bool = False
     fail_list: bool = False
+    fail_first: bool = False
     which_idx: int | None = 1
     confirm: bool = True
 
@@ -102,6 +103,7 @@ def _run_harness(
     env["CONFIRM"] = opts.confirm
     env["COPY"] = opts.copy
     env["FAIL_LIST"] = opts.fail_list
+    env["FAIL_FIRST"] = opts.fail_first
     env["TEST_EXISTS"] = exists if exists is not None else (lambda path: Path(path).exists())
     runtime.execute(HARNESS.read_text(encoding="utf-8"))
     seen = env["OBS"]
@@ -133,7 +135,10 @@ class TestYaziDocs:
         assert match is not None
         snippet = "\n".join(line[3:] for line in match.group(1).splitlines() if line.strip())
         bindings = tomllib.loads(snippet)["mgr"]["prepend_keymap"]
-        assert [binding["run"] for binding in bindings] == ["plugin olink", "plugin olink --copy"]
+        assert [binding["run"] for binding in bindings] == [
+            "plugin olink",
+            "plugin olink -- --copy",
+        ]
 
 
 class TestYaziPluginLua:
@@ -215,6 +220,62 @@ class TestYaziPluginLua:
         notice = obs.notify_content
         assert notice is not None
         assert "no olink targets" in notice
+
+    def test_retries_past_broken_manifest(self, tmp_path: Path, fixture_project: str) -> None:
+        """A manifest-only dir olink rejects must not hide a usable ancestor."""
+        inner = Path(fixture_project) / "sub" / "inner"
+        inner.mkdir(parents=True)
+        (inner / "pyproject.toml").write_text("[project]\n", encoding="utf-8")
+        canned = tmp_path / "canned.lua"
+        names = _write_canned(canned, fixture_project)
+        obs = _run_harness(str(inner), canned, _HarnessOptions(fail_first=True))
+        assert obs.emit_cmd == f"olink open '{names[0]}' -d '{fixture_project}'"
+
+    def test_git_boundary_stops_retry(self, tmp_path: Path, fixture_project: str) -> None:
+        """A rejected repository must error, not open a parent's links."""
+        inner = Path(fixture_project) / "sub"
+        inner.mkdir()
+        init_git_with_config("github_https", str(inner))
+        canned = tmp_path / "canned.lua"
+        _write_canned(canned, fixture_project)
+        obs = _run_harness(str(inner), canned, _HarnessOptions(fail_first=True))
+        notice = obs.notify_content
+        assert notice is not None
+        assert "boom" in notice
+        assert obs.emit_cmd is None
+
+    def test_menu_cap_notifies(self, tmp_path: Path, fixture_project: str) -> None:
+        """Beyond the key pool the menu must admit what it omits."""
+        canned = tmp_path / "canned.lua"
+        rows = [f"  t{i:02d} - Description number {i}" for i in range(1, 41)]
+        entries = "\n".join(
+            f'  ["t{i:02d}"] = {_lua_block(f"https://example.test/t{i:02d}")},'
+            for i in range(1, 41)
+        )
+        canned.write_text(
+            f"return {{ list = {_lua_block('\n'.join(rows))},\nurls = {{\n{entries}\n}} }}\n",
+            encoding="utf-8",
+        )
+        obs = _run_harness(fixture_project, canned)
+        assert obs.first_desc == "t01"
+        notice = obs.notify_content
+        assert notice is not None
+        assert "36 of 40" in notice
+        assert obs.emit_cmd == f"olink open 't01' -d '{fixture_project}'"
+
+    def test_multi_ecosystem_suffix_passthrough(
+        self, tmp_path: Path, temp_multi_ecosystem: str
+    ) -> None:
+        """Suffixed names from multi-ecosystem projects must open verbatim."""
+        canned = tmp_path / "canned.lua"
+        names = _write_canned(canned, temp_multi_ecosystem)
+        suffixed = [name for name in names if ":" in name]
+        assert suffixed, "multi-ecosystem project must list suffixed targets"
+        picked = suffixed[0]
+        obs = _run_harness(
+            temp_multi_ecosystem, canned, _HarnessOptions(which_idx=names.index(picked) + 1)
+        )
+        assert obs.emit_cmd == f"olink open '{picked}' -d '{temp_multi_ecosystem}'"
 
     def test_olink_failure_notifies(self, tmp_path: Path, fixture_project: str) -> None:
         """A failing `olink list` must surface stderr, not an empty menu."""
