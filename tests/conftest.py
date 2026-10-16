@@ -1,8 +1,28 @@
 """Shared test fixtures."""
 
+<<<<<<< before updating
 import shutil
 import subprocess
 import tempfile
+=======
+Auto-applies a per-component marker to each test based on its top-level
+``tests/<dir>/`` directory, so ``pytest -m web`` (or ``-m "not web"``) selects a
+component without per-test decoration. Markers are registered in pyproject.toml
+``[tool.pytest.ini_options] markers``. See issue #160 / https://hasansezertasan.github.io/copier-pyproject/context/ci-topology/#per-component-markers-path-filtered-jobs-and-one-coverage-gate-per-component.
+
+Also keeps the Markdown doctest surface to the single root ``README.md``: see
+``collect_ignore_glob`` below.
+
+Also hosts the ``missing_metadata`` fixture: every component degrades or fails
+differently when the package metadata is unreadable, but they all read it
+through ``core.app``, so one fixture covers every component's error path
+(https://hasansezertasan.github.io/copier-pyproject/context/components/#one-application-payload-in-coreapppy-components-are-adapters-over-it).
+"""
+
+from __future__ import annotations
+
+from importlib.metadata import PackageNotFoundError
+>>>>>>> after updating
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,9 +31,19 @@ import pytest
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
+<<<<<<< before updating
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 REPOS_DIR = FIXTURES_DIR / "repos"
 GIT_CONFIGS_DIR = FIXTURES_DIR / "git_configs"
+=======
+# ``--doctest-glob=README.md`` (pyproject ``addopts``) matches on the *basename*,
+# so without this every ``tests/**/README.md`` -- fixture notes, a subdirectory
+# guide -- would also be collected as a doctest the moment it contained a ``>>>``
+# line. The root README is the whole Markdown doctest surface (https://hasansezertasan.github.io/copier-pyproject/context/docs-stack/#documentation-code-examples-are-executed-not-pasted);
+# prose
+# under tests/ stays prose.
+collect_ignore_glob = ["*.md"]
+>>>>>>> after updating
 
 # ``--doctest-glob=README.md`` matches on the basename, so without this any
 # ``tests/**/README.md`` would also be collected as a doctest.
