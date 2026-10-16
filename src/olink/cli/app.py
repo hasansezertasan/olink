@@ -1,8 +1,16 @@
 """CLI interface for olink.
 
+<<<<<<< before updating
 Every action is a subcommand so each carries its own ``--help`` and ``--json``
 contract. Under ``--json`` stdout holds exactly one JSON document (errors
 included), so agents can parse it without scraping prose.
+=======
+The ``olink`` command is the single Typer root. Every enabled
+component other than the primary (CLI > GUI > TUI > web > MCP > worker) is hung
+off it as a lazily-imported subcommand — ``olink interactive``
+(TUI), ``olink web``, ``olink mcp``, ... — rather
+than a separate ``olink-<name>`` console script (see https://hasansezertasan.github.io/copier-pyproject/context/components/#secondary-components-are-subcommands-of-one-console-root-not-separate-scripts).
+>>>>>>> after updating
 """
 
 import contextlib
