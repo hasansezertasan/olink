@@ -4,7 +4,7 @@ name: All Contributors
 # all-contributors CLI and opens a PR with any change. This makes the
 # include_all_contributors toggle usable without installing the all-contributors
 # bot; the bot remains an alternative for `@all-contributors please add ...`
-# comment-driven edits. See ADR-009.
+# comment-driven edits. See https://hasansezertasan.github.io/copier-pyproject/context/external-integrations/#sourcery-sonarcloud-and-all-contributors-are-independent-opt-in-toggles.
 #
 # It opens a PR (via create-pull-request) rather than pushing to the default
 # branch, so it respects the squash-merge policy and needs no persisted git
@@ -31,10 +31,26 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
           persist-credentials: false
+      - name: Set up Python
+        # `mise install` below installs every tool in mise.toml — including
+        # cobo (pipx backend, Requires-Python >=3.14) — with the runner's
+        # system Python when setup-python/setup-uv have not run yet, and
+        # without uv on PATH mise falls back from uvx to pipx, which ignores
+        # the mise-managed Python. Provision both first so cobo resolves
+        # against the .python-version interpreter (issue #369).
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version-file: .python-version
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
       - name: Install mise tools
         # all-contributors-cli is pinned in mise.toml (npm backend, Renovate-tracked)
         # and run via `mise exec`, mirroring how the ghalint hook is invoked.
+<<<<<<< before updating
         uses: jdx/mise-action@08ae2a091c038e1e05ec6f5115dc5c69d5a2a6b8  # v5.1.2
+=======
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c  # v4.3.0
+>>>>>>> after updating
       - name: Regenerate the contributors table
         # Node (needed to run the CLI) is preinstalled on the runner.
         run: mise exec -- all-contributors generate
