@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/hasansezertasan/olink/compare/v0.3.0...v0.4.0) (2026-10-18)
+
+
+### 🚀 Features
+
+* ship a yazi plugin from olink.yazi/ ([#296](https://github.com/hasansezertasan/olink/issues/296)) ([46f0247](https://github.com/hasansezertasan/olink/commit/46f0247b5784e88caf15b0b08d1e0313e5ff2f3b))
+
+
+### 📝 Documentation
+
+* add yazi wrapper plugin sketch ([#293](https://github.com/hasansezertasan/olink/issues/293)) ([d5f79d0](https://github.com/hasansezertasan/olink/commit/d5f79d0dc8b2c2248b6e7e2d6c3ff1530cf55117))
+
 ## [0.3.0](https://github.com/hasansezertasan/olink/compare/v0.2.0...v0.3.0) (2026-10-08)
 
 
