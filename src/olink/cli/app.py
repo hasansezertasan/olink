@@ -1,8 +1,11 @@
 """CLI interface for olink.
 
-Every action is a subcommand so each carries its own ``--help`` and ``--json``
-contract. Under ``--json`` stdout holds exactly one JSON document (errors
-included), so agents can parse it without scraping prose.
+Every action is a subcommand of the single ``olink`` Typer root, so each carries
+its own ``--help`` and ``--json`` contract. Under ``--json`` stdout holds exactly
+one JSON document (errors included), so agents can parse it without scraping
+prose. Secondary components (``olink interactive`` for the TUI) are
+lazily-imported subcommands rather than separate ``olink-<name>`` console scripts
+(see https://hasansezertasan.github.io/copier-pyproject/context/components/#secondary-components-are-subcommands-of-one-console-root-not-separate-scripts).
 """
 
 import contextlib

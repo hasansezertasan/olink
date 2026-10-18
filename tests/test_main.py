@@ -18,7 +18,8 @@ def test_main_is_callable() -> None:
     """The package exposes a callable ``main()`` entrypoint.
 
     Every standalone-executable build (launcher / freezer / compiler — see
-    ADR-007) targets ``olink.__main__:main``, so this pins the
+    https://hasansezertasan.github.io/copier-pyproject/context/standalone-executables/#executables-are-named-per-tool-and-os-and-all-target-the-package-main-module)
+    targets ``olink.__main__:main``, so this pins the
     contract that the symbol exists and is callable for whichever component is
     enabled, and that the active branch's component import actually resolves.
     The module is imported (not executed as ``__main__``), so a runnable

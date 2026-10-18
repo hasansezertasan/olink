@@ -9,24 +9,14 @@
 # hook — Renovate owns every `rev` bump, including the tools shared with the uv
 # `style` dependency group.
 default_language_version.python = "python3.14"
-default_stages = ["pre-commit", "pre-push"]
+# Hooks without an explicit `stages` run at commit only. prek treats an unset
+# `default_stages` as *every* stage, and listing `pre-push` here re-ran the whole
+# gate (type checkers, pylint, ...) on push; push-only hooks opt in per hook.
+default_stages = ["pre-commit"]
 exclude = '''(?x)^(
     # Editor/debugger JSON configs that carry comments or trailing commas
-    \.devcontainer/devcontainer\.json$
-    |\.vscode/launch\.json$
-
-    # VCS and Python build/virtualenv directories
-    |\.git
-    |\.hg
-    |\.mypy_cache
-    |\.nox
-    |\.tox
-    |\.venv
-    |_build
-    |buck-out
-    |build
-    |dist
-    |alembic
+    \.devcontainer/devcontainer\.json
+    |\.vscode/launch\.json
 )$'''
 
 # Fast Rust-native reimplementations of common pre-commit-hooks. No git clone.
@@ -40,29 +30,28 @@ hooks = [
   # `.gitignore` is a cobo-sealed block (hash-verified); its bytes must stay
   # verbatim, but upstream github/gitignore ships trailing whitespace on some
   # comment lines. Exclude it so the hook does not break the seal (cobo owns
-  # this file — see ADR-012).
+  # this file — see https://hasansezertasan.github.io/copier-pyproject/context/gitignore-generation/#cobo-generates-the-gitignore-with-a-hash-sealed-fence-and-lockfiles).
   { id = "trailing-whitespace", exclude = '^\.gitignore$' },
   { id = "check-merge-conflict", args = ["--assume-in-merge"] },
   { id = "check-case-conflict" },
   { id = "detect-private-key" },
-]
-
-# check-yaml, debug-statements and check-ast have no Rust builtin (they need a
-# YAML loader / the Python AST), so they stay on the upstream repo. prek runs
-# them correctly, just without the builtin fast path.
-[[repos]]
-repo = "https://github.com/pre-commit/pre-commit-hooks"
-rev = "v6.0.0"
-hooks = [
   { id = "check-yaml" },
   { id = "check-executables-have-shebangs" },
   { id = "check-symlinks" },
   { id = "check-xml" },
-  # Preserve cobo-owned bytes (ADR-012/030).
+  # Preserve cobo-owned bytes (https://hasansezertasan.github.io/copier-pyproject/context/gitignore-generation/#cobo-generates-the-gitignore-with-a-hash-sealed-fence-and-lockfiles, https://hasansezertasan.github.io/copier-pyproject/context/template-testing/#generated-files-must-be-formatter-canonical-not-merely-valid).
   # Windows PowerShell 5.1 needs a UTF-8 BOM for non-ASCII source literals.
   { id = "fix-byte-order-marker", exclude = '^\.gitignore$|(?i:\.ps[md]?1)$' },
   { id = "mixed-line-ending", args = ["--fix=auto"], exclude = '^\.gitignore$' },
   # auto fixes mixed endings, retaining consistent CRLF for Windows scripts.
+]
+
+# debug-statements and check-ast have no prek builtin (they need the Python
+# AST), so they stay on the upstream repo.
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
   { id = "debug-statements" },
   { id = "check-ast" },
 ]
@@ -70,7 +59,7 @@ hooks = [
 [[repos]]
 repo = "https://github.com/astral-sh/uv-pre-commit"
 rev = "0.13.0"
-hooks = [{ id = "uv-lock", name = "Update the uv lockfile" }]
+hooks = [{ id = "uv-lock" }]
 
 # Runs before ruff so any `__all__` it inserts is sorted/formatted in the same pass.
 [[repos]]
@@ -81,14 +70,22 @@ hooks = [{ id = "ensure-dunder-all", name = "Ensure __all__", files = "^src/" }]
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
 rev = "v0.17.0"
-hooks = [{ id = "ruff" }, { id = "ruff-format" }]
+hooks = [
+  { id = "ruff-check" },
+  { id = "ruff-format" },
+]
 
 [[repos]]
 repo = "local"
 hooks = [
-  { id = "basedpyright", name = "basedpyright Type Checker", entry = "uv run --locked --group style basedpyright", language = "system", types = [
-    "python",
-  ], pass_filenames = false },
+  { id = "basedpyright", name = "basedpyright Type Checker", entry = "uv run --locked --group style basedpyright", language = "system", types = ["python"], pass_filenames = false },
+  # mypy needs the installed package + deps to resolve third-party imports, so
+  # like basedpyright it is a `local` `system` hook via `uv run` rather than
+  # mirrors-mypy's isolated venv, which needed a hand-kept copy of every
+  # component's runtime deps in `additional_dependencies` (see https://hasansezertasan.github.io/copier-pyproject/context/lint-orchestration/#mypys-prek-hook-runs-through-uv-like-basedpyright).
+  # Filenames are not passed: mypy checks the `[tool.mypy] files` set, matching
+  # tox's canonical run. Single version source: the `style` group pin.
+  { id = "mypy", name = "mypy Type Checker", entry = "uv run --locked --group style mypy", language = "system", types = ["python"], pass_filenames = false },
   # pylint runs as a whole-package gate (`pylint src`) that deliberately overlaps
   # ruff's PL* rules. Like basedpyright it needs the installed package + deps to
   # resolve imports, so it is a `local` `system` hook via `uv run`, not an upstream
@@ -100,7 +97,7 @@ hooks = [
   # `local` `system` hook that shells out through `uv run --locked --group style`
   # — NOT an upstream repo hook (that pattern runs in an isolated venv without the
   # project installed, which is why it lived only in the tox `style` env before).
-  # Single version source: the `style` group pin (see ADR-014 §3). It builds the
+  # Single version source: the `style` group pin (see https://hasansezertasan.github.io/copier-pyproject/context/architecture-contracts/#whole-program-analyzers-are-local-system-hooks-backed-by-the-style-group). It builds the
   # whole graph regardless of which files changed, so filenames are not passed.
   { id = "import-linter", name = "Import Linter", entry = "uv run --locked --group style lint-imports", language = "system", pass_filenames = false, always_run = true },
   # slotscheck imports every module under src/ to verify __slots__ definitions, so
@@ -134,17 +131,6 @@ hooks = [
   # content hash); its hash trips the high-entropy rule while gitleaks stays
   # quiet, so it is excluded here rather than baselined as a false positive.
   { id = "detect-secrets", name = "detect-secrets (pre-commit secret scan)", entry = "uv run --locked --group style detect-secrets-hook --baseline .secrets.baseline", language = "system", pass_filenames = true, exclude = "^skills-lock\\.json$" },
-]
-
-[[repos]]
-repo = "https://github.com/pre-commit/mirrors-mypy"
-rev = "v2.4.0"
-hooks = [
-  # Scope the hook to src/ to match tox's canonical mypy (which type-checks only
-  # src/). Without this, the hook passes every changed .py file, which surfaces
-  # strict-decorator errors in tests/ that the canonical run never checks — not
-  # part of the shipped, type-checked surface.
-  { id = "mypy", files = "^src/", additional_dependencies = ["typer", "textual"] },
 ]
 
 [[repos]]
@@ -196,7 +182,7 @@ rev = "v1.30.1"
 hooks = [{ id = "zizmor", name = "Zizmor GitHub Actions Auditor" }]
 
 [[repos]]
-repo = "https://github.com/adrienverge/yamllint.git"
+repo = "https://github.com/adrienverge/yamllint"
 rev = "v1.38.0"
 # `.copier-answers.yml` is excluded for the same reason the yamlfmt hook below
 # excludes it: copier owns the file ("NEVER EDIT MANUALLY") and writes block
@@ -209,7 +195,7 @@ hooks = [{ id = "yamllint", exclude = "^\\.copier-answers\\.yml$", args = ["-c",
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
 rev = "v0.23.3"
-hooks = [{ id = "markdownlint-cli2", name = "Markdown Linter" }]
+hooks = [{ id = "markdownlint-cli2" }]
 
 # shellcheck lints standalone shell scripts a project adds later (workflow
 # `run:` blocks are already shellchecked by actionlint). Delivered via the
@@ -219,6 +205,15 @@ hooks = [{ id = "markdownlint-cli2", name = "Markdown Linter" }]
 repo = "https://github.com/shellcheck-py/shellcheck-py"
 rev = "v0.11.0.1"
 hooks = [{ id = "shellcheck", name = "ShellCheck" }]
+
+# shfmt formats those same scripts (shellcheck lints, it does not format). The
+# `shfmt` hook id installs a prebuilt binary from PyPI (no Go toolchain, unlike
+# `shfmt-src`). No style flags are passed, so shfmt reads `.editorconfig` and
+# indents `*.sh` with the 2 spaces editorconfig-checker enforces.
+[[repos]]
+repo = "https://github.com/scop/pre-commit-shfmt"
+rev = "v3.14.1-1"
+hooks = [{ id = "shfmt" }]
 
 # checkmake lints Makefiles a project adds later. Built from source via prek's
 # `golang` language support (the hook's manifest `types: [makefile]` scopes it,
@@ -259,6 +254,14 @@ hooks = [
   # an activated mise shell environment (shims on PATH). It only requires `mise`
   # itself on PATH, which local contributors have and the CI `hooks` job supplies
   # via jdx/mise-action.
+  # pip-audit is a push-only hook: auditing the resolved runtime tree queries the
+  # PyPI Advisory DB, which is too slow and network-bound for every commit but
+  # cheap enough once per push, ahead of the weekly/CI `pip-audit` job in
+  # check-security.yml. It runs the same export + `uvx pip-audit` pair as that
+  # job (so pip-audit stays out of the project's dependencies) and cleans up its
+  # temp file whether or not the audit passes. `default_stages` excludes it from
+  # the commit gate; `stages` opts it into push.
+  { id = "pip-audit", name = "pip-audit", entry = "sh -c 'req=$(mktemp) && uv export --frozen --all-extras --no-dev --no-emit-project --no-hashes --format requirements.txt --output-file \"$req\" && uvx pip-audit --requirement \"$req\"; status=$?; rm -f \"$req\"; exit $status'", language = "system", stages = ["pre-push"], pass_filenames = false, always_run = true },
   { id = "ghalint", name = "ghalint", entry = "mise exec -- ghalint run", language = "system", pass_filenames = false, always_run = true },
   { id = "pytest", name = "Pytest Test Runner", entry = "uv run --locked pytest", language = "system", pass_filenames = false, always_run = true },
 ]

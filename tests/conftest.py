@@ -1,4 +1,13 @@
-"""Shared test fixtures."""
+"""Shared test fixtures.
+
+Auto-applies a per-component marker to each test based on its top-level
+``tests/<dir>/`` directory, so ``pytest -m cli`` (or ``-m "not tui"``) selects a
+component without per-test decoration. Markers are registered in pyproject.toml
+``[tool.pytest.ini_options] markers``.
+
+Also keeps the Markdown doctest surface to the single root ``README.md``: see
+``collect_ignore_glob`` below.
+"""
 
 import shutil
 import subprocess
