@@ -19,13 +19,10 @@ keywords = [
   "pypi",
   "npm",
   "open-url",
-<<<<<<< before updating
-=======
   "sphinx",
   "typer",
   "textual",
   "tui",
->>>>>>> after updating
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -41,7 +38,6 @@ classifiers = [
   "Topic :: Terminals",
   "Typing :: Typed",
 ]
-<<<<<<< before updating
 requires-python = ">=3.14"
 dependencies = ["typer==0.27.2", "defusedxml>=0.7.1"]
 
@@ -49,23 +45,6 @@ dependencies = ["typer==0.27.2", "defusedxml>=0.7.1"]
 tui = ["textual>=3.0.0", "pyperclip==1.11.0"]
 all = ["textual>=3.0.0", "pyperclip==1.11.0"]
 
-=======
-requires-python = ">=3.10"
-# The enabled component's runtime deps live here, not in an optional extra: a
-# selected component is chosen at generation time and ``__main__`` imports it
-# unconditionally (see the CLI > GUI > TUI > web > MCP > worker precedence
-# there), so ``pip install olink`` must pull them or the binary
-# fails at launch. Same for pydantic-settings, which ``core.config`` imports
-# unconditionally when enabled.
-dependencies = [
-  "typer>=0.20.0",
-  # >=6.0.0 for `Static.content`, which the headless pilot test asserts on
-  # (https://hasansezertasan.github.io/copier-pyproject/context/testing-strategy/#interactive-components-expose-injected-driver-seams-so-headless-ci-measures-everything-but-the-blocking-call). Earlier releases expose only `Static.renderable`, and 6.0.0
-  # onward returns None for it — there is no spelling that spans both.
-  "textual>=6.0.0",
-  "typing-extensions>=4.4.0",
-]
->>>>>>> after updating
 
 [project.urls]
 changelog = "https://github.com/hasansezertasan/olink/blob/main/CHANGELOG.md"
@@ -81,20 +60,14 @@ olink = "olink.cli:main"
 
 [dependency-groups]
 dev = [
-<<<<<<< before updating
   "olink[all]",
   "tox==4.64.4",
   "tox-uv==1.36.0",
-=======
-  "tox==4.64.10",
-  "tox-uv==1.36.1",
->>>>>>> after updating
   "debugpy==1.8.22",
   { include-group = "style" },
   { include-group = "test" },
 ]
 style = [
-<<<<<<< before updating
   "basedpyright==1.40.1",
   "detect-secrets==1.5.0",
   "editorconfig-checker==3.11.1",
@@ -103,16 +76,6 @@ style = [
   "pylint==4.0.9",
   "pyrefly==1.3.1",
   "ruff==0.16.10",
-=======
-  "basedpyright==1.40.2",
-  "detect-secrets==1.5.0",
-  "editorconfig-checker==3.8.0",
-  "import-linter==2.15",
-  "mypy==2.4.0",
-  "pylint==4.0.6",
-  "pyrefly==1.2.0",
-  "ruff==0.16.1",
->>>>>>> after updating
   "slotscheck==0.21.0",
   "sphinx-lint==1.0.2",
   "taplo==0.9.3",
@@ -139,10 +102,7 @@ style = [
 # ever executes in the Linux-only `style` job. The tox `style` env lists this
 # group explicitly. Still a single version source, same as every other pin.
 sast = [
-<<<<<<< before updating
   "semgrep==1.178.0",
-=======
-  "semgrep==1.180.0",
 ]
 # Dependency hygiene gets its own group for the same reason `sast` does: it is
 # only ever run by the on-demand `deps` tox env and the `deps` CI job, so a plain
@@ -152,7 +112,6 @@ sast = [
 deps = [
   "creosote==5.2.0",
   "deptry==0.25.1",
->>>>>>> after updating
 ]
 test = [
   "coverage-enable-subprocess==1.0",
@@ -177,14 +136,9 @@ docs = [
   "sphinx-togglebutton==0.4.5",
   "sphinx-paramlinks==0.6.0",
   "auto-pytabs[sphinx]==0.5.0",
-<<<<<<< before updating
   "myst-parser==5.1.0",
   "sphinx-click==6.2.0",
-  # Per-page "last updated" footer sourced from git commit dates (ADR-027);
-=======
-  "myst-parser==4.0.1",
   # Per-page "last updated" footer sourced from git commit dates (https://hasansezertasan.github.io/copier-pyproject/context/docs-versioning/#per-page-last-updated-comes-from-git-history);
->>>>>>> after updating
   # offline, no network. Works from full history (docs CI checks out depth 0).
   "sphinx-last-updated-by-git==0.3.8",
   # PEP 440 version parsing/sorting used by tools/build_docs.py to order
@@ -316,17 +270,12 @@ olink = ["src/olink", "*/site-packages/olink"]
 # patterns here: a regex matching a `def` line excludes the *whole function body*,
 # so a pattern like `def main\(` would silently un-measure any future `main()`
 # with real logic (and did mask the tested GUI/TUI entrypoints). Pragmas carry the
-<<<<<<< before updating
-# exclusion decision next to the code it affects. See ADR-008.
-exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
-=======
 # exclusion decision next to the code it affects. See https://hasansezertasan.github.io/copier-pyproject/context/testing-strategy/#coverage-exclusions-are-per-site-pragmas-and-the-globs-must-match-the-installed-layout.
 exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
 ]
->>>>>>> after updating
 fail_under = 99
 # Patterns match both the `src/` (editable) and installed (`site-packages`)
 # layouts (see [tool.coverage.run] omit).
