@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 DOCS_DIR = Path(__file__).parents[1] / "docs"
 YAZI_RST = DOCS_DIR / "yazi.rst"
-LUA_EXAMPLE = DOCS_DIR / "examples" / "yazi_plugin.lua"
+LUA_EXAMPLE = DOCS_DIR.parent / "olink.yazi" / "main.lua"
 HARNESS = Path(__file__).parent / "fixtures" / "yazi_harness.lua"
 
 runner = CliRunner()
@@ -126,7 +126,7 @@ class TestYaziDocs:
     def test_page_includes_example_verbatim(self) -> None:
         """The literalinclude must reference the tested Lua file."""
         assert LUA_EXAMPLE.exists()
-        assert ".. literalinclude:: examples/yazi_plugin.lua" in YAZI_RST.read_text(
+        assert ".. literalinclude:: ../olink.yazi/main.lua" in YAZI_RST.read_text(
             encoding="utf-8"
         )
 

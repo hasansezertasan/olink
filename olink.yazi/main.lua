@@ -1,4 +1,5 @@
--- ~/.config/yazi/plugins/olink.yazi/main.lua
+--- @since 26.9.1
+-- ~/.config/yazi/plugins/olink.yazi/main.lua (installed by `ya pkg add`)
 --
 -- Open olink targets (PyPI page, issues, CI, download stats, ...) for the
 -- project you are browsing, without leaving yazi.

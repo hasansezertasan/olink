@@ -30,8 +30,12 @@ Requirements
 Install
 -------
 
-Copy the sketch below to ``~/.config/yazi/plugins/olink.yazi/main.lua`` and
-bind it in ``~/.config/yazi/keymap.toml``:
+Install the plugin with yazi's package manager (it lives in this repository's
+``olink.yazi/`` directory) and bind it in ``~/.config/yazi/keymap.toml``:
+
+.. code-block:: sh
+
+   ya pkg add hasansezertasan/olink:olink
 
 .. code-block:: toml
 
@@ -53,15 +57,15 @@ Press ``g o`` while browsing a project to open a link, ``g O`` to copy the
 URL instead. Outside a project (no root markers found) the plugin notifies
 instead of failing silently.
 
-Plugin sketch
+Plugin source
 -------------
 
-The sketch below is the tested file ``docs/examples/yazi_plugin.lua``,
-included verbatim — what you read here is what the tests execute:
+The installed ``main.lua`` is the tested file ``olink.yazi/main.lua``,
+included verbatim below — what you read here is what the tests execute:
 
-.. literalinclude:: examples/yazi_plugin.lua
+.. literalinclude:: ../olink.yazi/main.lua
    :language: lua
-   :caption: examples/yazi_plugin.lua
+   :caption: olink.yazi/main.lua
 
 Testing
 -------

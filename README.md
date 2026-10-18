@@ -35,6 +35,7 @@
 - [Available Targets](#available-targets)
 - [Examples](#examples)
 - [Interactive TUI](#interactive-tui)
+- [Yazi Plugin](#yazi-plugin)
 - [Limitations](#limitations)
 - [Requirements](#requirements)
 - [Motivation](#motivation)
@@ -296,6 +297,20 @@ The TUI lets you browse, search, open, and pin targets interactively. Keybinding
   `$XDG_CONFIG_HOME/olink/pins.json` (default `~/.config/olink/pins.json`).
 - `q` — quit
 
+## Yazi Plugin
+
+Browsing with [yazi](https://yazi-rs.github.io/)? The
+[olink.yazi](https://github.com/hasansezertasan/olink/tree/main/olink.yazi) plugin opens or
+copies your project's links without leaving the file manager:
+
+```bash
+ya pkg add hasansezertasan/olink:olink
+```
+
+Then bind it in `~/.config/yazi/keymap.toml` and press `g o` to pick a target.
+See the [yazi guide](https://hasansezertasan.github.io/olink/yazi.html) for the
+keymap and details. It needs the `olink` CLI on your `PATH`.
+
 ## Limitations
 
 - olink must be run from the project root directory. Running from a subdirectory (e.g. `src/`) is not supported.
@@ -324,6 +339,8 @@ the same way in every project you `cd` into.
   Perl, Elixir, and .NET package registries and stats services.
 - **Interactive TUI**: Browse, search, open, copy, and pin targets from a Textual
   terminal interface (via the `[tui]` extra).
+- **Yazi plugin**: Open or copy project links from the [yazi](https://yazi-rs.github.io/)
+  file manager with [olink.yazi](https://github.com/hasansezertasan/olink/tree/main/olink.yazi).
 - **File I/O over subprocess**: Reads config files directly instead of shelling out
   to `git`/`npm`, so it is fast and dependency-light.
 - **Type Safety**: Full type hints checked by mypy and basedpyright.

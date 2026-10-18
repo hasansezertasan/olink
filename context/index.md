@@ -88,6 +88,6 @@ Sources naming `JOURNAL.md` refer to the former development journal, removed 202
 
 ## Y
 
-- [yazi.md](yazi.md) — why the yazi integration is a wrapper plugin sketch
+- [yazi.md](yazi.md) — why the yazi integration is a wrapper plugin, shipped from `olink.yazi/` in this repo
 
 ## Z
