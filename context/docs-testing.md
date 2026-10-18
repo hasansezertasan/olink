@@ -9,7 +9,7 @@
 **Source:** developer conversation, 2026-10-14; `tests/test_yazi_plugin.py`, `pyproject.toml` (test group)
 
 The yazi plugin sketch in `docs/yazi.rst` is a tested file
-(`docs/examples/yazi_plugin.lua`, pulled in verbatim via `literalinclude`)
+(`olink.yazi/main.lua`, pulled in verbatim via `literalinclude`)
 executed by `tests/test_yazi_plugin.py` inside lupa — an in-process Lua
 runtime pinned in the test group — against live `olink list`/`url` output
 from a fixture project.

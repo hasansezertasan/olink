@@ -1,4 +1,4 @@
--- Harness for docs/examples/yazi_plugin.lua: executes the plugin with stubbed
+-- Harness for olink.yazi/main.lua: executes the plugin with stubbed
 -- yazi globals and live-captured `olink` output. No yazi binary or fzf needed.
 --
 -- Knobs (set by the driver before executing this file):
