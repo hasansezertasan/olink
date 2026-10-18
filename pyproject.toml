@@ -42,8 +42,8 @@ requires-python = ">=3.14"
 dependencies = ["typer==0.27.2", "defusedxml>=0.7.1"]
 
 [project.optional-dependencies]
-tui = ["textual>=3.0.0", "pyperclip==1.11.0"]
-all = ["textual>=3.0.0", "pyperclip==1.11.0"]
+tui = ["textual>=3.0.0", "pyperclip==1.11.0", "rich>=13.3.3"]
+all = ["textual>=3.0.0", "pyperclip==1.11.0", "rich>=13.3.3"]
 
 
 [project.urls]

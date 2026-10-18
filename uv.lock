@@ -1554,10 +1554,12 @@ dependencies = [
 [package.optional-dependencies]
 all = [
     { name = "pyperclip" },
+    { name = "rich" },
     { name = "textual" },
 ]
 tui = [
     { name = "pyperclip" },
+    { name = "rich" },
     { name = "textual" },
 ]
 
@@ -1655,6 +1657,8 @@ requires-dist = [
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "pyperclip", marker = "extra == 'all'", specifier = "==1.11.0" },
     { name = "pyperclip", marker = "extra == 'tui'", specifier = "==1.11.0" },
+    { name = "rich", marker = "extra == 'all'", specifier = ">=13.3.3" },
+    { name = "rich", marker = "extra == 'tui'", specifier = ">=13.3.3" },
     { name = "textual", marker = "extra == 'all'", specifier = ">=3.0.0" },
     { name = "textual", marker = "extra == 'tui'", specifier = ">=3.0.0" },
     { name = "typer", specifier = "==0.27.2" },
