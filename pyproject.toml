@@ -19,10 +19,6 @@ keywords = [
   "pypi",
   "npm",
   "open-url",
-  "sphinx",
-  "typer",
-  "textual",
-  "tui",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
