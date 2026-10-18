@@ -126,9 +126,7 @@ class TestYaziDocs:
     def test_page_includes_example_verbatim(self) -> None:
         """The literalinclude must reference the tested Lua file."""
         assert LUA_EXAMPLE.exists()
-        assert ".. literalinclude:: ../olink.yazi/main.lua" in YAZI_RST.read_text(
-            encoding="utf-8"
-        )
+        assert ".. literalinclude:: ../olink.yazi/main.lua" in YAZI_RST.read_text(encoding="utf-8")
 
     def test_keymap_snippet_is_valid_toml(self) -> None:
         """The keymap block must parse and bind open plus copy."""
