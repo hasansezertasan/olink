@@ -58,7 +58,7 @@ hooks = [
 
 [[repos]]
 repo = "https://github.com/astral-sh/uv-pre-commit"
-rev = "0.13.0"
+rev = "0.13.1"
 hooks = [{ id = "uv-lock" }]
 
 # Runs before ruff so any `__all__` it inserts is sorted/formatted in the same pass.
@@ -69,7 +69,7 @@ hooks = [{ id = "ensure-dunder-all", name = "Ensure __all__", files = "^src/" }]
 
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.17.0"
+rev = "v0.17.1"
 hooks = [
   { id = "ruff-check" },
   { id = "ruff-format" },
@@ -178,7 +178,7 @@ hooks = [{ id = "actionlint" }]
 # Security tab as a non-blocking dashboard. Default (regular) persona.
 [[repos]]
 repo = "https://github.com/zizmorcore/zizmor-pre-commit"
-rev = "v1.30.1"
+rev = "v1.31.1"
 hooks = [{ id = "zizmor", name = "Zizmor GitHub Actions Auditor" }]
 
 [[repos]]
