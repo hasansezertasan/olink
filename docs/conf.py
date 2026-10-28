@@ -63,10 +63,17 @@ napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 
 # -- auto-pytabs -------------------------------------------------------------
+<<<<<<< before updating
 # Keep the version tabs in sync with this project's supported Python range.
 # olink is Python 3.14-only (requires-python >= 3.14), so pin both ends to 3.14;
 # auto-pytabs otherwise defaults to (3, 7), which would mislabel the examples.
 auto_pytabs_min_version = (3, 14)
+=======
+# Keep the version tabs in sync with this project's supported Python range
+# (requires-python >= 3.11, classifiers/CI up to 3.14). auto-pytabs otherwise
+# defaults to (3, 7), which would mislabel the rendered examples.
+auto_pytabs_min_version = (3, 11)
+>>>>>>> after updating
 auto_pytabs_max_version = (3, 14)
 
 # -- Intersphinx -------------------------------------------------------------
@@ -83,7 +90,6 @@ html_theme_options = {
 }
 
 # -- Versioned docs switcher ---------------------------------------------------
-# Why versions are published this way: https://hasansezertasan.github.io/copier-pyproject/context/docs-versioning/#docs-publish-only-the-current-version-and-carry-older-built-versions-forward-from-gh-pages
 # tools/build_docs.py writes docs/_static/versions.json into each CI build from
 # the gh-pages directory listing. When present, feed the Shibuya theme's native
 # version switcher (components/nav-versions.html) via html_context. Absent (e.g.

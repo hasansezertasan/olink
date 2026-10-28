@@ -7,6 +7,13 @@ component without per-test decoration. Markers are registered in pyproject.toml
 
 Also keeps the Markdown doctest surface to the single root ``README.md``: see
 ``collect_ignore_glob`` below.
+<<<<<<< before updating
+=======
+
+Also hosts the ``missing_metadata`` fixture: every component degrades or fails
+differently when the package metadata is unreadable, but they all read it
+through ``core.app``, so one fixture covers every component's error path.
+>>>>>>> after updating
 """
 
 import shutil
@@ -18,11 +25,23 @@ from typing import TYPE_CHECKING
 import pytest
 
 if TYPE_CHECKING:
+<<<<<<< before updating
     from collections.abc import Iterator
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 REPOS_DIR = FIXTURES_DIR / "repos"
 GIT_CONFIGS_DIR = FIXTURES_DIR / "git_configs"
+=======
+    from importlib.metadata import Distribution
+
+# ``--doctest-glob=README.md`` (pyproject ``addopts``) matches on the *basename*,
+# so without this every ``tests/**/README.md`` -- fixture notes, a subdirectory
+# guide -- would also be collected as a doctest the moment it contained a ``>>>``
+# line. The root README is the whole Markdown doctest surface;
+# prose
+# under tests/ stays prose.
+collect_ignore_glob = ["*.md"]
+>>>>>>> after updating
 
 # ``--doctest-glob=README.md`` matches on the basename, so without this any
 # ``tests/**/README.md`` would also be collected as a doctest.

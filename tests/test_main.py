@@ -17,8 +17,7 @@ if TYPE_CHECKING:
 def test_main_is_callable() -> None:
     """The package exposes a callable ``main()`` entrypoint.
 
-    Every standalone-executable build (launcher / freezer / compiler — see
-    https://hasansezertasan.github.io/copier-pyproject/context/standalone-executables/#executables-are-named-per-tool-and-os-and-all-target-the-package-main-module)
+    Every standalone-executable build (launcher / freezer / compiler)
     targets ``olink.__main__:main``, so this pins the
     contract that the symbol exists and is callable for whichever component is
     enabled, and that the active branch's component import actually resolves.
@@ -47,9 +46,8 @@ def test_console_root_reports_missing_launcher_dependency(
 
     Given:
         - An environment out of sync with the installed package, so one of the
-          root's own dependencies cannot be imported -- what a ``copier update``
-          that adds the shared launcher (or enables settings) leaves behind until
-          ``uv sync``.
+          root's own dependencies cannot be imported -- what adding the shared
+          launcher (or enabling settings) leaves behind until ``uv sync``.
     When:
         - ``__main__`` loads the console root, as bare ``olink`` does.
     Then:

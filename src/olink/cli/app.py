@@ -1,3 +1,4 @@
+<<<<<<< before updating
 """CLI interface for olink.
 
 Every action is a subcommand of the single ``olink`` Typer root, so each carries
@@ -6,6 +7,15 @@ one JSON document (errors included), so agents can parse it without scraping
 prose. Secondary components (``olink interactive`` for the TUI) are
 lazily-imported subcommands rather than separate ``olink-<name>`` console scripts
 (see https://hasansezertasan.github.io/copier-pyproject/context/components/#secondary-components-are-subcommands-of-one-console-root-not-separate-scripts).
+=======
+"""CLI application for the project.
+
+The ``olink`` command is the single Typer root. Every enabled
+component other than the primary (CLI > GUI > TUI > web > MCP > worker) is hung
+off it as a lazily-imported subcommand — ``olink interactive``
+(TUI), ``olink web``, ``olink mcp``, ... — rather
+than a separate ``olink-<name>`` console script.
+>>>>>>> after updating
 """
 
 import contextlib
@@ -33,6 +43,7 @@ from olink.core.exceptions import (
 )
 
 if TYPE_CHECKING:
+<<<<<<< before updating
     from collections.abc import Generator, Mapping
 
     from typer._click.core import Context
@@ -102,6 +113,52 @@ _Target = Annotated[
 
 def _emit(payload: Mapping[str, object]) -> None:
     typer.echo(json.dumps(payload, indent=2))
+=======
+    from collections.abc import Generator
+
+__all__ = ["app", "info", "interactive", "show_version"]
+
+logger = get_logger()
+
+# Every component's runtime dependency is a core ``dependency`` of this package
+# (there are no per-component extras), so a missing one never means "install the
+# extra" -- it means this environment is out of sync with the installed metadata.
+# That happens after a component is enabled without a re-sync, or in a stale venv.
+_MISSING_DEPENDENCY = "Error: The {component} component requires '{missing}', which is not available in this environment. {hint}"  # noqa: E501
+_SYNC_HINT = f"Component dependencies ship with '{PROJECT_NAME}', so this usually means your environment is out of sync -- run `uv sync` (or reinstall the package) and try again."  # noqa: E501
+_TUI_DEPENDENCIES = ("textual", "typing_extensions")
+
+
+def _preflight(module: str) -> None:
+    """Import a component dependency eagerly, so the guard below can classify it.
+
+    Two kinds of dependency never reach the guard in a usable form. ``uvicorn``
+    and Tkinter are imported at *call* time -- after the guarded block has closed
+    -- and ``faststream.<broker>`` is a guarded re-export that raises a plain,
+    *nameless* ``ImportError`` when the broker extra is absent, which exact-name
+    matching cannot classify. Importing here, and supplying the module name when
+    the interpreter does not, puts both back in reach of the guard.
+
+    Args:
+        module: Import module name to import eagerly.
+
+    Raises:
+        ModuleNotFoundError: Naming ``module`` when it cannot be imported.
+    """
+    try:
+        _ = importlib.import_module(module)
+    except ModuleNotFoundError as exc:
+        # A nested failure belongs to the dependency being preflighted: a
+        # partially installed uvicorn or web framework may name a sub-dependency
+        # like ``click`` or ``starlette``, but the launcher's allowlist
+        # intentionally knows only its direct dependencies.
+        raise ModuleNotFoundError(str(exc), name=module) from None
+    except ImportError as exc:
+        # Not just "missing": a module whose own import raises is unusable here
+        # too, and ``uv sync`` is the same repair. This is also the only shape
+        # faststream's nameless broker-extra ``ImportError`` arrives in.
+        raise ModuleNotFoundError(str(exc), name=module) from None
+>>>>>>> after updating
 
 
 @contextlib.contextmanager
