@@ -5,7 +5,7 @@ name: Gitignore Drift Check
 # network and is inherently flaky, so this runs on a weekly schedule and on
 # demand — never on pull_request, and it is not part of the `check` aggregation
 # gate. A failure here is a maintenance signal (regenerate with cobo), not a
-# merge blocker — the same non-blocking weekly-check posture. See https://hasansezertasan.github.io/copier-pyproject/context/ci-topology/#network-dependent-checks-run-on-a-weekly-cron-never-in-the-merge-gate.
+# merge blocker — the same non-blocking weekly-check posture.
 on:
   workflow_dispatch:
   schedule:

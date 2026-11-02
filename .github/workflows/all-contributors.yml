@@ -4,7 +4,7 @@ name: All Contributors
 # all-contributors CLI and opens a PR with any change. This makes the
 # include_all_contributors toggle usable without installing the all-contributors
 # bot; the bot remains an alternative for `@all-contributors please add ...`
-# comment-driven edits. See https://hasansezertasan.github.io/copier-pyproject/context/external-integrations/#sourcery-sonarcloud-and-all-contributors-are-independent-opt-in-toggles.
+# comment-driven edits.
 #
 # It opens a PR (via create-pull-request) rather than pushing to the default
 # branch, so it respects the squash-merge policy and needs no persisted git
