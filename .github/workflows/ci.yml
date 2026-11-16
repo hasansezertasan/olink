@@ -89,7 +89,7 @@ jobs:
         # ghalint has no PyPI wrapper or pre-commit hook, so the prek `ghalint`
         # hook runs the mise-managed binary. Install mise's tools (incl. ghalint)
         # and put them on PATH before prek runs.
-        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b  # v5.2.7
+        uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d  # v5.2.9
       - name: Run prek hooks
         run: uv run --locked --group prek prek run --all-files --show-diff-on-failure
   style:
